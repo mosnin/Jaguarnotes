@@ -2,7 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { runCommandAgent } from "@/agents/command-agent";
 
-const VALID_COMMANDS = ["table", "diagram", "explain", "brainstorm", "outline"] as const;
+const VALID_COMMANDS = [
+  "table",
+  "diagram",
+  "explain",
+  "brainstorm",
+  "outline",
+  "compress",
+  "punch",
+  "counter",
+  "sowhat",
+  "assume",
+  "question",
+  "premortem",
+  "brief",
+] as const;
 type Command = typeof VALID_COMMANDS[number];
 
 export async function POST(req: NextRequest) {
@@ -23,7 +37,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const content = await runCommandAgent(command as Command, topic.trim().slice(0, 300));
+    const content = await runCommandAgent(command as Command, topic.trim().slice(0, 2000));
     return NextResponse.json({ content });
   } catch (err) {
     console.error("Command agent error:", err);
