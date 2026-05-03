@@ -1,0 +1,77 @@
+import { v } from "convex/values";
+import { query, mutation } from "./_generated/server";
+import { getAuthUserId } from "@convex-dev/auth/server";
+
+// Helper — throws if not authenticated
+async function requireUser(ctx: { auth: { getUserIdentity: () => Promise<{ subject: string } | null> } }) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Unauthenticated");
+  return identity.subject;
+}
+
+export const list = query({
+  handler: async (ctx) => {
+    const userId = await requireUser(ctx);
+    return ctx.db
+      .query("notes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const get = query({
+  args: { id: v.id("notes") },
+  handler: async (ctx, args) => {
+    const userId = await requireUser(ctx);
+    const note = await ctx.db.get(args.id);
+    if (!note || note.userId !== userId) return null;
+    return note;
+  },
+});
+
+export const create = mutation({
+  args: { title: v.string() },
+  handler: async (ctx, args) => {
+    const userId = await requireUser(ctx);
+    return ctx.db.insert("notes", {
+      userId,
+      title: args.title,
+      content: undefined,
+      preview: undefined,
+      pinned: false,
+    });
+  },
+});
+
+export const update = mutation({
+  args: {
+    id: v.id("notes"),
+    title: v.optional(v.string()),
+    content: v.optional(v.string()),
+    preview: v.optional(v.string()),
+    emoji: v.optional(v.string()),
+    pinned: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireUser(ctx);
+    const note = await ctx.db.get(args.id);
+    if (!note || note.userId !== userId) throw new Error("Not found");
+
+    const { id, ...fields } = args;
+    const patch = Object.fromEntries(
+      Object.entries(fields).filter(([, v]) => v !== undefined)
+    );
+    await ctx.db.patch(args.id, patch);
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id("notes") },
+  handler: async (ctx, args) => {
+    const userId = await requireUser(ctx);
+    const note = await ctx.db.get(args.id);
+    if (!note || note.userId !== userId) throw new Error("Not found");
+    await ctx.db.delete(args.id);
+  },
+});
