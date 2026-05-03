@@ -3,19 +3,9 @@ import OpenAI from "openai";
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 type Command =
-  | "table"
-  | "diagram"
-  | "explain"
-  | "brainstorm"
-  | "outline"
-  | "compress"
-  | "punch"
-  | "counter"
-  | "sowhat"
-  | "assume"
-  | "question"
-  | "premortem"
-  | "brief";
+  | "table" | "diagram" | "explain" | "brainstorm" | "outline"
+  | "compress" | "punch" | "counter" | "sowhat" | "assume"
+  | "question" | "premortem" | "brief";
 
 const SYSTEM_PROMPTS: Record<Command, string> = {
   table: `You are a table generator for a note-taking app.
@@ -94,12 +84,36 @@ Format exactly as follows:
 No fluff. Every line must be actionable or cut.`,
 };
 
-export async function runCommandAgent(command: Command, topic: string): Promise<string> {
-  const response = await client.responses.create({
-    model: "gpt-4o-mini",
-    instructions: SYSTEM_PROMPTS[command],
-    input: topic,
-  });
+const MAX_TOKENS: Partial<Record<Command, number>> = {
+  table: 600, diagram: 400, explain: 400, brainstorm: 500, outline: 500,
+  compress: 200, punch: 400, counter: 300, sowhat: 200, assume: 350,
+  question: 250, premortem: 400, brief: 450,
+};
 
-  return response.output_text.trim();
+export async function streamCommandAgent(command: Command, topic: string): Promise<ReadableStream<Uint8Array>> {
+  const encoder = new TextEncoder();
+
+  return new ReadableStream({
+    async start(controller) {
+      try {
+        const stream = await client.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: SYSTEM_PROMPTS[command] },
+            { role: "user", content: topic },
+          ],
+          stream: true,
+          max_tokens: MAX_TOKENS[command] ?? 500,
+          temperature: 0.7,
+        });
+
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content ?? "";
+          if (text) controller.enqueue(encoder.encode(text));
+        }
+      } finally {
+        controller.close();
+      }
+    },
+  });
 }

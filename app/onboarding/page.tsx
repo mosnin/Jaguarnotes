@@ -1,206 +1,173 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
 
-const roles = [
-  { id: "founder", label: "Founder", icon: "🚀" },
-  { id: "researcher", label: "Researcher", icon: "🔬" },
-  { id: "engineer", label: "Engineer", icon: "⚙️" },
-  { id: "writer", label: "Writer", icon: "✍️" },
-  { id: "designer", label: "Designer", icon: "🎨" },
-  { id: "other", label: "Other", icon: "✦" },
-];
+// The demo plays once, then the user enters their workspace.
+// No questionnaire. No friction. Just the magic moment.
 
-const useCases = [
-  { id: "notes", label: "Personal notes" },
-  { id: "research", label: "Research & learning" },
-  { id: "projects", label: "Project planning" },
-  { id: "writing", label: "Long-form writing" },
-  { id: "collab", label: "Team collaboration" },
-];
+const DEMO_PHRASE = "second-order thinking";
+const DEMO_EXPANSION =
+  "Second-order thinking means asking not just 'what happens next?' but 'and then what?' — tracing consequences through time to surface effects that are non-obvious, delayed, or counterintuitive. Most decisions fail not at the first step, but at the second.";
+
+type Phase = "intro" | "typing" | "tab-hint" | "streaming" | "done";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user } = useUser();
-  const [step, setStep] = useState(0);
-  const [role, setRole] = useState("");
-  const [selectedUseCases, setSelectedUseCases] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [phase, setPhase] = useState<Phase>("intro");
+  const [typed, setTyped] = useState("");
+  const [streamed, setStreamed] = useState("");
+  const frameRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const firstName = user?.firstName ?? "there";
-
-  function toggleUseCase(id: string) {
-    setSelectedUseCases((prev) =>
-      prev.includes(id) ? prev.filter((u) => u !== id) : [...prev, id]
-    );
+  function schedule(fn: () => void, delay: number) {
+    frameRef.current = setTimeout(fn, delay);
   }
 
-  async function finish() {
-    setLoading(true);
-    // In production: save preferences to Convex
-    await new Promise((r) => setTimeout(r, 600));
-    router.push("/dashboard");
-  }
+  useEffect(() => () => clearTimeout(frameRef.current), []);
+
+  // Start the demo after a beat
+  useEffect(() => {
+    if (phase === "intro") {
+      schedule(() => setPhase("typing"), 1000);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (phase === "typing") {
+      if (typed.length < DEMO_PHRASE.length) {
+        schedule(() => setTyped(DEMO_PHRASE.slice(0, typed.length + 1)), 65);
+      } else {
+        schedule(() => setPhase("tab-hint"), 600);
+      }
+    }
+
+    if (phase === "tab-hint") {
+      schedule(() => setPhase("streaming"), 900);
+    }
+
+    if (phase === "streaming") {
+      if (streamed.length < DEMO_EXPANSION.length) {
+        const chunk = Math.floor(Math.random() * 4) + 3;
+        schedule(() => setStreamed(DEMO_EXPANSION.slice(0, streamed.length + chunk)), 18 + Math.random() * 16);
+      } else {
+        schedule(() => setPhase("done"), 400);
+      }
+    }
+  }, [phase, typed, streamed]);
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-[#0a0a0a] px-4">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-[#0a0a0a] px-4">
       {/* Background grid */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        className="pointer-events-none absolute inset-0 opacity-[0.025]"
         style={{
           backgroundImage:
             "linear-gradient(#6366f1 1px, transparent 1px), linear-gradient(90deg, #6366f1 1px, transparent 1px)",
           backgroundSize: "64px 64px",
         }}
       />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-[100px]" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/8 blur-[120px]" />
 
-      <div className="relative z-10 w-full max-w-md">
-        {/* Progress */}
-        <div className="mb-8 flex gap-2">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-1 flex-1 rounded-full transition-all duration-500"
-              style={{
-                background:
-                  i <= step
-                    ? "linear-gradient(90deg, #6366f1, #8b5cf6)"
-                    : "#1e1e1e",
-              }}
-            />
-          ))}
+      <div className="relative z-10 w-full max-w-xl">
+        {/* Logo */}
+        <div className="mb-10 flex justify-center">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
+              <span className="text-sm font-bold text-white">J</span>
+            </div>
+            <span className="text-base font-semibold text-white">Jaguarnotes</span>
+          </div>
         </div>
 
-        {/* Step 0 — Welcome */}
-        {step === 0 && (
-          <div className="flex flex-col gap-6">
-            <div>
-              <p className="text-xs uppercase tracking-widest text-[#444]">Welcome</p>
-              <h1 className="mt-2 text-3xl font-bold text-white">
-                Hey, {firstName}. 👋
-              </h1>
-              <p className="mt-3 text-[#888]">
-                Jaguarnotes is different. Your AI works alongside you — not as a
-                button, but as a co-author. Let&apos;s set up your workspace.
-              </p>
+        {/* Pre-demo headline */}
+        <div
+          className={`mb-8 text-center transition-all duration-500 ${
+            phase === "intro" ? "opacity-100" : "opacity-0 h-0 overflow-hidden mb-0"
+          }`}
+        >
+          <h1 className="text-3xl font-bold text-white">This is different.</h1>
+          <p className="mt-2 text-[#555]">Watch.</p>
+        </div>
+
+        {/* Demo editor */}
+        {phase !== "intro" && (
+          <div className="overflow-hidden rounded-2xl border border-[#1e1e1e] bg-[#0d0d0d] shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-500">
+            {/* Chrome */}
+            <div className="flex items-center gap-1.5 border-b border-[#1a1a1a] px-4 py-3">
+              <div className="h-2.5 w-2.5 rounded-full bg-[#1e1e1e]" />
+              <div className="h-2.5 w-2.5 rounded-full bg-[#1e1e1e]" />
+              <div className="h-2.5 w-2.5 rounded-full bg-[#1e1e1e]" />
             </div>
 
-            <div className="rounded-xl border border-[#1e1e1e] bg-[#111] p-5 space-y-3 text-sm text-[#888]">
-              <div className="flex items-start gap-3">
-                <span className="text-indigo-400">⌥</span>
-                <div><span className="text-white">AI Autocomplete</span> — Tab to expand any concept inline.</div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-indigo-400">/</span>
-                <div><span className="text-white">Slash Commands</span> — /table, /diagram, /outline — AI generates everything.</div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-indigo-400">⚡</span>
-                <div><span className="text-white">Real-time</span> — Every note syncs instantly across all your devices.</div>
+            <div className="px-8 py-8">
+              <p className="mb-1 text-[10px] uppercase tracking-widest text-[#2a2a2a]">New note</p>
+              <p className="mb-6 text-xl font-bold text-white">Mental Models</p>
+
+              <div className="space-y-4 text-[15px]">
+                <p className="text-[#555]">Key concepts for this week:</p>
+
+                {/* Typing line */}
+                <div className="flex items-center gap-2 min-h-[24px]">
+                  <span className="text-white">{typed}</span>
+                  {(phase === "typing") && (
+                    <span className="inline-block h-4 w-px animate-pulse bg-indigo-400" />
+                  )}
+                  {phase === "tab-hint" && (
+                    <span className="inline-flex items-center gap-1.5 rounded border border-indigo-500/20 bg-indigo-500/5 px-2 py-0.5 text-[11px] text-indigo-400 animate-in fade-in duration-200">
+                      <kbd className="font-mono">Tab</kbd>
+                      <span className="text-indigo-400/50">expand with AI</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Streaming result */}
+                {(phase === "streaming" || phase === "done") && (
+                  <div
+                    className="rounded-xl border border-indigo-500/20 bg-[#0a0a0a] p-4 animate-in fade-in duration-300"
+                    style={{
+                      borderLeft: "2px solid rgba(99,102,241,0.4)",
+                      background: "linear-gradient(90deg, rgba(99,102,241,0.04) 0%, transparent 60%)",
+                    }}
+                  >
+                    <div className="mb-2 flex items-center gap-1.5">
+                      <span className="h-1 w-1 rounded-full bg-indigo-400/50" />
+                      <span className="text-[10px] uppercase tracking-widest text-indigo-400/40">AI</span>
+                    </div>
+                    <p className="text-sm leading-relaxed text-[#ccc]">
+                      {streamed}
+                      {phase === "streaming" && (
+                        <span className="ml-0.5 inline-block h-3.5 w-px animate-pulse bg-indigo-400" />
+                      )}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
+          </div>
+        )}
 
+        {/* CTA — appears after demo finishes */}
+        {phase === "done" && (
+          <div className="mt-8 flex flex-col items-center gap-3 animate-in fade-in slide-in-from-bottom-1 duration-500">
+            <p className="text-sm text-[#555]">That&apos;s it. Tab expands anything. / generates everything.</p>
             <button
-              onClick={() => setStep(1)}
-              className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 py-3.5 text-sm font-semibold text-white shadow-[0_0_30px_rgba(99,102,241,0.3)] transition-all hover:shadow-[0_0_50px_rgba(99,102,241,0.5)]"
+              onClick={() => router.push("/dashboard")}
+              className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 py-3.5 text-sm font-semibold text-white shadow-[0_0_30px_rgba(99,102,241,0.3)] transition-all hover:shadow-[0_0_50px_rgba(99,102,241,0.45)]"
             >
-              Let&apos;s go →
+              Open my workspace →
             </button>
           </div>
         )}
 
-        {/* Step 1 — Role */}
-        {step === 1 && (
-          <div className="flex flex-col gap-6">
-            <div>
-              <p className="text-xs uppercase tracking-widest text-[#444]">Step 1 of 2</p>
-              <h1 className="mt-2 text-2xl font-bold text-white">What do you do?</h1>
-              <p className="mt-2 text-sm text-[#888]">This helps us tune the AI to your context.</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {roles.map((r) => (
-                <button
-                  key={r.id}
-                  onClick={() => setRole(r.id)}
-                  className={`flex flex-col items-center gap-2 rounded-xl border p-4 text-sm transition-all ${
-                    role === r.id
-                      ? "border-indigo-500 bg-indigo-500/10 text-white"
-                      : "border-[#1e1e1e] bg-[#111] text-[#888] hover:border-[#333] hover:text-white"
-                  }`}
-                >
-                  <span className="text-xl">{r.icon}</span>
-                  <span className="font-medium">{r.label}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setStep(0)}
-                className="flex-1 rounded-xl border border-[#1e1e1e] py-3 text-sm text-[#888] transition-colors hover:border-[#333] hover:text-white"
-              >
-                Back
-              </button>
-              <button
-                onClick={() => setStep(2)}
-                disabled={!role}
-                className="flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 py-3 text-sm font-semibold text-white disabled:opacity-30 transition-all"
-              >
-                Next →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 2 — Use cases */}
-        {step === 2 && (
-          <div className="flex flex-col gap-6">
-            <div>
-              <p className="text-xs uppercase tracking-widest text-[#444]">Step 2 of 2</p>
-              <h1 className="mt-2 text-2xl font-bold text-white">How will you use it?</h1>
-              <p className="mt-2 text-sm text-[#888]">Pick all that apply.</p>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              {useCases.map((u) => (
-                <button
-                  key={u.id}
-                  onClick={() => toggleUseCase(u.id)}
-                  className={`flex items-center justify-between rounded-xl border px-4 py-3.5 text-sm transition-all ${
-                    selectedUseCases.includes(u.id)
-                      ? "border-indigo-500 bg-indigo-500/10 text-white"
-                      : "border-[#1e1e1e] bg-[#111] text-[#888] hover:border-[#333] hover:text-white"
-                  }`}
-                >
-                  <span className="font-medium">{u.label}</span>
-                  {selectedUseCases.includes(u.id) && (
-                    <svg className="h-4 w-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setStep(1)}
-                className="flex-1 rounded-xl border border-[#1e1e1e] py-3 text-sm text-[#888] transition-colors hover:border-[#333] hover:text-white"
-              >
-                Back
-              </button>
-              <button
-                onClick={finish}
-                disabled={selectedUseCases.length === 0 || loading}
-                className="flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 py-3 text-sm font-semibold text-white disabled:opacity-30 transition-all"
-              >
-                {loading ? "Setting up..." : "Enter workspace →"}
-              </button>
-            </div>
+        {/* Skip — only during demo, not after */}
+        {phase !== "intro" && phase !== "done" && (
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="text-xs text-[#2a2a2a] transition-colors hover:text-[#444]"
+            >
+              Skip
+            </button>
           </div>
         )}
       </div>

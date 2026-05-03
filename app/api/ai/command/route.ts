@@ -1,46 +1,39 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { runCommandAgent } from "@/agents/command-agent";
+import { streamCommandAgent } from "@/agents/command-agent";
 
 const VALID_COMMANDS = [
-  "table",
-  "diagram",
-  "explain",
-  "brainstorm",
-  "outline",
-  "compress",
-  "punch",
-  "counter",
-  "sowhat",
-  "assume",
-  "question",
-  "premortem",
-  "brief",
+  "table", "diagram", "explain", "brainstorm", "outline",
+  "compress", "punch", "counter", "sowhat", "assume",
+  "question", "premortem", "brief",
 ] as const;
+
 type Command = typeof VALID_COMMANDS[number];
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return new Response("Unauthorized", { status: 401 });
   }
 
   const body = await req.json();
   const { command, topic } = body;
 
   if (!VALID_COMMANDS.includes(command as Command)) {
-    return NextResponse.json({ error: "Invalid command" }, { status: 400 });
+    return new Response("Invalid command", { status: 400 });
   }
 
   if (!topic || typeof topic !== "string" || topic.trim().length < 2) {
-    return NextResponse.json({ error: "Invalid topic" }, { status: 400 });
+    return new Response("Invalid topic", { status: 400 });
   }
 
-  try {
-    const content = await runCommandAgent(command as Command, topic.trim().slice(0, 2000));
-    return NextResponse.json({ content });
-  } catch (err) {
-    console.error("Command agent error:", err);
-    return NextResponse.json({ error: "Agent failed" }, { status: 500 });
-  }
+  const stream = await streamCommandAgent(command as Command, topic.trim().slice(0, 2000));
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "no-cache",
+    },
+  });
 }

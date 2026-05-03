@@ -1,25 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { runAutocompleteAgent } from "@/agents/autocomplete-agent";
+import { streamAutocompleteAgent } from "@/agents/autocomplete-agent";
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return new Response("Unauthorized", { status: 401 });
   }
 
   const body = await req.json();
   const { context } = body;
 
   if (!context || typeof context !== "string" || context.trim().length < 2) {
-    return NextResponse.json({ error: "Invalid context" }, { status: 400 });
+    return new Response("Invalid context", { status: 400 });
   }
 
-  try {
-    const text = await runAutocompleteAgent(context.trim().slice(0, 200));
-    return NextResponse.json({ text });
-  } catch (err) {
-    console.error("Autocomplete agent error:", err);
-    return NextResponse.json({ error: "Agent failed" }, { status: 500 });
-  }
+  const stream = await streamAutocompleteAgent(context.trim().slice(0, 200));
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "no-cache",
+    },
+  });
 }

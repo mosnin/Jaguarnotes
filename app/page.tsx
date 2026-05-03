@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { AnimatedDemo } from "@/components/landing/animated-demo";
 
 export default function LandingPage() {
   return (
@@ -107,108 +108,30 @@ export default function LandingPage() {
           </SignedIn>
         </div>
 
-        {/* Editor preview */}
-        <div className="relative mx-auto mt-20 w-full max-w-4xl">
-          <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-indigo-500/20 to-transparent" />
-          <div className="relative overflow-hidden rounded-2xl border border-[#1e1e1e] bg-[#111] shadow-2xl">
-            {/* Window chrome */}
-            <div className="flex items-center gap-2 border-b border-[#1e1e1e] px-4 py-3">
-              <div className="h-3 w-3 rounded-full bg-[#2a2a2a]" />
-              <div className="h-3 w-3 rounded-full bg-[#2a2a2a]" />
-              <div className="h-3 w-3 rounded-full bg-[#2a2a2a]" />
-              <div className="ml-3 flex-1 rounded-md bg-[#1a1a1a] px-3 py-1 text-xs text-[#444]">
-                jaguarnotes.com/notes/product-strategy
-              </div>
-            </div>
-
-            {/* Mock editor content */}
-            <div className="px-8 py-8 text-left md:px-16 md:py-12">
-              <div className="mb-2 text-xs uppercase tracking-widest text-[#333]">Note</div>
-              <h2 className="mb-8 text-2xl font-bold text-white md:text-3xl">
-                Product Strategy Q3
-              </h2>
-
-              <div className="space-y-4 text-[15px] leading-relaxed">
-                <p className="text-[#888]">Our core differentiation lies in three vectors:</p>
-
-                <div className="rounded-lg border border-[#1e1e1e] bg-[#0d0d0d] p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <span className="text-xs text-indigo-400">✦ AI generated</span>
-                  </div>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-[#1e1e1e] text-left text-[#555]">
-                        <th className="pb-2 pr-6 font-medium">Vector</th>
-                        <th className="pb-2 pr-6 font-medium">Status</th>
-                        <th className="pb-2 font-medium">Priority</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-[#888]">
-                      <tr className="border-b border-[#1a1a1a]">
-                        <td className="py-2 pr-6">AI Autocomplete</td>
-                        <td className="py-2 pr-6"><span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-400">Live</span></td>
-                        <td className="py-2">Critical</td>
-                      </tr>
-                      <tr className="border-b border-[#1a1a1a]">
-                        <td className="py-2 pr-6">Real-time Collab</td>
-                        <td className="py-2 pr-6"><span className="rounded-full bg-indigo-500/10 px-2 py-0.5 text-xs text-indigo-400">Beta</span></td>
-                        <td className="py-2">High</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2 pr-6">Agent Sandbox</td>
-                        <td className="py-2 pr-6"><span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs text-amber-400">Planned</span></td>
-                        <td className="py-2">High</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="flex items-center gap-3 text-[#888]">
-                  <span className="text-indigo-400">/</span>
-                  <span className="rounded bg-[#1a1a1a] px-2 py-1 font-mono text-xs text-[#555]">diagram GTM motion</span>
-                  <span className="animate-pulse text-indigo-400">|</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Live animated demo — shows the product working, not a screenshot */}
+        <AnimatedDemo />
 
         {/* Features */}
         <div className="mx-auto mt-32 w-full max-w-5xl">
           <p className="mb-16 text-xs uppercase tracking-widest text-[#333]">
             Built for the way you actually think
           </p>
-          <div className="grid gap-px bg-[#1e1e1e] sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-px bg-[#1e1e1e] sm:grid-cols-3">
             {[
               {
                 icon: "⌥",
-                title: "AI Autocomplete",
-                desc: "Tab to expand any concept inline. No context switching, no copy-paste.",
+                title: "Tab to think",
+                desc: "Expand any concept inline. No context switch. No copy-paste. Just Tab.",
               },
               {
                 icon: "/",
-                title: "Slash Commands",
-                desc: "/table, /diagram, /outline — AI generates the content. You just ask.",
+                title: "13 AI commands",
+                desc: "Generate, compress, punch, counter, brief — the AI does the work. You direct.",
               },
               {
                 icon: "⚡",
-                title: "Real-time Sync",
-                desc: "Powered by Convex. Every keystroke synced instantly across all devices.",
-              },
-              {
-                icon: "🤖",
-                title: "Agent-powered",
-                desc: "Each command runs a focused AI agent via OpenAI Agents SDK in an isolated sandbox.",
-              },
-              {
-                icon: "🔒",
-                title: "Isolated Execution",
-                desc: "Daytona sandboxes give every agent a clean, secure environment to run in.",
-              },
-              {
-                icon: "📱",
-                title: "Works everywhere",
-                desc: "PWA-ready. Full desktop. Mobile-native. Your workspace follows you.",
+                title: "Real-time, everywhere",
+                desc: "Convex keeps every note live across all devices. PWA-ready. Always in sync.",
               },
             ].map((f) => (
               <div key={f.title} className="bg-[#0a0a0a] p-8 transition-colors hover:bg-[#0f0f0f]">
