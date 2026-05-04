@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "@/convex/_generated/api";
-import { scaleIn } from "@/lib/motion";
+import { scaleIn, useMotionVariants } from "@/lib/motion";
 import { Id } from "@/convex/_generated/dataModel";
 
 interface NoteResult {
@@ -37,6 +37,7 @@ export function SearchModal({ onDismiss, triggerRef }: SearchModalProps) {
   }, [query]);
 
   const results = (useQuery(api.notes.search, { query: debouncedQuery }) ?? []) as NoteResult[];
+  const motionProps = useMotionVariants(scaleIn);
 
   useEffect(() => { setCursor(0); }, [debouncedQuery]);
 
@@ -58,9 +59,7 @@ export function SearchModal({ onDismiss, triggerRef }: SearchModalProps) {
       onPointerDown={(e) => { if (e.target === e.currentTarget) onDismiss(); }}
     >
       <motion.div
-        variants={scaleIn}
-        initial="hidden"
-        animate="show"
+        {...motionProps}
         role="dialog"
         aria-modal="true"
         aria-label="Search notes"
@@ -81,6 +80,7 @@ export function SearchModal({ onDismiss, triggerRef }: SearchModalProps) {
             aria-expanded={results.length > 0}
             aria-haspopup="listbox"
             aria-autocomplete="list"
+            aria-activedescendant={cursor >= 0 && results.length > 0 ? `search-result-${cursor}` : undefined}
             className="flex-1 bg-transparent text-sm text-ink-1 placeholder-ink-4 outline-none"
           />
           <kbd className="rounded border border-line-2 bg-raised px-1.5 py-0.5 text-[10px] font-mono text-ink-4">Esc</kbd>
@@ -97,6 +97,7 @@ export function SearchModal({ onDismiss, triggerRef }: SearchModalProps) {
           {results.map((note, i) => (
             <button
               key={note._id}
+              id={`search-result-${i}`}
               onPointerDown={() => openNote(note._id)}
               role="option"
               aria-selected={i === cursor}

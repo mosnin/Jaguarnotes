@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { BlockNoteEditor } from "@blocknote/core";
-import { scaleIn } from "@/lib/motion";
+import { scaleIn, useMotionVariants } from "@/lib/motion";
 import { textToBlocks } from "@/lib/blocks";
 
 const COMMANDS = [
@@ -52,6 +52,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
   const [errorType, setErrorType] = useState<ErrorType>(null);
   const [showAllThink, setShowAllThink] = useState(false);
   const [refineInput, setRefineInput] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -68,6 +69,12 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
     ? thinkFiltered
     : thinkFiltered.filter((c) => THINK_FEATURED.includes(c.id as typeof THINK_FEATURED[number]));
   const thinkHiddenCount = thinkFiltered.length - thinkVisible.length;
+
+  // Flat ordered list of commands shown in list phase — used for keyboard nav indices
+  const generateVisible = filtered.filter((c) => c.group === "Generate");
+  const flatListCommands = [...generateVisible, ...thinkVisible];
+
+  const motionProps = useMotionVariants(scaleIn);
 
   useEffect(() => {
     if (selected && phase === "input" && inputRef.current) inputRef.current.focus();
@@ -94,6 +101,30 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
   }, [onDismiss, phase]);
 
   useEffect(() => () => { abortRef.current?.abort(); }, []);
+
+  // Keyboard navigation for the list phase
+  useEffect(() => {
+    if (phase !== "list") return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((i) => Math.min(i + 1, flatListCommands.length - 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex((i) => Math.max(i - 1, 0));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        const cmd = flatListCommands[selectedIndex];
+        if (cmd) { setSelected(cmd.id); setPhase("input"); }
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, selectedIndex, flatListCommands.length]);
+
+  // Reset selectedIndex when filtered list changes
+  useEffect(() => { setSelectedIndex(0); }, [query, showAllThink]);
 
   async function runStream(topicOverride?: string) {
     if (!selected) return;
@@ -190,29 +221,33 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
     <motion.div
       ref={menuRef}
       style={style}
-      variants={scaleIn}
-      initial="hidden"
-      animate="show"
+      {...motionProps}
       className="w-80 overflow-hidden rounded-xl border border-line-3 bg-surface shadow-2xl shadow-black/70"
     >
       {/* ── LIST ── */}
       {phase === "list" && (
-        <div role="listbox" aria-label="AI commands" className="max-h-[440px] overflow-y-auto py-1">
+        <div
+          role="listbox"
+          aria-label="AI commands"
+          aria-activedescendant={selectedIndex >= 0 && flatListCommands.length > 0 ? `cmd-option-${selectedIndex}` : undefined}
+          className="max-h-[440px] overflow-y-auto py-1"
+        >
           {filtered.length === 0 && (
             <p className="px-3 py-4 text-xs text-ink-4">No commands match &ldquo;{query}&rdquo;</p>
           )}
 
           {/* Generate — all 5 always visible */}
-          {filtered.filter((c) => c.group === "Generate").length > 0 && (
+          {generateVisible.length > 0 && (
             <div role="group" aria-label="Generate">
               <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Generate</p>
-              {filtered.filter((c) => c.group === "Generate").map((cmd) => (
+              {generateVisible.map((cmd, i) => (
                 <button
                   key={cmd.id}
+                  id={`cmd-option-${i}`}
                   role="option"
-                  aria-selected="false"
+                  aria-selected={selectedIndex === i}
                   onClick={() => { setSelected(cmd.id); setPhase("input"); }}
-                  className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised"
+                  className={`flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised${selectedIndex === i ? " bg-raised" : ""}`}
                 >
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
                     {cmd.icon}
@@ -230,23 +265,27 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
           {thinkVisible.length > 0 && (
             <div role="group" aria-label="Think">
               <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Think</p>
-              {thinkVisible.map((cmd) => (
-                <button
-                  key={cmd.id}
-                  role="option"
-                  aria-selected="false"
-                  onClick={() => { setSelected(cmd.id); setPhase("input"); }}
-                  className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised"
-                >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
-                    {cmd.icon}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium text-ink-1">{cmd.label}</p>
-                    <p className="text-xs text-ink-3">{cmd.desc}</p>
-                  </div>
-                </button>
-              ))}
+              {thinkVisible.map((cmd, i) => {
+                const flatIndex = generateVisible.length + i;
+                return (
+                  <button
+                    key={cmd.id}
+                    id={`cmd-option-${flatIndex}`}
+                    role="option"
+                    aria-selected={selectedIndex === flatIndex}
+                    onClick={() => { setSelected(cmd.id); setPhase("input"); }}
+                    className={`flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised${selectedIndex === flatIndex ? " bg-raised" : ""}`}
+                  >
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
+                      {cmd.icon}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium text-ink-1">{cmd.label}</p>
+                      <p className="text-xs text-ink-3">{cmd.desc}</p>
+                    </div>
+                  </button>
+                );
+              })}
               {thinkHiddenCount > 0 && (
                 <button
                   onClick={() => setShowAllThink(true)}
