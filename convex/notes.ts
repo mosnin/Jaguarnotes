@@ -175,6 +175,33 @@ export const update = mutation({
       Object.entries(fields).filter(([, v]) => v !== undefined)
     );
     await ctx.db.patch(args.id, { ...patch, updatedAt: Date.now(), version: (note.version ?? 0) + 1 });
+
+    // Snapshot version on content changes (best-effort — not every keystroke)
+    // The client throttles this call to ~every 60s, so snapshots are meaningful checkpoints
+    if (args.content !== undefined) {
+      const existingNote = await ctx.db.get(args.id);
+      if (existingNote) {
+        // Use inline insert instead of calling snapshot mutation (cross-mutation calls not allowed in Convex)
+        await (ctx.db as any).insert("noteVersions", {
+          noteId: args.id,
+          userId,
+          title: args.title ?? existingNote.title,
+          content: args.content,
+          preview: args.preview ?? existingNote.preview,
+          savedAt: Date.now(),
+        });
+        // Prune eagerly: keep last 20
+        const versions = await (ctx.db as any)
+          .query("noteVersions")
+          .withIndex("by_note_saved", (q: any) => q.eq("noteId", args.id))
+          .order("asc")
+          .collect();
+        if (versions.length > 20) {
+          const toDelete = versions.slice(0, versions.length - 20);
+          for (const ver of toDelete) await ctx.db.delete(ver._id);
+        }
+      }
+    }
   },
 });
 
@@ -185,5 +212,43 @@ export const remove = mutation({
     const note = await ctx.db.get(args.id);
     if (!note || note.userId !== userId) throw new Error("Not found");
     await ctx.db.delete(args.id);
+
+    // Cascade: delete shares for this note
+    const shares = await ctx.db
+      .query("shares")
+      .withIndex("by_note", (q) => q.eq("noteId", args.id))
+      .collect();
+    for (const share of shares) {
+      // Clean up collaboratorNotes entries for collaborators of this share
+      const collaboratorIds = share.collaboratorIds ?? [];
+      for (const collabId of collaboratorIds) {
+        const cn = await (ctx.db as any)
+          .query("collaboratorNotes")
+          .withIndex("by_user", (q: any) => q.eq("userId", collabId))
+          .collect();
+        for (const r of cn) {
+          if ((r.noteId as string) === (args.id as string)) {
+            await ctx.db.delete(r._id);
+          }
+        }
+      }
+      await ctx.db.delete(share._id);
+    }
+
+    // Cascade: delete presence records for this note
+    const presenceRecords = await ctx.db
+      .query("presence")
+      .withIndex("by_note", (q) => q.eq("noteId", args.id))
+      .collect();
+    for (const p of presenceRecords) {
+      await ctx.db.delete(p._id);
+    }
+
+    // Cascade: delete version history
+    const versionRecords = await (ctx.db as any)
+      .query("noteVersions")
+      .withIndex("by_note_saved", (q: any) => q.eq("noteId", args.id))
+      .collect();
+    for (const ver of versionRecords) await ctx.db.delete(ver._id);
   },
 });

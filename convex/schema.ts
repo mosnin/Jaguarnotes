@@ -23,6 +23,10 @@ export default defineSchema({
     .searchIndex("search_notes", {
       searchField: "title",
       filterFields: ["userId"],
+    })
+    .searchIndex("search_notes_preview", {
+      searchField: "preview",
+      filterFields: ["userId"],
     }),
 
   users: defineTable({
@@ -66,4 +70,13 @@ export default defineSchema({
     userId: v.string(),
     noteId: v.id("notes"),
   }).index("by_user", ["userId"]),
+
+  noteVersions: defineTable({
+    noteId: v.id("notes"),
+    userId: v.string(),
+    title: v.string(),
+    content: v.optional(v.string()),
+    preview: v.optional(v.string()),
+    savedAt: v.number(),
+  }).index("by_note_saved", ["noteId", "savedAt"]),
 });
