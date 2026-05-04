@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { type Toast, toast as toastEmitter } from "@/lib/toast";
-import { scaleIn } from "@/lib/motion";
+import { scaleIn, useMotionVariants } from "@/lib/motion";
 
 const ACCENT: Record<Toast["type"], string> = {
   success: "text-ok",
@@ -18,6 +18,22 @@ const LABEL: Record<Toast["type"], string> = {
   copy: "Copy notification",
   info: "Info notification",
 };
+
+function ToastItem({ toast: t, }: { toast: Toast }) {
+  const motionProps = useMotionVariants(scaleIn);
+  return (
+    <motion.div
+      key={t.id}
+      layout
+      {...motionProps}
+      exit="exit"
+      aria-label={LABEL[t.type]}
+      className="pointer-events-auto rounded-xl border border-line-2 bg-raised px-4 py-3 text-sm shadow-xl shadow-black/50"
+    >
+      <span className={ACCENT[t.type]}>{t.message}</span>
+    </motion.div>
+  );
+}
 
 export function ToastHost() {
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -44,18 +60,7 @@ export function ToastHost() {
     >
       <AnimatePresence mode="popLayout">
         {toasts.map((t) => (
-          <motion.div
-            key={t.id}
-            layout
-            variants={scaleIn}
-            initial="hidden"
-            animate="show"
-            exit="exit"
-            aria-label={LABEL[t.type]}
-            className="pointer-events-auto rounded-xl border border-line-2 bg-raised px-4 py-3 text-sm shadow-xl shadow-black/50"
-          >
-            <span className={ACCENT[t.type]}>{t.message}</span>
-          </motion.div>
+          <ToastItem key={t.id} toast={t} />
         ))}
       </AnimatePresence>
     </div>

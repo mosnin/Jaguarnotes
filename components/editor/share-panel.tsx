@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { scaleIn } from "@/lib/motion";
+import { scaleIn, useMotionVariants } from "@/lib/motion";
 import { toast } from "@/lib/toast";
 
 interface SharePanelProps {
@@ -17,6 +17,7 @@ interface SharePanelProps {
 export function SharePanel({ noteId, anchorRef, onDismiss }: SharePanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: 0, right: 0 });
+  const motionProps = useMotionVariants(scaleIn);
 
   const shareRecord = useQuery(api.shares.listForNote, { noteId: noteId as Id<"notes"> });
   const createShare = useMutation(api.shares.create);
@@ -73,9 +74,7 @@ export function SharePanel({ noteId, anchorRef, onDismiss }: SharePanelProps) {
   return (
     <motion.div
       ref={panelRef}
-      variants={scaleIn}
-      initial="hidden"
-      animate="show"
+      {...motionProps}
       role="dialog"
       aria-modal="true"
       aria-label="Share note"

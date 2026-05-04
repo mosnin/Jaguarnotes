@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { scaleIn } from "@/lib/motion";
+import { scaleIn, useMotionVariants } from "@/lib/motion";
 
 interface ShortcutsModalProps {
   onDismiss: () => void;
@@ -42,6 +42,7 @@ const SECTIONS = [
 
 export function ShortcutsModal({ onDismiss }: ShortcutsModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const motionProps = useMotionVariants(scaleIn);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -83,9 +84,7 @@ export function ShortcutsModal({ onDismiss }: ShortcutsModalProps) {
     >
       <motion.div
         ref={panelRef}
-        variants={scaleIn}
-        initial="hidden"
-        animate="show"
+        {...motionProps}
         role="dialog"
         aria-modal="true"
         aria-labelledby="shortcuts-title"
