@@ -363,7 +363,10 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
             >
               Generate
               {selectedCmd.group === "Think" && (
-                <kbd className="rounded border border-ai/20 bg-ai-hint px-1 text-[9px] font-mono">⌘↵</kbd>
+                <kbd
+                  className="rounded border border-ai/20 bg-ai-hint px-1 text-[9px] font-mono"
+                  title="Think mode: longer, step-by-step reasoning (doubles output length)"
+                >⌘↵</kbd>
               )}
             </button>
             <button

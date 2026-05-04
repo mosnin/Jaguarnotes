@@ -475,6 +475,30 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
             />
           )}
 
+          {/* Undo / Redo */}
+          <div className="flex items-center gap-0.5">
+            <button
+              onClick={() => (editor as any).undo()}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+              aria-label="Undo"
+              title="Undo (⌘Z)"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 14L4 9l5-5M4 9h10.5a6.5 6.5 0 0 1 0 13H11" />
+              </svg>
+            </button>
+            <button
+              onClick={() => (editor as any).redo()}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+              aria-label="Redo"
+              title="Redo (⌘Y)"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 14l5-5-5-5m5 5H9.5a6.5 6.5 0 0 0 0 13H13" />
+              </svg>
+            </button>
+          </div>
+
           {/* AI trigger */}
           <button
             onClick={() => setSlashMenu({ query: "" })}
