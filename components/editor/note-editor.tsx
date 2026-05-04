@@ -31,6 +31,22 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
   const [slashMenu, setSlashMenu] = useState<{ query: string } | null>(null);
   const [aiBlockIds, setAiBlockIds] = useState<Set<string>>(new Set());
 
+  // One-time first-note hint — localStorage gated, fades on first keydown
+  const [showHint, setShowHint] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !localStorage.getItem("jn_hint_seen");
+  });
+
+  useEffect(() => {
+    if (!showHint) return;
+    function dismiss() {
+      setShowHint(false);
+      localStorage.setItem("jn_hint_seen", "1");
+    }
+    document.addEventListener("keydown", dismiss, { once: true });
+    return () => document.removeEventListener("keydown", dismiss);
+  }, [showHint]);
+
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const editor = useCreateBlockNote({
@@ -164,7 +180,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
     <div className="relative flex h-full w-full flex-col overflow-hidden">
       {aiBlockStyles && <style>{aiBlockStyles}</style>}
 
-      {/* Minimal top bar — sidebar toggle + save pulse, nothing else */}
+      {/* Minimal top bar — sidebar toggle · save pulse · AI trigger */}
       <div className="flex h-10 shrink-0 items-center px-4">
         <button
           onClick={toggleSidebar}
@@ -176,12 +192,22 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
           </svg>
         </button>
 
-        {/* Save indicator — a single dot, no text */}
+        {/* Save indicator */}
         <span
           className={`ml-3 h-1.5 w-1.5 rounded-full bg-ink-1/20 transition-opacity duration-700 ${
             isSaving ? "opacity-100" : "opacity-0"
           }`}
         />
+
+        {/* Persistent AI command trigger — always visible, always one tap away */}
+        <button
+          onClick={() => setSlashMenu({ query: "" })}
+          className="ml-auto flex items-center gap-1 rounded px-2 py-1 text-[11px] text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+          aria-label="AI commands"
+        >
+          <span className="font-mono">/</span>
+          <span>AI</span>
+        </button>
       </div>
 
       {/* Full-bleed editor */}
@@ -194,6 +220,13 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
             placeholder="Untitled"
             className="mb-10 w-full bg-transparent text-[2.75rem] font-bold leading-tight tracking-tight text-ink-1 placeholder-ink-4 outline-none md:text-5xl"
           />
+
+          {/* First-note hint — ghost text, fades on first keydown, never returns */}
+          {isEmpty && showHint && (
+            <p className="mb-6 animate-in fade-in text-sm text-ink-4 duration-700 select-none">
+              Press / for AI commands · Tab to expand any concept
+            </p>
+          )}
 
           {isEmpty && (
             <AIWelcome

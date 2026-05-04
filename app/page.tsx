@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { AnimatedDemo } from "@/components/landing/animated-demo";
+import { Logo } from "@/components/ui/logo";
 
 export default function LandingPage() {
   return (
@@ -10,12 +11,7 @@ export default function LandingPage() {
 
       {/* Nav */}
       <nav className="relative z-10 flex w-full items-center justify-between px-6 py-5 md:px-12">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#7474ff] to-violet-500">
-            <span className="text-xs font-bold text-white">J</span>
-          </div>
-          <span className="text-sm font-semibold tracking-tight text-ink-1">Jaguarnotes</span>
-        </div>
+        <Logo />
 
         <div className="flex items-center gap-4">
           <SignedOut>
@@ -86,15 +82,15 @@ export default function LandingPage() {
             {[
               {
                 label: "Tab to think",
-                body: "Expand any concept inline. No context switch. No copy-paste. The AI completes the thought.",
+                body: "Any concept, expanded inline. No tab switch, no copy-paste. The thought completes itself.",
               },
               {
-                label: "13 AI commands",
-                body: "Generate, compress, punch, counter, brief — each one a scoped agent with a single job.",
+                label: "Sharpen every thought",
+                body: "Compress, punch, counter, pre-mortem. Thirteen focused agents. Each one makes your thinking harder, faster, clearer.",
               },
               {
                 label: "Real-time, everywhere",
-                body: "Convex keeps every note live across all devices. PWA-ready. Always in sync.",
+                body: "Every note, live on every device. No sync button. No conflict. Always where you left off.",
               },
             ].map((f) => (
               <div key={f.label}>
@@ -112,7 +108,7 @@ export default function LandingPage() {
               href="/sign-up"
               className="rounded-xl bg-ink-1 px-8 py-4 text-sm font-semibold text-app transition-opacity hover:opacity-85"
             >
-              Start free today
+              Start thinking better →
             </Link>
           </SignedOut>
           <SignedIn>
@@ -120,7 +116,7 @@ export default function LandingPage() {
               href="/dashboard"
               className="rounded-xl bg-ink-1 px-8 py-4 text-sm font-semibold text-app transition-opacity hover:opacity-85"
             >
-              Open workspace
+              Open workspace →
             </Link>
           </SignedIn>
         </div>

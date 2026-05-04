@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { springStd, buttonTap } from "@/lib/motion";
+import { Logo } from "@/components/ui/logo";
 
 const DEMO_PHRASE = "second-order thinking";
 const DEMO_EXPANSION =
@@ -61,12 +62,7 @@ export default function OnboardingPage() {
       <div className="relative z-10 w-full max-w-xl">
         {/* Logo */}
         <div className="mb-10 flex justify-center">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#7474ff] to-violet-500">
-              <span className="text-sm font-bold text-white">J</span>
-            </div>
-            <span className="text-base font-semibold text-ink-1">Jaguarnotes</span>
-          </div>
+          <Logo size="lg" />
         </div>
 
         {/* Pre-demo headline */}
@@ -80,7 +76,7 @@ export default function OnboardingPage() {
               transition={springStd}
               className="mb-8 text-center"
             >
-              <h1 className="text-3xl font-bold text-ink-1">This is different.</h1>
+              <h1 className="text-3xl font-bold text-ink-1">You direct. The AI writes.</h1>
               <p className="mt-2 text-ink-3">Watch.</p>
             </motion.div>
           )}
@@ -166,7 +162,7 @@ export default function OnboardingPage() {
               transition={springStd}
               className="mt-8 flex flex-col items-center gap-3"
             >
-              <p className="text-sm text-ink-3">That&apos;s it. Tab expands anything. / generates everything.</p>
+              <p className="text-sm text-ink-3">Every concept expanded. Every idea sharpened. One keystroke away.</p>
               <motion.button
                 {...buttonTap}
                 onClick={() => router.push("/dashboard")}

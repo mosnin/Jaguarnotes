@@ -7,6 +7,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { motion } from "framer-motion";
 import { slideLeft } from "@/lib/motion";
+import { Logo } from "@/components/ui/logo";
 import { useSidebar } from "./sidebar-context";
 
 export function Sidebar() {
@@ -31,12 +32,7 @@ export function Sidebar() {
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-5">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-[#7474ff] to-violet-500">
-            <span className="text-xs font-bold text-white">J</span>
-          </div>
-          <span className="text-sm font-semibold tracking-tight text-ink-1">Jaguarnotes</span>
-        </div>
+        <Logo size="sm" />
         <button
           onClick={() => setOpen(false)}
           className="rounded-md p-1.5 text-ink-4 transition-colors hover:text-ink-2"

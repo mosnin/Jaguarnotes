@@ -122,10 +122,10 @@ export function AnimatedDemo() {
         {/* Editor content */}
         <div className="px-10 py-10 md:px-16 md:py-12">
           <div className="mb-1 text-[10px] uppercase tracking-widest text-ink-4">Note</div>
-          <h2 className="mb-8 text-2xl font-bold text-ink-1">AI Research Notes</h2>
+          <h2 className="mb-8 text-2xl font-bold text-ink-1">Strategy Notes</h2>
 
           <div className="space-y-6 text-[15px] leading-relaxed text-ink-2">
-            <p>Core concepts to understand before the lecture:</p>
+            <p>Things worth thinking harder about:</p>
 
             {/* Typing line */}
             <div className="flex items-center gap-0">

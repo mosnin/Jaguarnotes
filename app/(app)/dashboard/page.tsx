@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
@@ -15,10 +16,18 @@ export default function DashboardPage() {
   const notes = useQuery(api.notes.list) ?? [];
   const createNote = useMutation(api.notes.create);
   const { toggle: toggleSidebar } = useSidebar();
+  const [quickTopic, setQuickTopic] = useState("");
 
   async function handleNewNote() {
     const id = await createNote({ title: "Untitled" });
     router.push(`/notes/${id}`);
+  }
+
+  async function handleQuickStart(e: React.FormEvent) {
+    e.preventDefault();
+    if (!quickTopic.trim()) return;
+    const id = await createNote({ title: quickTopic.trim() });
+    router.push(`/notes/${id}?cmd=brainstorm&topic=${encodeURIComponent(quickTopic.trim())}`);
   }
 
   const firstName = user?.firstName ?? "there";
@@ -52,7 +61,7 @@ export default function DashboardPage() {
           </h1>
           <p className="mt-2 text-sm text-ink-4">
             {notes.length === 0
-              ? "Your workspace is empty."
+              ? "What are you thinking about?"
               : `${notes.length} note${notes.length === 1 ? "" : "s"}`}
           </p>
         </motion.div>
@@ -65,10 +74,10 @@ export default function DashboardPage() {
           className="mb-10 grid gap-2 grid-cols-2 sm:grid-cols-4"
         >
           {[
-            { label: "New note",       sub: "Blank canvas",          action: handleNewNote },
-            { label: "Brainstorm",     sub: "AI idea generation",    action: async () => { const id = await createNote({ title: "Brainstorm" }); router.push(`/notes/${id}?cmd=brainstorm`); } },
-            { label: "Outline",        sub: "AI structured outline", action: async () => { const id = await createNote({ title: "Outline" }); router.push(`/notes/${id}?cmd=outline`); } },
-            { label: "Meeting notes",  sub: "Fast capture",          action: async () => { const id = await createNote({ title: "Meeting Notes" }); router.push(`/notes/${id}`); } },
+            { label: "New note",      sub: "Empty canvas, anything goes",    action: handleNewNote },
+            { label: "Brainstorm",    sub: "Turn a seed into a full idea",   action: async () => { const id = await createNote({ title: "Brainstorm" }); router.push(`/notes/${id}?cmd=brainstorm`); } },
+            { label: "Outline",       sub: "Structure a thought from scratch", action: async () => { const id = await createNote({ title: "Outline" }); router.push(`/notes/${id}?cmd=outline`); } },
+            { label: "Meeting notes", sub: "Capture it before it's gone",    action: async () => { const id = await createNote({ title: "Meeting Notes" }); router.push(`/notes/${id}`); } },
           ].map((item) => (
             <motion.button
               key={item.label}
@@ -118,22 +127,33 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Empty state */}
+        {/* Empty state — AI-first quick-start input */}
         {notes.length === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, type: "spring", stiffness: 280, damping: 32 }}
-            className="flex flex-col items-start py-10"
+            className="max-w-lg py-8"
           >
-            <p className="mb-6 text-ink-4">Nothing here yet.</p>
-            <motion.button
-              {...buttonTap}
-              onClick={handleNewNote}
-              className="rounded-xl bg-ink-1 px-6 py-3 text-sm font-semibold text-app transition-opacity hover:opacity-85"
-            >
-              Create first note
-            </motion.button>
+            <form onSubmit={handleQuickStart} className="flex flex-col gap-3">
+              <input
+                value={quickTopic}
+                onChange={(e) => setQuickTopic(e.target.value)}
+                placeholder="What do you want to think through?"
+                className="w-full rounded-xl border border-line-2 bg-surface px-5 py-4 text-base text-ink-1 placeholder-ink-4 outline-none transition-colors focus:border-line-3"
+              />
+              <p className="text-xs text-ink-4">
+                Press Enter to brainstorm —{" "}
+                <button
+                  type="button"
+                  onClick={handleNewNote}
+                  className="text-ink-3 transition-colors hover:text-ink-1"
+                >
+                  or create a blank note
+                </button>
+                .
+              </p>
+            </form>
           </motion.div>
         )}
       </div>
