@@ -16,9 +16,10 @@ interface NoteLinkPickerProps {
   anchorRef: React.RefObject<HTMLButtonElement | null>;
   onSelect: (id: Id<"notes">, title: string) => void;
   onDismiss: () => void;
+  onQueryChange?: (query: string) => void;
 }
 
-export function NoteLinkPicker({ notes, anchorRef, onSelect, onDismiss }: NoteLinkPickerProps) {
+export function NoteLinkPicker({ notes, anchorRef, onSelect, onDismiss, onQueryChange }: NoteLinkPickerProps) {
   const [search, setSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -65,7 +66,7 @@ export function NoteLinkPicker({ notes, anchorRef, onSelect, onDismiss }: NoteLi
         <input
           ref={inputRef}
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); onQueryChange?.(e.target.value); }}
           placeholder="Search notes…"
           className="w-full bg-transparent text-sm text-ink-1 placeholder-ink-4 outline-none"
         />

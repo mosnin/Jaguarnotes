@@ -110,14 +110,19 @@ const MAX_TOKENS: Partial<Record<Command, number>> = {
   question: 250, premortem: 400, brief: 450, research: 500,
 };
 
-export async function streamCommandAgent(command: Command, topic: string): Promise<ReadableStream<Uint8Array>> {
+export async function streamCommandAgent(command: Command, topic: string, think = false): Promise<ReadableStream<Uint8Array>> {
   const encoder = new TextEncoder();
 
   let systemPrompt = SYSTEM_PROMPTS[command];
+  if (think) {
+    systemPrompt = "Think step by step before answering.\n\n" + systemPrompt;
+  }
   if (WEB_COMMANDS.has(command)) {
     const webContext = await getWebContext(topic);
     if (webContext) systemPrompt += `\n\nWeb context:\n${webContext}`;
   }
+
+  const maxTokens = think ? (MAX_TOKENS[command] ?? 500) * 2 : (MAX_TOKENS[command] ?? 500);
 
   return new ReadableStream({
     async start(controller) {
@@ -134,7 +139,7 @@ export async function streamCommandAgent(command: Command, topic: string): Promi
             { role: "user", content: topic },
           ],
           stream: true,
-          max_tokens: MAX_TOKENS[command] ?? 500,
+          max_tokens: maxTokens,
           temperature: 0.7,
         });
 

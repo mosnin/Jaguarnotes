@@ -39,7 +39,15 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
   const router = useRouter();
   const { user } = useUser();
   const note = useQuery(api.notes.get, { id: noteId as Id<"notes"> });
+  // allNotes is kept for two purposes: (1) resolving outgoing linkedNoteIds to titles in the
+  // "Links to" panel, and (2) looking up a target note's existing backlinkIds in handleLinkNote.
+  // Children and the link picker now use targeted queries instead.
   const allNotes = useQuery(api.notes.list) ?? [];
+  const childrenNotes = useQuery(api.notes.listChildren, { parentId: noteId as Id<"notes"> }) ?? [];
+  const linkResults = useQuery(
+    api.notes.search,
+    linkQuery.trim().length >= 1 ? { query: linkQuery } : "skip"
+  ) ?? [];
   const backlinksQuery = useQuery(api.notes.getBacklinks, { noteId: noteId as Id<"notes"> });
   const updateNote = useMutation(api.notes.update);
   const createNote = useMutation(api.notes.create);
@@ -52,9 +60,9 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     note?.parentId ? { id: note.parentId } : "skip"
   );
 
-  // Derived: backlinks via targeted query; children still from allNotes
+  // Derived: backlinks via targeted query; children via listChildren targeted query
   const backlinks = backlinksQuery ?? [];
-  const children = allNotes.filter((n) => n.parentId === noteId);
+  const children = childrenNotes;
 
   const [title, setTitle] = useState("");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -64,6 +72,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
   const [tagInput, setTagInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showLinkPicker, setShowLinkPicker] = useState(false);
+  const [linkQuery, setLinkQuery] = useState("");
   const [showOverflowMenu, setShowOverflowMenu] = useState(false);
   const [showSharePanel, setShowSharePanel] = useState(false);
   const [autocomplete, setAutocomplete] = useState<{
@@ -83,6 +92,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
 
   const linkButtonRef = useRef<HTMLButtonElement>(null);
   const overflowButtonRef = useRef<HTMLButtonElement>(null);
+  const saveAttemptRef = useRef(0);
 
   // One-time hint — dismisses only on Tab press or after 90s
   const [showHint, setShowHint] = useState(() => {
@@ -132,6 +142,28 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     }
   }, [note?._id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const attemptSave = useCallback(
+    async (patch: Parameters<typeof updateNote>[0], attempt = 0): Promise<void> => {
+      try {
+        await updateNote(patch);
+        setSaveStatus("saved");
+        saveAttemptRef.current = 0;
+        clearTimeout(saveStatusTimerRef.current);
+        saveStatusTimerRef.current = setTimeout(() => setSaveStatus("idle"), 1500);
+      } catch (err) {
+        if (attempt < 2) {
+          const delay = attempt === 0 ? 2_000 : 6_000;
+          await new Promise((r) => setTimeout(r, delay));
+          return attemptSave(patch, attempt + 1);
+        }
+        setSaveStatus("idle");
+        toast.error("Save failed — check your connection.");
+        trackError("scheduleSave", err);
+      }
+    },
+    [updateNote]
+  );
+
   const scheduleSave = useCallback(
     (content: string, newTitle?: string) => {
       clearTimeout(saveTimeoutRef.current);
@@ -148,19 +180,10 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           })
           .join(" ")
           .slice(0, 150);
-        try {
-          await updateNote({ id: noteId as Id<"notes">, title: newTitle ?? title, content, preview });
-          setSaveStatus("saved");
-          clearTimeout(saveStatusTimerRef.current);
-          saveStatusTimerRef.current = setTimeout(() => setSaveStatus("idle"), 1500);
-        } catch (err) {
-          setSaveStatus("idle");
-          toast.error("Save failed — check your connection.");
-          trackError("scheduleSave", err);
-        }
+        await attemptSave({ id: noteId as Id<"notes">, title: newTitle ?? title, content, preview });
       }, 800);
     },
-    [noteId, title, editor, updateNote]
+    [noteId, title, editor, attemptSave]
   );
 
   function handleEditorChange() {
@@ -675,10 +698,11 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
 
       {showLinkPicker && (
         <NoteLinkPicker
-          notes={allNotes.filter((n) => n._id !== noteId)}
+          notes={linkResults.filter((n) => n._id !== noteId)}
           anchorRef={linkButtonRef}
           onSelect={handleLinkNote}
-          onDismiss={() => setShowLinkPicker(false)}
+          onDismiss={() => { setShowLinkPicker(false); setLinkQuery(""); }}
+          onQueryChange={setLinkQuery}
         />
       )}
 

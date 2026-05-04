@@ -1,23 +1,23 @@
 import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { streamAutocompleteAgent } from "@/agents/autocomplete-agent";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
 
-const rl = new Map<string, number[]>();
-function allowed(uid: string, max = 30, windowMs = 60_000): boolean {
-  const now = Date.now();
-  const ts = (rl.get(uid) ?? []).filter((t) => now - t < windowMs);
-  if (ts.length >= max) return false;
-  ts.push(now);
-  rl.set(uid, ts);
-  return true;
-}
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
   }
-  if (!allowed(userId)) {
+  const canProceed = await convex.mutation(api.rateLimits.check, {
+    userId,
+    endpoint: "autocomplete",
+    max: 30,
+    windowMs: 60_000,
+  });
+  if (!canProceed) {
     return new Response("Rate limit exceeded. Try again in a minute.", { status: 429 });
   }
 

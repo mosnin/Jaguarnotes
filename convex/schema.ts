@@ -54,4 +54,10 @@ export default defineSchema({
   })
     .index("by_note", ["noteId"])
     .index("by_user_note", ["userId", "noteId"]),
+
+  rateLimits: defineTable({
+    userId: v.string(),
+    endpoint: v.string(),
+    timestamps: v.array(v.number()),
+  }).index("by_user_endpoint", ["userId", "endpoint"]),
 });

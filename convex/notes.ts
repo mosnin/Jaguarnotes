@@ -65,6 +65,19 @@ export const getBacklinks = query({
   },
 });
 
+export const listChildren = query({
+  args: { parentId: v.id("notes") },
+  handler: async (ctx, args) => {
+    const userId = await requireUser(ctx);
+    return ctx.db
+      .query("notes")
+      .withIndex("by_user_parent", (q) =>
+        q.eq("userId", userId).eq("parentId", args.parentId)
+      )
+      .collect();
+  },
+});
+
 export const search = query({
   args: { query: v.string() },
   handler: async (ctx, args) => {

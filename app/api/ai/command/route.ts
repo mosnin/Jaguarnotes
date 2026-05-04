@@ -1,17 +1,10 @@
 import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { streamCommandAgent } from "@/agents/command-agent";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
 
-// Per-process sliding window rate limiter (best-effort on serverless)
-const rl = new Map<string, number[]>();
-function allowed(uid: string, max = 20, windowMs = 60_000): boolean {
-  const now = Date.now();
-  const ts = (rl.get(uid) ?? []).filter((t) => now - t < windowMs);
-  if (ts.length >= max) return false;
-  ts.push(now);
-  rl.set(uid, ts);
-  return true;
-}
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 const VALID_COMMANDS = [
   "table", "diagram", "explain", "brainstorm", "outline",
@@ -26,12 +19,18 @@ export async function POST(req: NextRequest) {
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
   }
-  if (!allowed(userId)) {
+  const body = await req.json();
+  const { command, topic, think } = body;
+
+  const canProceed = await convex.mutation(api.rateLimits.check, {
+    userId,
+    endpoint: "command",
+    max: 20,
+    windowMs: 60_000,
+  });
+  if (!canProceed) {
     return new Response("Rate limit exceeded. Try again in a minute.", { status: 429 });
   }
-
-  const body = await req.json();
-  const { command, topic } = body;
 
   if (!VALID_COMMANDS.includes(command as Command)) {
     return new Response("Invalid command", { status: 400 });
@@ -41,7 +40,7 @@ export async function POST(req: NextRequest) {
     return new Response("Invalid topic", { status: 400 });
   }
 
-  const stream = await streamCommandAgent(command as Command, topic.trim().slice(0, 2000));
+  const stream = await streamCommandAgent(command as Command, topic.trim().slice(0, 2000), !!think);
 
   return new Response(stream, {
     headers: {

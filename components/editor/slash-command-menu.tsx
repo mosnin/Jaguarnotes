@@ -50,6 +50,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
   );
   const [streamedText, setStreamedText] = useState("");
   const [errorType, setErrorType] = useState<ErrorType>(null);
+  const [thinkMode, setThinkMode] = useState(false);
   const [showAllThink, setShowAllThink] = useState(false);
   const [refineInput, setRefineInput] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
