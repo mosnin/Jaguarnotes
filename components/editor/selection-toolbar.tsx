@@ -4,9 +4,9 @@ import { motion } from "framer-motion";
 import { scaleIn } from "@/lib/motion";
 
 const COMMANDS = [
-  { id: "compress", label: "Compress" },
-  { id: "punch",    label: "Punch"    },
-  { id: "explain",  label: "Explain"  },
+  { id: "compress", label: "Make it shorter" },
+  { id: "punch",    label: "Make it sharper"  },
+  { id: "explain",  label: "Expand this"      },
 ] as const;
 
 interface SelectionToolbarProps {

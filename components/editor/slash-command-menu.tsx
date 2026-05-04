@@ -46,6 +46,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
     initialCommand && initialTopic ? "input" : "list"
   );
   const [streamedText, setStreamedText] = useState("");
+  const [showAllThink, setShowAllThink] = useState(false);
   const inputRef = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -54,6 +55,14 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
     (c) => !query || c.label.toLowerCase().includes(query.toLowerCase()) || c.id.includes(query.toLowerCase())
   );
   const selectedCmd = COMMANDS.find((c) => c.id === selected);
+
+  // Featured Think commands — the 3 most immediately understandable
+  const THINK_FEATURED = ["compress", "premortem", "punch"] as const;
+  const thinkFiltered = filtered.filter((c) => c.group === "Think");
+  const thinkVisible = showAllThink || query
+    ? thinkFiltered
+    : thinkFiltered.filter((c) => THINK_FEATURED.includes(c.id as typeof THINK_FEATURED[number]));
+  const thinkHiddenCount = thinkFiltered.length - thinkVisible.length;
 
   useEffect(() => {
     if (selected && phase === "input" && inputRef.current) inputRef.current.focus();
@@ -67,13 +76,17 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Click outside to dismiss — locked during streaming to prevent silent content loss
   useEffect(() => {
     function onPointerDown(e: PointerEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) onDismiss();
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        if (phase === "streaming") return;
+        onDismiss();
+      }
     }
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [onDismiss]);
+  }, [onDismiss, phase]);
 
   useEffect(() => () => { abortRef.current?.abort(); }, []);
 
@@ -156,30 +169,61 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
           {filtered.length === 0 && (
             <p className="px-3 py-4 text-xs text-ink-4">No commands match &ldquo;{query}&rdquo;</p>
           )}
-          {(["Generate", "Think"] as const).map((group) => {
-            const cmds = filtered.filter((c) => c.group === group);
-            if (!cmds.length) return null;
-            return (
-              <div key={group}>
-                <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">{group}</p>
-                {cmds.map((cmd) => (
-                  <button
-                    key={cmd.id}
-                    onClick={() => { setSelected(cmd.id); setPhase("input"); }}
-                    className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised"
-                  >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
-                      {cmd.icon}
-                    </span>
-                    <div>
-                      <p className="text-sm font-medium text-ink-1">{cmd.label}</p>
-                      <p className="text-xs text-ink-3">{cmd.desc}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            );
-          })}
+
+          {/* Generate — all 5 always visible */}
+          {filtered.filter((c) => c.group === "Generate").length > 0 && (
+            <div>
+              <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Generate</p>
+              {filtered.filter((c) => c.group === "Generate").map((cmd) => (
+                <button
+                  key={cmd.id}
+                  onClick={() => { setSelected(cmd.id); setPhase("input"); }}
+                  className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised"
+                >
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
+                    {cmd.icon}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium text-ink-1">{cmd.label}</p>
+                    <p className="text-xs text-ink-3">{cmd.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Think — featured 3 by default, expand to all 8 */}
+          {thinkVisible.length > 0 && (
+            <div>
+              <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Think</p>
+              {thinkVisible.map((cmd) => (
+                <button
+                  key={cmd.id}
+                  onClick={() => { setSelected(cmd.id); setPhase("input"); }}
+                  className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised"
+                >
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
+                    {cmd.icon}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium text-ink-1">{cmd.label}</p>
+                    <p className="text-xs text-ink-3">{cmd.desc}</p>
+                  </div>
+                </button>
+              ))}
+              {thinkHiddenCount > 0 && (
+                <button
+                  onClick={() => setShowAllThink(true)}
+                  className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised"
+                >
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-xs text-ink-4">
+                    +{thinkHiddenCount}
+                  </span>
+                  <p className="text-sm text-ink-4">More thinking tools</p>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 

@@ -107,7 +107,7 @@ export function AIWelcome({ onInsert, onDismiss }: AIWelcomeProps) {
             transition={{ duration: 0.15 }}
             className="py-2"
           >
-            <p className="mb-6 text-base text-ink-3">Your thinking partner is ready.</p>
+            <p className="mb-6 text-base text-ink-3">Tell me what you're thinking.</p>
 
             <div className="flex flex-col gap-1.5">
               {QUICK_STARTS.map((q) => (

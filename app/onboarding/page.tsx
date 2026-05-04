@@ -10,7 +10,7 @@ const DEMO_PHRASE = "second-order thinking";
 const DEMO_EXPANSION =
   "Second-order thinking means asking not just 'what happens next?' but 'and then what?' — tracing consequences through time to surface effects that are non-obvious, delayed, or counterintuitive. Most decisions fail not at the first step, but at the second.";
 
-type Phase = "intro" | "typing" | "tab-hint" | "streaming" | "done";
+type Phase = "intro" | "typing" | "tab-hint" | "streaming" | "resolving" | "done";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -49,8 +49,12 @@ export default function OnboardingPage() {
         const chunk = Math.floor(Math.random() * 4) + 3;
         schedule(() => setStreamed(DEMO_EXPANSION.slice(0, streamed.length + chunk)), 18 + Math.random() * 16);
       } else {
-        schedule(() => setPhase("done"), 400);
+        schedule(() => setPhase("resolving"), 400);
       }
+    }
+
+    if (phase === "resolving") {
+      schedule(() => setPhase("done"), 2000);
     }
   }, [phase, typed, streamed]);
 
@@ -124,7 +128,7 @@ export default function OnboardingPage() {
 
                 {/* Streaming result */}
                 <AnimatePresence>
-                  {(phase === "streaming" || phase === "done") && (
+                  {(phase === "streaming" || phase === "resolving" || phase === "done") && (
                     <motion.div
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -153,6 +157,22 @@ export default function OnboardingPage() {
           </motion.div>
         )}
 
+        {/* Resolving beat — "That's your editor." lands before the CTA */}
+        <AnimatePresence>
+          {phase === "resolving" && (
+            <motion.p
+              key="resolving"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={springStd}
+              className="mt-8 text-center text-sm text-ink-3"
+            >
+              That&apos;s your editor.
+            </motion.p>
+          )}
+        </AnimatePresence>
+
         {/* CTA */}
         <AnimatePresence>
           {phase === "done" && (
@@ -178,7 +198,7 @@ export default function OnboardingPage() {
         </AnimatePresence>
 
         {/* Skip */}
-        {phase !== "intro" && phase !== "done" && (
+        {phase !== "intro" && phase !== "resolving" && phase !== "done" && (
           <div className="mt-6 flex justify-center">
             <button
               onClick={() => router.push("/dashboard")}

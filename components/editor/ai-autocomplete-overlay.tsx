@@ -61,16 +61,17 @@ export function AIAutocompleteOverlay({
     return () => controller.abort();
   }, [context]);
 
-  // Click outside to dismiss
+  // Click outside to dismiss — but not while streaming (would silently discard content)
   useEffect(() => {
     function onPointerDown(e: PointerEvent) {
       if (overlayRef.current && !overlayRef.current.contains(e.target as Node)) {
+        if (!done) return;
         onDismiss();
       }
     }
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [onDismiss]);
+  }, [onDismiss, done]);
 
   // Keyboard: Enter to insert, Escape to dismiss
   useEffect(() => {

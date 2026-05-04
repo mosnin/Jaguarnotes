@@ -174,8 +174,13 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
         return;
       }
 
-      // Slash command — triggers from any cursor position (no line-start constraint)
+      // Slash command — line-start or after space only (mid-word / is not a command)
       if (e.key === "/" && !autocomplete && !slashMenu) {
+        const sel = window.getSelection();
+        if (!sel?.rangeCount) return;
+        const before = (sel.getRangeAt(0).startContainer.textContent ?? "")
+          .slice(0, sel.getRangeAt(0).startOffset);
+        if (before.trim() !== "" && !before.endsWith(" ")) return;
         setTimeout(() => setSlashMenu({ query: "" }), 10);
       }
     }
