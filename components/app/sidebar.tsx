@@ -113,35 +113,73 @@ export function Sidebar() {
         );
       })()}
 
-      {/* Notes list */}
+      {/* Notes list — hierarchical tree */}
       <div className="flex-1 overflow-y-auto px-3 pt-2">
         {notes.length > 0 && (
           <p className="mb-1 px-3 text-[10px] uppercase tracking-widest text-ink-4">
             {search || selectedTag ? "Results" : "Recent"}
           </p>
         )}
-        {notes
-          .filter((n) => {
-            if (selectedTag && !(n.tags ?? []).includes(selectedTag)) return false;
-            if (search && !(n.title || "Untitled").toLowerCase().includes(search.toLowerCase())) return false;
-            return true;
-          })
-          .slice(0, 20)
-          .map((note) => (
-            <Link
-              key={note._id}
-              href={`/notes/${note._id}`}
-              onClick={() => setOpen(false)}
-              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
-                pathname === `/notes/${note._id}`
-                  ? "bg-raised text-ink-1"
-                  : "text-ink-4 hover:bg-hover hover:text-ink-2"
-              }`}
-            >
-              {note.emoji && <span className="shrink-0 text-sm">{note.emoji}</span>}
-              <span className="truncate">{note.title || "Untitled"}</span>
-            </Link>
-          ))}
+        {(() => {
+          // Build child map for tree rendering
+          const childMap = new Map<string, typeof notes>();
+          notes.forEach((n) => {
+            if (n.parentId) {
+              const list = childMap.get(n.parentId) ?? [];
+              list.push(n);
+              childMap.set(n.parentId, list);
+            }
+          });
+
+          // Root notes matching search/tag filter
+          const rootNotes = notes
+            .filter((n) => {
+              if (n.parentId) return false;
+              if (selectedTag && !(n.tags ?? []).includes(selectedTag)) return false;
+              if (search && !(n.title || "Untitled").toLowerCase().includes(search.toLowerCase())) return false;
+              return true;
+            })
+            .slice(0, 20);
+
+          return rootNotes.map((note) => {
+            const kids = childMap.get(note._id) ?? [];
+            return (
+              <div key={note._id}>
+                <Link
+                  href={`/notes/${note._id}`}
+                  onClick={() => setOpen(false)}
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                    pathname === `/notes/${note._id}`
+                      ? "bg-raised text-ink-1"
+                      : "text-ink-4 hover:bg-hover hover:text-ink-2"
+                  }`}
+                >
+                  {note.emoji && <span className="shrink-0 text-sm">{note.emoji}</span>}
+                  <span className="truncate">{note.title || "Untitled"}</span>
+                  {kids.length > 0 && (
+                    <span className="ml-auto shrink-0 text-[9px] text-ink-4">{kids.length}</span>
+                  )}
+                </Link>
+                {kids.map((child) => (
+                  <Link
+                    key={child._id}
+                    href={`/notes/${child._id}`}
+                    onClick={() => setOpen(false)}
+                    className={`ml-4 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition-colors ${
+                      pathname === `/notes/${child._id}`
+                        ? "bg-raised text-ink-1"
+                        : "text-ink-4 hover:bg-hover hover:text-ink-2"
+                    }`}
+                  >
+                    <span className="select-none text-ink-4">└</span>
+                    {child.emoji && <span className="shrink-0">{child.emoji}</span>}
+                    <span className="truncate">{child.title || "Untitled"}</span>
+                  </Link>
+                ))}
+              </div>
+            );
+          });
+        })()}
       </div>
 
       {/* Account */}

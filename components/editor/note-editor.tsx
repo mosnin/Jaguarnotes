@@ -9,10 +9,13 @@ import { BlockNoteView } from "@blocknote/mantine";
 import { PartialBlock } from "@blocknote/core";
 import "@blocknote/mantine/style.css";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AIAutocompleteOverlay } from "./ai-autocomplete-overlay";
 import { SlashCommandMenu } from "./slash-command-menu";
 import { AIWelcome } from "./ai-welcome";
 import { SelectionToolbar } from "./selection-toolbar";
+import { NoteLinkPicker } from "./note-link-picker";
 import { useSidebar } from "@/components/app/sidebar-context";
 import { blocksToMarkdown } from "@/lib/blocks";
 
@@ -27,9 +30,24 @@ interface NoteEditorProps {
 type SaveStatus = "idle" | "saving" | "saved";
 
 export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps) {
+  const router = useRouter();
   const note = useQuery(api.notes.get, { id: noteId as Id<"notes"> });
+  const allNotes = useQuery(api.notes.list) ?? [];
   const updateNote = useMutation(api.notes.update);
+  const createNote = useMutation(api.notes.create);
   const { toggle: toggleSidebar } = useSidebar();
+
+  // Fetch parent note when this is a child note
+  const parentNote = useQuery(
+    api.notes.get,
+    note?.parentId ? { id: note.parentId } : "skip"
+  );
+
+  // Derived: backlinks (notes that explicitly link to this one) and children
+  const backlinks = allNotes.filter(
+    (n) => n._id !== noteId && (n.linkedNoteIds ?? []).includes(noteId as Id<"notes">)
+  );
+  const children = allNotes.filter((n) => n.parentId === noteId);
 
   const [title, setTitle] = useState("");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -38,6 +56,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showLinkPicker, setShowLinkPicker] = useState(false);
   const [autocomplete, setAutocomplete] = useState<{
     context: string;
     position: { top: number; left: number };
@@ -52,6 +71,8 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     text: string;
     position: { top: number; left: number };
   } | null>(null);
+
+  const linkButtonRef = useRef<HTMLButtonElement>(null);
 
   // One-time hint — dismisses only on Tab press or after 90s
   const [showHint, setShowHint] = useState(() => {
@@ -181,6 +202,24 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     URL.revokeObjectURL(url);
   }
 
+  function handleLinkNote(selectedId: Id<"notes">, selectedTitle: string) {
+    const current = note?.linkedNoteIds ?? [];
+    if ((current as string[]).includes(selectedId)) { setShowLinkPicker(false); return; }
+    updateNote({ id: noteId as Id<"notes">, linkedNoteIds: [...current, selectedId] });
+    const refBlock: PartialBlock = {
+      type: "paragraph",
+      content: [{ type: "text", text: `→ ${selectedTitle}`, styles: {} }],
+    };
+    editor.insertBlocks([refBlock], editor.getTextCursorPosition().block, "after");
+    handleEditorChange();
+    setShowLinkPicker(false);
+  }
+
+  async function handleNewSubNote() {
+    const id = await createNote({ title: "Untitled", parentId: noteId as Id<"notes"> });
+    router.push(`/notes/${id}`);
+  }
+
   // Keyboard handlers
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -189,6 +228,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
         setSlashMenu(null);
         setSelectionToolbar(null);
         setShowEmojiPicker(false);
+        setShowLinkPicker(false);
         return;
       }
 
@@ -290,6 +330,19 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           </svg>
         </button>
 
+        {/* Breadcrumb — visible when this is a child note */}
+        {parentNote && (
+          <Link
+            href={`/notes/${parentNote._id}`}
+            className="ml-2 flex items-center gap-1 text-[11px] text-ink-4 transition-colors hover:text-ink-2"
+          >
+            <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="max-w-[120px] truncate">{parentNote.title || "Untitled"}</span>
+          </Link>
+        )}
+
         {/* Save status */}
         <AnimatePresence mode="wait">
           {saveStatus === "saving" && (
@@ -303,6 +356,19 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
         </AnimatePresence>
 
         <div className="ml-auto flex items-center gap-1">
+          {/* Link note */}
+          <button
+            ref={linkButtonRef}
+            onClick={() => setShowLinkPicker((v) => !v)}
+            title="Link to another note"
+            className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-raised ${showLinkPicker ? "text-ai" : "text-ink-4 hover:text-ink-2"}`}
+          >
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          </button>
+
           {/* Pin */}
           <button
             onClick={togglePin}
@@ -418,6 +484,79 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
               <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
             </div>
           )}
+
+          {/* Sub-notes — always rendered, Norman's affordance fix */}
+          <div className="mt-12 border-t border-line-1 pt-6">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-[10px] uppercase tracking-widest text-ink-4">Sub-notes</span>
+              {/* Only root notes can have sub-notes (2-level max) */}
+              {!note.parentId && (
+                <button
+                  onClick={handleNewSubNote}
+                  className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+                >
+                  <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+                  </svg>
+                  New sub-note
+                </button>
+              )}
+            </div>
+            {children.length === 0 ? (
+              <p className="text-xs text-ink-4">No sub-notes yet.</p>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                {children.map((child) => (
+                  <Link
+                    key={child._id}
+                    href={`/notes/${child._id}`}
+                    className="flex items-center gap-2 rounded-lg border border-line-1 px-3 py-2 text-sm text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-1"
+                  >
+                    {child.emoji && <span className="shrink-0">{child.emoji}</span>}
+                    <span className="truncate">{child.title || "Untitled"}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Connections panel — always rendered, Norman's gulf of evaluation fix */}
+          <div className="mt-8 border-t border-line-1 pb-16 pt-6">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-widest text-ink-4">Connections</span>
+              {backlinks.length > 0 && (
+                <span className="rounded-full bg-raised px-1.5 py-0.5 text-[9px] text-ink-3">
+                  {backlinks.length}
+                </span>
+              )}
+            </div>
+            {backlinks.length === 0 ? (
+              <p className="text-xs text-ink-4">
+                No connections yet.{" "}
+                <button
+                  onClick={() => setShowLinkPicker(true)}
+                  className="text-ink-3 underline decoration-ink-4 underline-offset-2 transition-colors hover:text-ink-1"
+                >
+                  Link another note
+                </button>{" "}
+                to see backlinks here.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                {backlinks.map((bl) => (
+                  <Link
+                    key={bl._id}
+                    href={`/notes/${bl._id}`}
+                    className="flex items-center gap-2 rounded-lg border border-line-1 px-3 py-2 text-sm text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-1"
+                  >
+                    {bl.emoji && <span className="shrink-0">{bl.emoji}</span>}
+                    <span className="truncate">{bl.title || "Untitled"}</span>
+                    <span className="ml-auto shrink-0 text-[10px] text-ink-4">references this</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -459,6 +598,15 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
             setSlashMenu({ query: "", initialCommand: cmd, initialTopic: text });
             setSelectionToolbar(null);
           }}
+        />
+      )}
+
+      {showLinkPicker && (
+        <NoteLinkPicker
+          notes={allNotes.filter((n) => n._id !== noteId)}
+          anchorRef={linkButtonRef}
+          onSelect={handleLinkNote}
+          onDismiss={() => setShowLinkPicker(false)}
         />
       )}
     </div>

@@ -11,9 +11,12 @@ export default defineSchema({
     pinned: v.optional(v.boolean()),
     aiBlockIds: v.optional(v.array(v.string())),
     tags: v.optional(v.array(v.string())),
+    linkedNoteIds: v.optional(v.array(v.id("notes"))),
+    parentId: v.optional(v.id("notes")),
   })
     .index("by_user", ["userId"])
-    .index("by_user_pinned", ["userId", "pinned"]),
+    .index("by_user_pinned", ["userId", "pinned"])
+    .index("by_user_parent", ["userId", "parentId"]),
 
   users: defineTable({
     clerkId: v.string(),

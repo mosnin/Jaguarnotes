@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "@/lib/utils";
@@ -16,7 +16,14 @@ export default function DashboardPage() {
   const notes = useQuery(api.notes.list) ?? [];
   const createNote = useMutation(api.notes.create);
   const { toggle: toggleSidebar } = useSidebar();
+  const searchParams = useSearchParams();
+  const activeTag = searchParams.get("tag");
   const [quickTopic, setQuickTopic] = useState("");
+
+  // Tag clusters — tags appearing on 3+ notes surface as actionable groups
+  const tagFrequency = new Map<string, number>();
+  notes.forEach((n) => (n.tags ?? []).forEach((t) => tagFrequency.set(t, (tagFrequency.get(t) ?? 0) + 1)));
+  const clusters = [...tagFrequency.entries()].filter(([, c]) => c >= 3).sort((a, b) => b[1] - a[1]);
 
   async function handleNewNote() {
     const id = await createNote({ title: "Untitled" });
@@ -62,7 +69,7 @@ export default function DashboardPage() {
           <p className="mt-2 text-sm text-ink-4">
             {notes.length === 0
               ? "What are you thinking about?"
-              : `${notes.length} note${notes.length === 1 ? "" : "s"}`}
+              : `${notes.filter((n) => !n.parentId).length} note${notes.filter((n) => !n.parentId).length === 1 ? "" : "s"}`}
           </p>
         </motion.div>
 
@@ -105,6 +112,31 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
+        {/* Tag clusters — structure from behavior */}
+        {clusters.length > 0 && (
+          <div className="mb-8">
+            <p className="mb-4 text-[10px] uppercase tracking-widest text-ink-4">Clusters</p>
+            <div className="flex flex-wrap gap-2">
+              {clusters.map(([tag, count]) => (
+                <button
+                  key={tag}
+                  onClick={() => router.push(activeTag === tag ? "/dashboard" : `/dashboard?tag=${encodeURIComponent(tag)}`)}
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                    activeTag === tag
+                      ? "border-ai/40 bg-ai-dim text-ai"
+                      : "border-line-1 text-ink-3 hover:border-line-2 hover:bg-raised"
+                  }`}
+                >
+                  <span className="font-medium">{count}</span>
+                  <span className="text-ink-4">·</span>
+                  <span>{tag}</span>
+                  <span className="text-ink-4">→</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Pinned notes */}
         {notes.some((n) => n.pinned) && (
           <div className="mb-8">
@@ -123,10 +155,10 @@ export default function DashboardPage() {
         )}
 
         {/* Recent notes grid */}
-        {notes.length > 0 && (
+        {notes.filter((n) => !n.pinned && !n.parentId && (!activeTag || (n.tags ?? []).includes(activeTag))).length > 0 && (
           <div>
             <p className="mb-4 text-[10px] uppercase tracking-widest text-ink-4">
-              {notes.some((n) => n.pinned) ? "Recent" : "Notes"}
+              {activeTag ? activeTag : notes.some((n) => n.pinned) ? "Recent" : "Notes"}
             </p>
             <motion.div
               variants={staggerContainer}
@@ -134,9 +166,11 @@ export default function DashboardPage() {
               animate="show"
               className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
-              {notes.filter((n) => !n.pinned).map((note) => (
-                <NoteCard key={note._id} note={note} onClick={() => router.push(`/notes/${note._id}`)} />
-              ))}
+              {notes
+                .filter((n) => !n.pinned && !n.parentId && (!activeTag || (n.tags ?? []).includes(activeTag)))
+                .map((note) => (
+                  <NoteCard key={note._id} note={note} onClick={() => router.push(`/notes/${note._id}`)} />
+                ))}
             </motion.div>
           </div>
         )}

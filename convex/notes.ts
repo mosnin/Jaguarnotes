@@ -31,7 +31,7 @@ export const get = query({
 });
 
 export const create = mutation({
-  args: { title: v.string() },
+  args: { title: v.string(), parentId: v.optional(v.id("notes")) },
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx);
     return ctx.db.insert("notes", {
@@ -40,6 +40,7 @@ export const create = mutation({
       content: undefined,
       preview: undefined,
       pinned: false,
+      ...(args.parentId ? { parentId: args.parentId } : {}),
     });
   },
 });
@@ -54,6 +55,8 @@ export const update = mutation({
     pinned: v.optional(v.boolean()),
     aiBlockIds: v.optional(v.array(v.string())),
     tags: v.optional(v.array(v.string())),
+    linkedNoteIds: v.optional(v.array(v.id("notes"))),
+    parentId: v.optional(v.id("notes")),
   },
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx);
