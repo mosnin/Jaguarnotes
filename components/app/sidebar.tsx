@@ -18,6 +18,7 @@ export function Sidebar() {
   const notes = useQuery(api.notes.list) ?? [];
   const createNote = useMutation(api.notes.create);
   const [search, setSearch] = useState("");
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   async function handleNewNote() {
     const id = await createNote({ title: "Untitled" });
@@ -89,30 +90,58 @@ export function Sidebar() {
         </div>
       )}
 
+      {/* Tag filter */}
+      {(() => {
+        const allTags = [...new Set(notes.flatMap((n) => n.tags ?? []))];
+        if (allTags.length === 0) return null;
+        return (
+          <div className="flex flex-wrap gap-1 px-3 pb-2">
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                className={`rounded-full border px-2 py-0.5 text-[10px] transition-colors ${
+                  selectedTag === tag
+                    ? "border-ai/40 bg-ai-dim text-ai"
+                    : "border-line-1 text-ink-4 hover:border-line-2 hover:text-ink-3"
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        );
+      })()}
+
       {/* Notes list */}
       <div className="flex-1 overflow-y-auto px-3 pt-2">
         {notes.length > 0 && (
           <p className="mb-1 px-3 text-[10px] uppercase tracking-widest text-ink-4">
-            {search ? "Results" : "Recent"}
+            {search || selectedTag ? "Results" : "Recent"}
           </p>
         )}
-        {(search
-          ? notes.filter((n) => (n.title || "Untitled").toLowerCase().includes(search.toLowerCase()))
-          : notes.slice(0, 20)
-        ).map((note) => (
-          <Link
-            key={note._id}
-            href={`/notes/${note._id}`}
-            onClick={() => setOpen(false)}
-            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
-              pathname === `/notes/${note._id}`
-                ? "bg-raised text-ink-1"
-                : "text-ink-4 hover:bg-hover hover:text-ink-2"
-            }`}
-          >
-            <span className="truncate">{note.title || "Untitled"}</span>
-          </Link>
-        ))}
+        {notes
+          .filter((n) => {
+            if (selectedTag && !(n.tags ?? []).includes(selectedTag)) return false;
+            if (search && !(n.title || "Untitled").toLowerCase().includes(search.toLowerCase())) return false;
+            return true;
+          })
+          .slice(0, 20)
+          .map((note) => (
+            <Link
+              key={note._id}
+              href={`/notes/${note._id}`}
+              onClick={() => setOpen(false)}
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                pathname === `/notes/${note._id}`
+                  ? "bg-raised text-ink-1"
+                  : "text-ink-4 hover:bg-hover hover:text-ink-2"
+              }`}
+            >
+              {note.emoji && <span className="shrink-0 text-sm">{note.emoji}</span>}
+              <span className="truncate">{note.title || "Untitled"}</span>
+            </Link>
+          ))}
       </div>
 
       {/* Account */}

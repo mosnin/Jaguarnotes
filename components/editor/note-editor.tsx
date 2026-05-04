@@ -14,6 +14,9 @@ import { SlashCommandMenu } from "./slash-command-menu";
 import { AIWelcome } from "./ai-welcome";
 import { SelectionToolbar } from "./selection-toolbar";
 import { useSidebar } from "@/components/app/sidebar-context";
+import { blocksToMarkdown } from "@/lib/blocks";
+
+const EMOJIS = ["📝","💡","🎯","🔍","📊","✅","🚀","💬","📌","⚡","🌟","🎨","📅","🧠","💭","🔑","📈","🗒️","🔗","📋","🏗️","🧪","🎤","📣","🌱"];
 
 interface NoteEditorProps {
   noteId: string;
@@ -31,6 +34,10 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
   const [title, setTitle] = useState("");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [isEmpty, setIsEmpty] = useState(true);
+  const [emoji, setEmoji] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [autocomplete, setAutocomplete] = useState<{
     context: string;
     position: { top: number; left: number };
@@ -46,7 +53,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     position: { top: number; left: number };
   } | null>(null);
 
-  // One-time hint — dismisses only on Tab press or after 90s (not on arbitrary keydown)
+  // One-time hint — dismisses only on Tab press or after 90s
   const [showHint, setShowHint] = useState(() => {
     if (typeof window === "undefined") return false;
     return !localStorage.getItem("jn_hint_seen");
@@ -54,24 +61,18 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
 
   useEffect(() => {
     if (!showHint) return;
-
     function dismissOnTab(e: KeyboardEvent) {
       if (e.key === "Tab") {
         setShowHint(false);
         localStorage.setItem("jn_hint_seen", "1");
       }
     }
-
     const timer = setTimeout(() => {
       setShowHint(false);
       localStorage.setItem("jn_hint_seen", "1");
     }, 90_000);
-
     document.addEventListener("keydown", dismissOnTab);
-    return () => {
-      document.removeEventListener("keydown", dismissOnTab);
-      clearTimeout(timer);
-    };
+    return () => { document.removeEventListener("keydown", dismissOnTab); clearTimeout(timer); };
   }, [showHint]);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
@@ -81,19 +82,19 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     initialContent: note?.content ? JSON.parse(note.content) : undefined,
   });
 
-  // Load note state on mount (title, isEmpty, persisted AI block IDs)
+  // Load note state on mount
   useEffect(() => {
     if (note) {
       setTitle(note.title ?? "Untitled");
       const hasContent = !!note.content && note.content !== "[]";
       setIsEmpty(!hasContent);
-      if (note.aiBlockIds?.length) {
-        setAiBlockIds(new Set(note.aiBlockIds));
-      }
+      if (note.aiBlockIds?.length) setAiBlockIds(new Set(note.aiBlockIds));
+      setTags(note.tags ?? []);
+      setEmoji(note.emoji ?? "");
     }
   }, [note?._id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-trigger from URL params (e.g. dashboard quick-start)
+  // Auto-trigger from URL params
   useEffect(() => {
     if (initialCmd && initialTopic && note) {
       setSlashMenu({ query: "", initialCommand: initialCmd, initialTopic });
@@ -116,14 +117,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           })
           .join(" ")
           .slice(0, 150);
-
-        await updateNote({
-          id: noteId as Id<"notes">,
-          title: newTitle ?? title,
-          content,
-          preview,
-        });
-
+        await updateNote({ id: noteId as Id<"notes">, title: newTitle ?? title, content, preview });
         setSaveStatus("saved");
         clearTimeout(saveStatusTimerRef.current);
         saveStatusTimerRef.current = setTimeout(() => setSaveStatus("idle"), 1500);
@@ -149,13 +143,52 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     scheduleSave(JSON.stringify(editor.document), value);
   }
 
-  // Keyboard: Escape, Tab-autocomplete, slash-command
+  function addTag() {
+    const tag = tagInput.trim().toLowerCase().replace(/,/g, "");
+    if (!tag || tags.includes(tag)) { setTagInput(""); return; }
+    const next = [...tags, tag];
+    setTags(next);
+    setTagInput("");
+    updateNote({ id: noteId as Id<"notes">, tags: next });
+  }
+
+  function removeTag(tag: string) {
+    const next = tags.filter((t) => t !== tag);
+    setTags(next);
+    updateNote({ id: noteId as Id<"notes">, tags: next });
+  }
+
+  function pickEmoji(e: string) {
+    const next = emoji === e ? "" : e;
+    setEmoji(next);
+    setShowEmojiPicker(false);
+    updateNote({ id: noteId as Id<"notes">, emoji: next });
+  }
+
+  function togglePin() {
+    updateNote({ id: noteId as Id<"notes">, pinned: !note?.pinned });
+  }
+
+  function handleExport() {
+    const markdown = blocksToMarkdown(editor.document as Parameters<typeof blocksToMarkdown>[0]);
+    const content = `# ${title}\n\n${markdown}`;
+    const blob = new Blob([content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(title || "note").replace(/[^a-z0-9]/gi, "-").toLowerCase()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Keyboard handlers
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         setAutocomplete(null);
         setSlashMenu(null);
         setSelectionToolbar(null);
+        setShowEmojiPicker(false);
         return;
       }
 
@@ -174,7 +207,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
         return;
       }
 
-      // Slash command — line-start or after space only (mid-word / is not a command)
+      // Slash command — line-start or after space only
       if (e.key === "/" && !autocomplete && !slashMenu) {
         const sel = window.getSelection();
         if (!sel?.rangeCount) return;
@@ -184,31 +217,20 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
         setTimeout(() => setSlashMenu({ query: "" }), 10);
       }
     }
-
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [autocomplete, slashMenu]);
 
-  // Selection toolbar — appears on text selection ≥ 10 chars
+  // Selection toolbar
   useEffect(() => {
     function onMouseUp() {
       const sel = window.getSelection();
-      if (!sel || sel.isCollapsed) {
-        setSelectionToolbar(null);
-        return;
-      }
+      if (!sel || sel.isCollapsed) { setSelectionToolbar(null); return; }
       const text = sel.toString().trim();
-      if (text.length < 10) {
-        setSelectionToolbar(null);
-        return;
-      }
+      if (text.length < 10) { setSelectionToolbar(null); return; }
       const rect = sel.getRangeAt(0).getBoundingClientRect();
-      setSelectionToolbar({
-        text,
-        position: { top: rect.top - 44, left: rect.left + rect.width / 2 },
-      });
+      setSelectionToolbar({ text, position: { top: rect.top - 44, left: rect.left + rect.width / 2 } });
     }
-
     document.addEventListener("mouseup", onMouseUp);
     return () => document.removeEventListener("mouseup", onMouseUp);
   }, []);
@@ -234,24 +256,14 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
   function handleAIBlockInserted(blockId: string) {
     setAiBlockIds((prev) => {
       const next = new Set([...prev, blockId]);
-      // Persist immediately — don't wait for the debounced content save
       updateNote({ id: noteId as Id<"notes">, aiBlockIds: [...next] });
       return next;
     });
     handleEditorChange();
   }
 
-  // AI block marker: left border — one clean signal, persisted across reloads
   const aiBlockStyles = [...aiBlockIds]
-    .map(
-      (id) => `
-      [data-id="${id}"] {
-        border-left: 2px solid rgba(116, 116, 255, 0.45) !important;
-        padding-left: 14px !important;
-        margin-left: -16px !important;
-      }
-    `
-    )
+    .map((id) => `[data-id="${id}"] { border-left: 2px solid rgba(116,116,255,0.45) !important; padding-left: 14px !important; margin-left: -16px !important; }`)
     .join("");
 
   if (!note) {
@@ -266,8 +278,8 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     <div className="relative flex h-full w-full flex-col overflow-hidden">
       {aiBlockStyles && <style>{aiBlockStyles}</style>}
 
-      {/* Top bar — sidebar toggle · save status · AI trigger */}
-      <div className="flex h-10 shrink-0 items-center px-4">
+      {/* Top bar */}
+      <div className="flex h-10 shrink-0 items-center gap-1 px-4">
         <button
           onClick={toggleSidebar}
           className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
@@ -278,55 +290,116 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           </svg>
         </button>
 
-        {/* Save status — dot while saving, "Saved" text on completion */}
+        {/* Save status */}
         <AnimatePresence mode="wait">
           {saveStatus === "saving" && (
-            <motion.span
-              key="saving"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="ml-3 h-1.5 w-1.5 rounded-full bg-ink-1/20 animate-pulse"
-            />
+            <motion.span key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
+              className="ml-2 h-1.5 w-1.5 rounded-full bg-ink-1/20 animate-pulse" />
           )}
           {saveStatus === "saved" && (
-            <motion.span
-              key="saved"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="ml-3 text-[10px] text-ink-4"
-            >
-              Saved
-            </motion.span>
+            <motion.span key="saved" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
+              className="ml-2 text-[10px] text-ink-4">Saved</motion.span>
           )}
         </AnimatePresence>
 
-        {/* Persistent AI command trigger */}
-        <button
-          onClick={() => setSlashMenu({ query: "" })}
-          className="ml-auto flex items-center gap-1 rounded border border-line-1 px-2 py-1 text-[11px] text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-2"
-          aria-label="AI commands"
-        >
-          <span className="font-mono">/</span>
-          <span>AI</span>
-        </button>
+        <div className="ml-auto flex items-center gap-1">
+          {/* Pin */}
+          <button
+            onClick={togglePin}
+            title={note.pinned ? "Unpin" : "Pin"}
+            className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-raised ${note.pinned ? "text-ai" : "text-ink-4 hover:text-ink-2"}`}
+          >
+            <svg className="h-3.5 w-3.5" fill={note.pinned ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+          </button>
+
+          {/* Export */}
+          <button
+            onClick={handleExport}
+            title="Export as Markdown"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          </button>
+
+          {/* AI trigger */}
+          <button
+            onClick={() => setSlashMenu({ query: "" })}
+            className="flex items-center gap-1 rounded border border-line-1 px-2 py-1 text-[11px] text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-2"
+            aria-label="AI commands"
+          >
+            <span className="font-mono">/</span>
+            <span>AI</span>
+          </button>
+        </div>
       </div>
 
       {/* Editor */}
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-3xl px-6 pb-32 pt-8 md:px-12 md:pt-14">
-          {/* Title — hover bottom border signals editability */}
-          <input
-            value={title}
-            onChange={(e) => handleTitleChange(e.target.value)}
-            placeholder="Untitled"
-            className="mb-10 w-full cursor-text border-b border-transparent bg-transparent text-[2.75rem] font-bold leading-tight tracking-tight text-ink-1 placeholder-ink-4 outline-none transition-colors hover:border-line-1 focus:border-transparent md:text-5xl"
-          />
 
-          {/* First-note hint — stays until Tab is pressed or 90s passes */}
+          {/* Emoji + Title row */}
+          <div className="mb-3 flex items-start gap-3">
+            {/* Emoji picker */}
+            <div className="relative mt-2 shrink-0">
+              <button
+                onClick={() => setShowEmojiPicker((v) => !v)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-lg transition-colors hover:bg-raised"
+                title="Set emoji"
+              >
+                {emoji || <span className="text-sm text-ink-4">○</span>}
+              </button>
+              {showEmojiPicker && (
+                <div className="absolute left-0 top-10 z-50 grid w-56 grid-cols-5 gap-1 rounded-xl border border-line-2 bg-surface p-2 shadow-2xl shadow-black/60">
+                  {emoji && (
+                    <button onClick={() => pickEmoji("")} className="col-span-5 mb-1 rounded-md px-2 py-1 text-left text-[10px] text-ink-4 hover:bg-raised hover:text-ink-2">
+                      Remove emoji
+                    </button>
+                  )}
+                  {EMOJIS.map((e) => (
+                    <button key={e} onClick={() => pickEmoji(e)}
+                      className={`flex items-center justify-center rounded-md p-1.5 text-base transition-colors hover:bg-raised ${emoji === e ? "bg-raised" : ""}`}>
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Title */}
+            <input
+              value={title}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              placeholder="Untitled"
+              className="flex-1 cursor-text border-b border-transparent bg-transparent text-[2.75rem] font-bold leading-tight tracking-tight text-ink-1 placeholder-ink-4 outline-none transition-colors hover:border-line-1 focus:border-transparent md:text-5xl"
+            />
+          </div>
+
+          {/* Tags */}
+          <div className="mb-8 flex flex-wrap items-center gap-1.5">
+            {tags.map((tag) => (
+              <span key={tag} className="flex items-center gap-1 rounded-full border border-line-1 px-2.5 py-0.5 text-xs text-ink-3">
+                {tag}
+                <button onClick={() => removeTag(tag)} className="ml-0.5 text-ink-4 transition-colors hover:text-ink-2">×</button>
+              </span>
+            ))}
+            <input
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value.replace(",", ""))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(); }
+                if (e.key === "Backspace" && !tagInput && tags.length > 0) removeTag(tags[tags.length - 1]);
+              }}
+              onBlur={addTag}
+              placeholder={tags.length === 0 ? "Add tags…" : ""}
+              className="min-w-[70px] bg-transparent text-xs text-ink-3 placeholder-ink-4 outline-none"
+            />
+          </div>
+
+          {/* First-note hint */}
           {isEmpty && showHint && (
             <p className="mb-6 animate-in fade-in text-sm text-ink-4 duration-700 select-none">
               Press / for AI commands · Tab to expand any concept
@@ -334,10 +407,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           )}
 
           {isEmpty && (
-            <AIWelcome
-              onInsert={handleAIInsert}
-              onDismiss={() => setIsEmpty(false)}
-            />
+            <AIWelcome onInsert={handleAIInsert} onDismiss={() => setIsEmpty(false)} />
           )}
 
           <div className={isEmpty ? "pointer-events-none opacity-0 h-0 overflow-hidden" : ""}>

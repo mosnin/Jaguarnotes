@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { BlockNoteEditor, PartialBlock } from "@blocknote/core";
+import { BlockNoteEditor } from "@blocknote/core";
 import { scaleIn } from "@/lib/motion";
+import { textToBlocks } from "@/lib/blocks";
 
 const COMMANDS = [
   // Generate
@@ -127,14 +128,12 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
   }
 
   function insertContent() {
-    const blockId = `ai-${crypto.randomUUID()}`;
-    const block: PartialBlock = {
-      id: blockId,
-      type: "paragraph",
-      content: [{ type: "text", text: streamedText, styles: {} }],
-    };
-    editor.insertBlocks([block], editor.getTextCursorPosition().block, "after");
-    onInserted(blockId);
+    const blocks = textToBlocks(streamedText, selected ?? "");
+    // Stamp the first block with an ai- ID so it gets the blue border marker
+    const firstId = `ai-${crypto.randomUUID()}`;
+    const stamped = blocks.map((b, i) => i === 0 ? { ...b, id: firstId } : b);
+    editor.insertBlocks(stamped, editor.getTextCursorPosition().block, "after");
+    onInserted(firstId);
     onDismiss();
   }
 

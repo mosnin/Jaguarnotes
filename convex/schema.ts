@@ -10,6 +10,7 @@ export default defineSchema({
     emoji: v.optional(v.string()),
     pinned: v.optional(v.boolean()),
     aiBlockIds: v.optional(v.array(v.string())),
+    tags: v.optional(v.array(v.string())),
   })
     .index("by_user", ["userId"])
     .index("by_user_pinned", ["userId", "pinned"]),

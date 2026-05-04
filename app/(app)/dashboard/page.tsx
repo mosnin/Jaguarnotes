@@ -105,36 +105,37 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Notes grid */}
-        {notes.length > 0 && (
-          <div>
-            <p className="mb-4 text-[10px] uppercase tracking-widest text-ink-4">Recent</p>
+        {/* Pinned notes */}
+        {notes.some((n) => n.pinned) && (
+          <div className="mb-8">
+            <p className="mb-4 text-[10px] uppercase tracking-widest text-ink-4">Pinned</p>
             <motion.div
               variants={staggerContainer}
               initial="hidden"
               animate="show"
               className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
-              {notes.map((note) => (
-                <motion.button
-                  key={note._id}
-                  variants={staggerItem}
-                  {...cardHover}
-                  onClick={() => router.push(`/notes/${note._id}`)}
-                  className="flex flex-col gap-2 rounded-lg border border-line-1 bg-surface p-4 text-left transition-colors hover:border-line-2 hover:bg-raised"
-                >
-                  <div className="flex items-start justify-between">
-                    <p className="truncate text-sm font-medium text-ink-1">
-                      {note.title || "Untitled"}
-                    </p>
-                    <span className="ml-2 shrink-0 text-[10px] text-ink-4">
-                      {formatDistanceToNow(note._creationTime)}
-                    </span>
-                  </div>
-                  <p className="line-clamp-2 text-xs leading-relaxed text-ink-3">
-                    {note.preview || "No content yet"}
-                  </p>
-                </motion.button>
+              {notes.filter((n) => n.pinned).map((note) => (
+                <NoteCard key={note._id} note={note} onClick={() => router.push(`/notes/${note._id}`)} />
+              ))}
+            </motion.div>
+          </div>
+        )}
+
+        {/* Recent notes grid */}
+        {notes.length > 0 && (
+          <div>
+            <p className="mb-4 text-[10px] uppercase tracking-widest text-ink-4">
+              {notes.some((n) => n.pinned) ? "Recent" : "Notes"}
+            </p>
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+              className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            >
+              {notes.filter((n) => !n.pinned).map((note) => (
+                <NoteCard key={note._id} note={note} onClick={() => router.push(`/notes/${note._id}`)} />
               ))}
             </motion.div>
           </div>
@@ -171,6 +172,42 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function NoteCard({ note, onClick }: { note: { _id: string; _creationTime: number; title: string; preview?: string; emoji?: string; tags?: string[]; pinned?: boolean }; onClick: () => void }) {
+  return (
+    <motion.button
+      variants={staggerItem}
+      {...cardHover}
+      onClick={onClick}
+      className="flex flex-col gap-2 rounded-lg border border-line-1 bg-surface p-4 text-left transition-colors hover:border-line-2 hover:bg-raised"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-1.5">
+          {note.emoji && <span className="shrink-0 text-base leading-none">{note.emoji}</span>}
+          <p className="truncate text-sm font-medium text-ink-1">{note.title || "Untitled"}</p>
+        </div>
+        <span className="shrink-0 text-[10px] text-ink-4">{formatDistanceToNow(note._creationTime)}</span>
+      </div>
+      <p className="line-clamp-2 text-xs leading-relaxed text-ink-3">
+        {note.preview || "No content yet"}
+      </p>
+      {note.tags && note.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {note.tags.slice(0, 3).map((tag) => (
+            <span key={tag} className="rounded-full border border-line-1 px-2 py-0.5 text-[10px] text-ink-4">
+              {tag}
+            </span>
+          ))}
+          {note.tags.length > 3 && (
+            <span className="rounded-full border border-line-1 px-2 py-0.5 text-[10px] text-ink-4">
+              +{note.tags.length - 3}
+            </span>
+          )}
+        </div>
+      )}
+    </motion.button>
   );
 }
 
