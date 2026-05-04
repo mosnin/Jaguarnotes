@@ -40,7 +40,7 @@ export const upsert = mutation({
 export const getActive = query({
   args: { noteId: v.id("notes") },
   handler: async (ctx, args) => {
-    const cutoff = Date.now() - 60_000;
+    const cutoff = Date.now() - 30_000;
     const records = await ctx.db
       .query("presence")
       .withIndex("by_note", (q) => q.eq("noteId", args.noteId))

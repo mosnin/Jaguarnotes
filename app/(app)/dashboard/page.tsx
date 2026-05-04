@@ -9,11 +9,13 @@ import { motion } from "framer-motion";
 import { formatDistanceToNow } from "@/lib/utils";
 import { staggerContainer, staggerItem, cardHover, buttonTap } from "@/lib/motion";
 import { useSidebar } from "@/components/app/sidebar-context";
+import { NoteCardSkeleton } from "@/components/ui/note-card-skeleton";
 
 export default function DashboardPage() {
   const { user } = useUser();
   const router = useRouter();
-  const notes = useQuery(api.notes.list) ?? [];
+  const notesQuery = useQuery(api.notes.list);
+  const notes = notesQuery ?? [];
   const sharedNotes = useQuery(api.notes.listShared) ?? [];
   const createNote = useMutation(api.notes.create);
   const { toggle: toggleSidebar } = useSidebar();
@@ -42,8 +44,8 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
-      {/* Top bar — sidebar toggle only */}
-      <div className="flex h-10 shrink-0 items-center px-6 md:px-8">
+      {/* Top bar */}
+      <div className="flex h-10 shrink-0 items-center justify-between px-6 md:px-8">
         <motion.button
           {...buttonTap}
           onClick={toggleSidebar}
@@ -54,6 +56,7 @@ export default function DashboardPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </motion.button>
+        <kbd className="hidden rounded border border-line-1 bg-raised px-2 py-0.5 text-[10px] font-mono text-ink-4 md:block">⌘K search</kbd>
       </div>
 
       <div className="flex-1 px-6 pb-16 pt-6 md:px-8 md:pt-10">
@@ -155,8 +158,15 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Recent notes grid */}
-        {notes.filter((n) => !n.pinned && !n.parentId && (!activeTag || (n.tags ?? []).includes(activeTag))).length > 0 && (
+        {/* Recent notes grid — skeleton while loading */}
+        {notesQuery === undefined ? (
+          <div>
+            <p className="mb-4 text-[10px] uppercase tracking-widest text-ink-4">Notes</p>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 6 }).map((_, i) => <NoteCardSkeleton key={i} />)}
+            </div>
+          </div>
+        ) : notes.filter((n) => !n.pinned && !n.parentId && (!activeTag || (n.tags ?? []).includes(activeTag))).length > 0 ? (
           <div>
             <p className="mb-4 text-[10px] uppercase tracking-widest text-ink-4">
               {activeTag ? activeTag : notes.some((n) => n.pinned) ? "Recent" : "Notes"}
@@ -174,7 +184,7 @@ export default function DashboardPage() {
                 ))}
             </motion.div>
           </div>
-        )}
+        ) : null}
 
         {/* Shared with me */}
         {sharedNotes.length > 0 && (

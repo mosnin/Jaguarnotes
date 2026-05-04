@@ -37,10 +37,40 @@ export const get = query({
   },
 });
 
+export const getBacklinks = query({
+  args: { noteId: v.id("notes") },
+  handler: async (ctx, args) => {
+    const userId = await requireUser(ctx);
+    // Use the backlinkIds field for O(1) lookup when available
+    const note = await ctx.db.get(args.noteId);
+    if (!note) return [];
+    const ids = note.backlinkIds ?? [];
+    if (ids.length === 0) return [];
+    const results = await Promise.all(ids.map((id) => ctx.db.get(id)));
+    return results.filter(
+      (n): n is NonNullable<typeof n> => n !== null && n.userId === userId
+    );
+  },
+});
+
+export const search = query({
+  args: { query: v.string() },
+  handler: async (ctx, args) => {
+    const userId = await requireUser(ctx);
+    if (!args.query.trim()) return [];
+    return ctx.db
+      .query("notes")
+      .withSearchIndex("search_notes", (q) =>
+        q.search("title", args.query).eq("userId", userId)
+      )
+      .take(20);
+  },
+});
+
 export const listShared = query({
   handler: async (ctx) => {
     const userId = await requireUser(ctx);
-    const allShares = await ctx.db.query("shares").collect();
+    const allShares = await ctx.db.query("shares").take(500);
     const mine = allShares.filter((s) => (s.collaboratorIds ?? []).includes(userId));
     const notes = await Promise.all(mine.map((s) => ctx.db.get(s.noteId)));
     return notes.filter((n): n is NonNullable<typeof n> => n !== null);
@@ -57,6 +87,7 @@ export const create = mutation({
       content: undefined,
       preview: undefined,
       pinned: false,
+      updatedAt: Date.now(),
       ...(args.parentId ? { parentId: args.parentId } : {}),
     });
   },
@@ -73,6 +104,7 @@ export const update = mutation({
     aiBlockIds: v.optional(v.array(v.string())),
     tags: v.optional(v.array(v.string())),
     linkedNoteIds: v.optional(v.array(v.id("notes"))),
+    backlinkIds: v.optional(v.array(v.id("notes"))),
     parentId: v.optional(v.id("notes")),
   },
   handler: async (ctx, args) => {
@@ -95,7 +127,7 @@ export const update = mutation({
     const patch = Object.fromEntries(
       Object.entries(fields).filter(([, v]) => v !== undefined)
     );
-    await ctx.db.patch(args.id, patch);
+    await ctx.db.patch(args.id, { ...patch, updatedAt: Date.now() });
   },
 });
 

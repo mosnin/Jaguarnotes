@@ -121,6 +121,11 @@ export async function streamCommandAgent(command: Command, topic: string): Promi
 
   return new ReadableStream({
     async start(controller) {
+      const timeout = setTimeout(() => {
+        controller.enqueue(encoder.encode("\n\n[Request timed out. Please try again.]"));
+        controller.close();
+      }, 30_000);
+
       try {
         const stream = await client.chat.completions.create({
           model: "gpt-4o-mini",
@@ -137,6 +142,14 @@ export async function streamCommandAgent(command: Command, topic: string): Promi
           const text = chunk.choices[0]?.delta?.content ?? "";
           if (text) controller.enqueue(encoder.encode(text));
         }
+        clearTimeout(timeout);
+      } catch (err) {
+        clearTimeout(timeout);
+        const msg =
+          err instanceof Error && err.message.toLowerCase().includes("rate")
+            ? "\n\n[Rate limited. Please wait a moment and try again.]"
+            : "\n\n[AI unavailable. Please try again.]";
+        controller.enqueue(encoder.encode(msg));
       } finally {
         controller.close();
       }

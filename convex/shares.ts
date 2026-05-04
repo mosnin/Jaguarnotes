@@ -103,7 +103,7 @@ export const revoke = mutation({
 export const listShared = query({
   handler: async (ctx) => {
     const userId = await requireUser(ctx);
-    const allShares = await ctx.db.query("shares").collect();
+    const allShares = await ctx.db.query("shares").take(500);
     const mine = allShares.filter((s) => (s.collaboratorIds ?? []).includes(userId));
     const notes = await Promise.all(mine.map((s) => ctx.db.get(s.noteId)));
     return notes.filter((n): n is NonNullable<typeof n> => n !== null);

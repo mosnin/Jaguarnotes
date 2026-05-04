@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { scaleIn } from "@/lib/motion";
+import { toast } from "@/lib/toast";
 
 interface SharePanelProps {
   noteId: string;
@@ -16,7 +17,6 @@ interface SharePanelProps {
 export function SharePanel({ noteId, anchorRef, onDismiss }: SharePanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: 0, right: 0 });
-  const [copied, setCopied] = useState(false);
 
   const shareRecord = useQuery(api.shares.listForNote, { noteId: noteId as Id<"notes"> });
   const createShare = useMutation(api.shares.create);
@@ -48,14 +48,14 @@ export function SharePanel({ noteId, anchorRef, onDismiss }: SharePanelProps) {
 
   async function handleCreate(permission: "view" | "edit") {
     await createShare({ noteId: noteId as Id<"notes">, permission });
+    toast.success("Share link created");
   }
 
   async function handleCopy() {
     if (!shareRecord) return;
     const url = `${window.location.origin}/invite/${shareRecord.token}`;
     await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    toast.copy("Link copied to clipboard");
   }
 
   async function handlePermissionChange(permission: "view" | "edit") {
@@ -65,6 +65,7 @@ export function SharePanel({ noteId, anchorRef, onDismiss }: SharePanelProps) {
 
   async function handleRevoke() {
     await revokeShare({ noteId: noteId as Id<"notes"> });
+    toast.success("Access removed");
   }
 
   const shareUrl = shareRecord ? `${typeof window !== "undefined" ? window.location.origin : ""}/invite/${shareRecord.token}` : "";
@@ -113,7 +114,7 @@ export function SharePanel({ noteId, anchorRef, onDismiss }: SharePanelProps) {
               onClick={handleCopy}
               className="shrink-0 text-xs font-medium text-ai transition-colors hover:text-ai/80"
             >
-              {copied ? "Copied!" : "Copy"}
+              Copy
             </button>
           </div>
 

@@ -21,8 +21,8 @@ export function PresenceAvatars({ noteId, currentUserId, currentUserName, curren
     const noteIdTyped = noteId as Id<"notes">;
     upsertPresence({ noteId: noteIdTyped, userName: currentUserName, userImageUrl: currentUserImageUrl });
     const interval = setInterval(() => {
-      upsertPresence({ noteId: noteIdTyped, userName: currentUserName, userImageUrl: currentUserImageUrl });
-    }, 30_000);
+      upsertPresence({ noteId: noteIdTyped, userName: currentUserName, userImageUrl: currentUserImageUrl }).catch(() => {});
+    }, 15_000);
     return () => {
       clearInterval(interval);
       leavePresence({ noteId: noteIdTyped });

@@ -12,11 +12,17 @@ export default defineSchema({
     aiBlockIds: v.optional(v.array(v.string())),
     tags: v.optional(v.array(v.string())),
     linkedNoteIds: v.optional(v.array(v.id("notes"))),
+    backlinkIds: v.optional(v.array(v.id("notes"))),
     parentId: v.optional(v.id("notes")),
+    updatedAt: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
     .index("by_user_pinned", ["userId", "pinned"])
-    .index("by_user_parent", ["userId", "parentId"]),
+    .index("by_user_parent", ["userId", "parentId"])
+    .searchIndex("search_notes", {
+      searchField: "title",
+      filterFields: ["userId"],
+    }),
 
   users: defineTable({
     clerkId: v.string(),

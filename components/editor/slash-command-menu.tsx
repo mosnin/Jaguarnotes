@@ -26,7 +26,8 @@ const COMMANDS = [
 ] as const;
 
 type CommandId = typeof COMMANDS[number]["id"];
-type Phase = "list" | "input" | "streaming" | "done";
+type Phase = "list" | "input" | "streaming" | "done" | "error";
+type ErrorType = "timeout" | "server" | null;
 
 interface SlashCommandMenuProps {
   query: string;
@@ -48,6 +49,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
     initialCommand && initialTopic ? "input" : "list"
   );
   const [streamedText, setStreamedText] = useState("");
+  const [errorType, setErrorType] = useState<ErrorType>(null);
   const [showAllThink, setShowAllThink] = useState(false);
   const inputRef = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -96,6 +98,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
     if (!selected || !input.trim()) return;
     setPhase("streaming");
     setStreamedText("");
+    setErrorType(null);
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -108,22 +111,41 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
         signal: controller.signal,
       });
 
+      if (res.status === 429) {
+        setErrorType("server");
+        setStreamedText("Rate limit reached. Wait a moment then retry.");
+        setPhase("error");
+        return;
+      }
       if (!res.ok || !res.body) throw new Error("Failed");
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
+      let fullText = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        setStreamedText((prev) => prev + decoder.decode(value, { stream: true }));
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+        setStreamedText(fullText);
       }
 
-      setPhase("done");
+      // Detect error sentinels encoded by the agent
+      if (fullText.includes("[Request timed out.")) {
+        setErrorType("timeout");
+        setPhase("error");
+      } else if (fullText.includes("[AI unavailable.") || fullText.includes("[Rate limited.")) {
+        setErrorType("server");
+        setPhase("error");
+      } else {
+        setPhase("done");
+      }
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
-        setStreamedText("Something went wrong. Try again.");
-        setPhase("done");
+        setErrorType("server");
+        setStreamedText("");
+        setPhase("error");
       }
     }
   }
@@ -283,47 +305,63 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
         </div>
       )}
 
-      {/* ── STREAMING / DONE ── */}
-      {(phase === "streaming" || phase === "done") && selectedCmd && (
+      {/* ── STREAMING / DONE / ERROR ── */}
+      {(phase === "streaming" || phase === "done" || phase === "error") && selectedCmd && (
         <div className="flex flex-col">
           {/* Header */}
           <div className="flex items-center gap-2 border-b border-line-1 px-3 py-2">
             <span
               className={`h-1.5 w-1.5 rounded-full transition-colors duration-500 ${
-                phase === "done"
+                phase === "error"
+                  ? "bg-error shadow-[0_0_6px_theme(colors.error/60%)]"
+                  : phase === "done"
                   ? "bg-ok shadow-[0_0_6px_#30d158]"
                   : "animate-pulse bg-ai shadow-[0_0_6px_#7474ff]"
               }`}
             />
-            <span className="text-[10px] uppercase tracking-widest text-ink-3">
-              {phase === "done" ? "Ready to insert" : `${selectedCmd.label}...`}
+            <span className={`text-[10px] uppercase tracking-widest ${phase === "error" ? "text-error" : "text-ink-3"}`}>
+              {phase === "error"
+                ? errorType === "timeout" ? "Request timed out" : "AI unavailable"
+                : phase === "done"
+                ? "Ready to insert"
+                : `${selectedCmd.label}...`}
             </span>
           </div>
 
-          {/* Streamed content */}
+          {/* Streamed content / error message */}
           <div className="max-h-64 overflow-y-auto px-4 py-3">
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-2">
-              {streamedText}
-              {phase === "streaming" && (
-                <span className="ml-0.5 inline-block h-3.5 w-px animate-pulse bg-ai" />
-              )}
-            </p>
+            {phase === "error" ? (
+              <p className="text-sm text-error/80">
+                {errorType === "timeout"
+                  ? "The request took too long. Try again — it usually works on the second attempt."
+                  : "The AI is temporarily unavailable. Check your connection and retry."}
+              </p>
+            ) : (
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-2">
+                {streamedText}
+                {phase === "streaming" && (
+                  <span className="ml-0.5 inline-block h-3.5 w-px animate-pulse bg-ai" />
+                )}
+              </p>
+            )}
           </div>
 
-          {/* Insert action */}
-          {phase === "done" && (
+          {/* Actions */}
+          {(phase === "done" || phase === "error") && (
             <div className="flex gap-2 border-t border-line-1 p-2">
+              {phase === "done" && (
+                <button
+                  onClick={insertContent}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-ai-dim px-3 py-2 text-xs font-medium text-ai transition-colors hover:bg-ai-dim/80"
+                >
+                  Insert into note
+                </button>
+              )}
               <button
-                onClick={insertContent}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-ai-dim px-3 py-2 text-xs font-medium text-ai transition-colors hover:bg-ai-dim/80"
+                onClick={() => { setPhase("input"); setStreamedText(""); setErrorType(null); }}
+                className={`rounded-lg px-3 text-xs transition-colors hover:bg-raised hover:text-ink-1 ${phase === "error" ? "flex-1 py-2 font-medium text-ink-2" : "text-ink-3"}`}
               >
-                Insert into note
-              </button>
-              <button
-                onClick={() => { setPhase("input"); setStreamedText(""); }}
-                className="rounded-lg px-3 text-xs text-ink-3 transition-colors hover:bg-raised hover:text-ink-1"
-              >
-                Retry
+                {phase === "error" ? "Retry" : "Retry"}
               </button>
             </div>
           )}

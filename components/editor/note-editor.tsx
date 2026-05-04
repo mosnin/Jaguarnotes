@@ -22,6 +22,7 @@ import { SharePanel } from "./share-panel";
 import { PresenceAvatars } from "./presence-avatars";
 import { useSidebar } from "@/components/app/sidebar-context";
 import { blocksToMarkdown } from "@/lib/blocks";
+import { toast } from "@/lib/toast";
 
 const EMOJIS = ["📝","💡","🎯","🔍","📊","✅","🚀","💬","📌","⚡","🌟","🎨","📅","🧠","💭","🔑","📈","🗒️","🔗","📋","🏗️","🧪","🎤","📣","🌱"];
 
@@ -38,6 +39,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
   const { user } = useUser();
   const note = useQuery(api.notes.get, { id: noteId as Id<"notes"> });
   const allNotes = useQuery(api.notes.list) ?? [];
+  const backlinksQuery = useQuery(api.notes.getBacklinks, { noteId: noteId as Id<"notes"> });
   const updateNote = useMutation(api.notes.update);
   const createNote = useMutation(api.notes.create);
   const removeNote = useMutation(api.notes.remove);
@@ -49,10 +51,8 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     note?.parentId ? { id: note.parentId } : "skip"
   );
 
-  // Derived: backlinks (notes that explicitly link to this one) and children
-  const backlinks = allNotes.filter(
-    (n) => n._id !== noteId && (n.linkedNoteIds ?? []).includes(noteId as Id<"notes">)
-  );
+  // Derived: backlinks via targeted query; children still from allNotes
+  const backlinks = backlinksQuery ?? [];
   const children = allNotes.filter((n) => n.parentId === noteId);
 
   const [title, setTitle] = useState("");
@@ -147,10 +147,15 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           })
           .join(" ")
           .slice(0, 150);
-        await updateNote({ id: noteId as Id<"notes">, title: newTitle ?? title, content, preview });
-        setSaveStatus("saved");
-        clearTimeout(saveStatusTimerRef.current);
-        saveStatusTimerRef.current = setTimeout(() => setSaveStatus("idle"), 1500);
+        try {
+          await updateNote({ id: noteId as Id<"notes">, title: newTitle ?? title, content, preview });
+          setSaveStatus("saved");
+          clearTimeout(saveStatusTimerRef.current);
+          saveStatusTimerRef.current = setTimeout(() => setSaveStatus("idle"), 1500);
+        } catch {
+          setSaveStatus("idle");
+          toast.error("Save failed — check your connection.");
+        }
       }, 800);
     },
     [noteId, title, editor, updateNote]
@@ -215,6 +220,13 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     const current = note?.linkedNoteIds ?? [];
     if ((current as string[]).includes(selectedId)) { setShowLinkPicker(false); return; }
     updateNote({ id: noteId as Id<"notes">, linkedNoteIds: [...current, selectedId] });
+    // Maintain backlinkIds on the target note so getBacklinks is O(k) not O(n)
+    const target = (allNotes as Array<{ _id: Id<"notes">; backlinkIds?: Id<"notes">[] }>)
+      .find((n) => n._id === selectedId);
+    const existingBacklinks = target?.backlinkIds ?? [];
+    if (!existingBacklinks.includes(noteId as Id<"notes">)) {
+      updateNote({ id: selectedId, backlinkIds: [...existingBacklinks, noteId as Id<"notes">] });
+    }
     const refBlock: PartialBlock = {
       type: "paragraph",
       content: [{ type: "text", text: `→ ${selectedTitle}`, styles: {} }],
@@ -231,6 +243,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
 
   async function handleDelete() {
     await removeNote({ id: noteId as Id<"notes"> });
+    toast.error("Note deleted");
     router.push("/dashboard");
   }
 

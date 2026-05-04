@@ -1,12 +1,33 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { SidebarProvider, useSidebar } from "@/components/app/sidebar-context";
 import { Sidebar } from "@/components/app/sidebar";
 import { BottomNav } from "@/components/app/bottom-nav";
+import { ToastHost } from "@/components/ui/toast";
+import { SearchModal } from "@/components/app/search-modal";
+import { ShortcutsModal } from "@/components/ui/shortcuts-modal";
 
 function AppShell({ children }: { children: React.ReactNode }) {
   const { open, setOpen } = useSidebar();
+  const [showSearch, setShowSearch] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setShowSearch((v) => !v);
+      }
+      if (e.key === "?" && !e.metaKey && !e.ctrlKey && (e.target as HTMLElement).tagName !== "INPUT" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+        setShowShortcuts((v) => !v);
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-app">
       {/* Sidebar — spring-animated overlay */}
@@ -30,6 +51,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
       {/* Full-bleed content */}
       <main className="h-full w-full overflow-hidden pb-16 md:pb-0">{children}</main>
       <BottomNav />
+      <ToastHost />
+
+      {/* Global overlays */}
+      {showSearch && <SearchModal onDismiss={() => setShowSearch(false)} />}
+      {showShortcuts && <ShortcutsModal onDismiss={() => setShowShortcuts(false)} />}
     </div>
   );
 }
