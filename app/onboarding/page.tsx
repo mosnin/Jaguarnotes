@@ -165,6 +165,9 @@ export default function OnboardingPage() {
               <p className="text-sm text-ink-3">Every concept expanded. Every idea sharpened. One keystroke away.</p>
               <motion.button
                 {...buttonTap}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...springStd, delay: 0.65 }}
                 onClick={() => router.push("/dashboard")}
                 className="w-full rounded-xl bg-ink-1 py-3.5 text-sm font-semibold text-app transition-opacity hover:opacity-85"
               >

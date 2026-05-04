@@ -66,30 +66,43 @@ export default function DashboardPage() {
           </p>
         </motion.div>
 
-        {/* Quick actions */}
+        {/* Quick actions — primary + secondary hierarchy */}
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           animate="show"
-          className="mb-10 grid gap-2 grid-cols-2 sm:grid-cols-4"
+          className="mb-10 flex flex-col gap-2"
         >
-          {[
-            { label: "New note",      sub: "Empty canvas, anything goes",    action: handleNewNote },
-            { label: "Brainstorm",    sub: "Turn a seed into a full idea",   action: async () => { const id = await createNote({ title: "Brainstorm" }); router.push(`/notes/${id}?cmd=brainstorm`); } },
-            { label: "Outline",       sub: "Structure a thought from scratch", action: async () => { const id = await createNote({ title: "Outline" }); router.push(`/notes/${id}?cmd=outline`); } },
-            { label: "Meeting notes", sub: "Capture it before it's gone",    action: async () => { const id = await createNote({ title: "Meeting Notes" }); router.push(`/notes/${id}`); } },
-          ].map((item) => (
-            <motion.button
-              key={item.label}
-              variants={staggerItem}
-              {...cardHover}
-              onClick={item.action}
-              className="flex flex-col gap-1.5 rounded-lg border border-line-1 bg-surface p-4 text-left transition-colors hover:border-line-2 hover:bg-raised"
-            >
-              <p className="text-sm font-medium text-ink-1">{item.label}</p>
-              <p className="text-xs text-ink-4">{item.sub}</p>
-            </motion.button>
-          ))}
+          {/* Primary: New note — owns the space */}
+          <motion.button
+            variants={staggerItem}
+            {...cardHover}
+            onClick={handleNewNote}
+            className="flex flex-col gap-1.5 rounded-lg border border-line-2 bg-raised p-4 text-left transition-colors hover:border-line-3 hover:bg-hover"
+          >
+            <p className="text-sm font-medium text-ink-1">New note</p>
+            <p className="text-xs text-ink-3">Empty canvas, anything goes</p>
+          </motion.button>
+
+          {/* Secondary: AI-powered starting points */}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: "Brainstorm",    sub: "Turn a seed into a full idea",    action: async () => { const id = await createNote({ title: "Brainstorm" }); router.push(`/notes/${id}?cmd=brainstorm`); } },
+              { label: "Outline",       sub: "Structure a thought from scratch", action: async () => { const id = await createNote({ title: "Outline" }); router.push(`/notes/${id}?cmd=outline`); } },
+              { label: "Meeting notes", sub: "Capture it before it's gone",     action: async () => { const id = await createNote({ title: "Meeting Notes" }); router.push(`/notes/${id}`); } },
+            ].map((item) => (
+              <motion.button
+                key={item.label}
+                variants={staggerItem}
+                {...cardHover}
+                onClick={item.action}
+                className="flex flex-col gap-1.5 rounded-lg border border-line-1 bg-surface p-4 text-left transition-colors hover:border-line-2 hover:bg-raised"
+              >
+                <p className="text-sm font-medium text-ink-1">{item.label}</p>
+                <p className="text-xs text-ink-4">{item.sub}</p>
+              </motion.button>
+            ))}
+          </div>
         </motion.div>
 
         {/* Notes grid */}

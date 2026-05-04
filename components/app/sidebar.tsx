@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
@@ -16,6 +17,7 @@ export function Sidebar() {
   const router = useRouter();
   const notes = useQuery(api.notes.list) ?? [];
   const createNote = useMutation(api.notes.create);
+  const [search, setSearch] = useState("");
 
   async function handleNewNote() {
     const id = await createNote({ title: "Untitled" });
@@ -75,12 +77,29 @@ export function Sidebar() {
         </Link>
       </div>
 
+      {/* Search */}
+      {notes.length > 4 && (
+        <div className="px-3 pb-2">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search notes…"
+            className="w-full rounded-md bg-raised px-3 py-1.5 text-xs text-ink-2 placeholder-ink-4 outline-none transition-colors focus:bg-hover"
+          />
+        </div>
+      )}
+
       {/* Notes list */}
-      <div className="flex-1 overflow-y-auto px-3 pt-4">
+      <div className="flex-1 overflow-y-auto px-3 pt-2">
         {notes.length > 0 && (
-          <p className="mb-1 px-3 text-[10px] uppercase tracking-widest text-ink-4">Recent</p>
+          <p className="mb-1 px-3 text-[10px] uppercase tracking-widest text-ink-4">
+            {search ? "Results" : "Recent"}
+          </p>
         )}
-        {notes.slice(0, 20).map((note) => (
+        {(search
+          ? notes.filter((n) => (n.title || "Untitled").toLowerCase().includes(search.toLowerCase()))
+          : notes.slice(0, 20)
+        ).map((note) => (
           <Link
             key={note._id}
             href={`/notes/${note._id}`}

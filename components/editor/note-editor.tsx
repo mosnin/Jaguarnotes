@@ -202,7 +202,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
         {/* Persistent AI command trigger — always visible, always one tap away */}
         <button
           onClick={() => setSlashMenu({ query: "" })}
-          className="ml-auto flex items-center gap-1 rounded px-2 py-1 text-[11px] text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+          className="ml-auto flex items-center gap-1 rounded border border-line-1 px-2 py-1 text-[11px] text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-2"
           aria-label="AI commands"
         >
           <span className="font-mono">/</span>

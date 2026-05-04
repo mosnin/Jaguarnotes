@@ -7,7 +7,7 @@ const EXPANSION =
   "A transformer is a neural network architecture that uses self-attention to process sequences in parallel — enabling models to weigh every token against every other token simultaneously, regardless of distance. This makes it orders of magnitude faster to train than recurrent networks and far more capable at capturing long-range dependencies in language.";
 
 const COMMANDS = [
-  { label: "/brainstorm", output: "1. Agent-native workspaces\n2. Real-time knowledge graphs\n3. AI-authored documentation\n4. Contextual memory layers\n5. Collaborative reasoning chains" },
+  { label: "/brainstorm", output: "1. The shift from sequential to parallel reasoning\n2. Why attention beats memory at scale\n3. Applications beyond language — vision, protein, code\n4. The commoditization risk: when transformers become infrastructure\n5. What replaces the transformer paradigm" },
   { label: "/compress",   output: "The core value is speed of thought — removing every step between an idea and its structured form." },
   { label: "/premortem",  output: "Failure mode #1: Users never discover the AI.\nFailure mode #2: Latency breaks the feeling of flow.\nFailure mode #3: Output quality is too generic to trust." },
 ];
