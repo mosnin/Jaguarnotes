@@ -11,11 +11,15 @@ import "@blocknote/mantine/style.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { AIAutocompleteOverlay } from "./ai-autocomplete-overlay";
 import { SlashCommandMenu } from "./slash-command-menu";
 import { AIWelcome } from "./ai-welcome";
 import { SelectionToolbar } from "./selection-toolbar";
 import { NoteLinkPicker } from "./note-link-picker";
+import { OverflowMenu } from "./overflow-menu";
+import { SharePanel } from "./share-panel";
+import { PresenceAvatars } from "./presence-avatars";
 import { useSidebar } from "@/components/app/sidebar-context";
 import { blocksToMarkdown } from "@/lib/blocks";
 
@@ -31,10 +35,12 @@ type SaveStatus = "idle" | "saving" | "saved";
 
 export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps) {
   const router = useRouter();
+  const { user } = useUser();
   const note = useQuery(api.notes.get, { id: noteId as Id<"notes"> });
   const allNotes = useQuery(api.notes.list) ?? [];
   const updateNote = useMutation(api.notes.update);
   const createNote = useMutation(api.notes.create);
+  const removeNote = useMutation(api.notes.remove);
   const { toggle: toggleSidebar } = useSidebar();
 
   // Fetch parent note when this is a child note
@@ -57,6 +63,8 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
   const [tagInput, setTagInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showLinkPicker, setShowLinkPicker] = useState(false);
+  const [showOverflowMenu, setShowOverflowMenu] = useState(false);
+  const [showSharePanel, setShowSharePanel] = useState(false);
   const [autocomplete, setAutocomplete] = useState<{
     context: string;
     position: { top: number; left: number };
@@ -73,6 +81,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
   } | null>(null);
 
   const linkButtonRef = useRef<HTMLButtonElement>(null);
+  const overflowButtonRef = useRef<HTMLButtonElement>(null);
 
   // One-time hint — dismisses only on Tab press or after 90s
   const [showHint, setShowHint] = useState(() => {
@@ -220,6 +229,18 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     router.push(`/notes/${id}`);
   }
 
+  async function handleDelete() {
+    await removeNote({ id: noteId as Id<"notes"> });
+    router.push("/dashboard");
+  }
+
+  // BottomNav AI tab
+  useEffect(() => {
+    function onOpenSlash() { setSlashMenu({ query: "" }); }
+    document.addEventListener("jn:open-slash", onOpenSlash as EventListener);
+    return () => document.removeEventListener("jn:open-slash", onOpenSlash as EventListener);
+  }, []);
+
   // Keyboard handlers
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -319,7 +340,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
       {aiBlockStyles && <style>{aiBlockStyles}</style>}
 
       {/* Top bar */}
-      <div className="flex h-10 shrink-0 items-center gap-1 px-4">
+      <div className="flex h-10 shrink-0 items-center gap-1 px-4 pt-[env(safe-area-inset-top)]">
         <button
           onClick={toggleSidebar}
           className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
@@ -355,57 +376,41 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           )}
         </AnimatePresence>
 
-        <div className="ml-auto flex items-center gap-1">
-          {/* Link note */}
-          <button
-            ref={linkButtonRef}
-            onClick={() => setShowLinkPicker((v) => !v)}
-            title="Link to another note"
-            className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-raised ${showLinkPicker ? "text-ai" : "text-ink-4 hover:text-ink-2"}`}
-          >
-            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-          </button>
-
-          {/* Pin */}
-          <button
-            onClick={togglePin}
-            title={note.pinned ? "Unpin" : "Pin"}
-            className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-raised ${note.pinned ? "text-ai" : "text-ink-4 hover:text-ink-2"}`}
-          >
-            <svg className="h-3.5 w-3.5" fill={note.pinned ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-            </svg>
-          </button>
-
-          {/* Export */}
-          <button
-            onClick={handleExport}
-            title="Export as Markdown"
-            className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
-          >
-            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-          </button>
+        <div className="ml-auto flex items-center gap-1.5">
+          {user && (
+            <PresenceAvatars
+              noteId={noteId}
+              currentUserId={user.id}
+              currentUserName={user.fullName ?? user.firstName ?? "User"}
+              currentUserImageUrl={user.imageUrl}
+            />
+          )}
 
           {/* AI trigger */}
           <button
             onClick={() => setSlashMenu({ query: "" })}
-            className="flex items-center gap-1 rounded border border-line-1 px-2 py-1 text-[11px] text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-2"
+            className="flex items-center gap-1 rounded border border-line-1 px-2 py-1 text-[11px] text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-2 min-h-[44px] md:min-h-[28px]"
             aria-label="AI commands"
           >
             <span className="font-mono">/</span>
             <span>AI</span>
+          </button>
+
+          {/* Overflow menu */}
+          <button
+            ref={overflowButtonRef}
+            onClick={() => setShowOverflowMenu((v) => !v)}
+            className={`flex items-center justify-center rounded-md text-lg transition-colors hover:bg-raised min-h-[44px] min-w-[44px] md:min-h-[28px] md:min-w-[28px] md:h-7 md:w-7 ${showOverflowMenu ? "text-ink-1 bg-raised" : "text-ink-4 hover:text-ink-2"}`}
+            aria-label="More options"
+          >
+            ···
           </button>
         </div>
       </div>
 
       {/* Editor */}
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-3xl px-6 pb-32 pt-8 md:px-12 md:pt-14">
+        <div className="mx-auto w-full max-w-3xl px-6 pb-24 pt-8 md:px-12 md:pb-32 md:pt-14">
 
           {/* Emoji + Title row */}
           <div className="mb-3 flex items-start gap-3">
@@ -502,9 +507,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
                 </button>
               )}
             </div>
-            {children.length === 0 ? (
-              <p className="text-xs text-ink-4">No sub-notes yet.</p>
-            ) : (
+            {children.length > 0 && (
               <div className="flex flex-col gap-1.5">
                 {children.map((child) => (
                   <Link
@@ -520,17 +523,63 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
             )}
           </div>
 
-          {/* Connections panel — always rendered, Norman's gulf of evaluation fix */}
+          {/* Connections panel — symmetric: shows both outgoing and incoming */}
           <div className="mt-8 border-t border-line-1 pb-16 pt-6">
             <div className="mb-3 flex items-center gap-2">
               <span className="text-[10px] uppercase tracking-widest text-ink-4">Connections</span>
-              {backlinks.length > 0 && (
+              {(backlinks.length + (note.linkedNoteIds?.length ?? 0)) > 0 && (
                 <span className="rounded-full bg-raised px-1.5 py-0.5 text-[9px] text-ink-3">
-                  {backlinks.length}
+                  {backlinks.length + (note.linkedNoteIds?.length ?? 0)}
                 </span>
               )}
             </div>
-            {backlinks.length === 0 ? (
+
+            {/* Links to — outgoing */}
+            {(note.linkedNoteIds?.length ?? 0) > 0 && (
+              <div className="mb-4">
+                <p className="mb-2 text-[10px] text-ink-4">Links to</p>
+                <div className="flex flex-col gap-1.5">
+                  {(note.linkedNoteIds ?? []).map((lid) => {
+                    const linked = allNotes.find((n) => n._id === lid);
+                    if (!linked) return null;
+                    return (
+                      <Link
+                        key={lid}
+                        href={`/notes/${lid}`}
+                        className="flex items-center gap-2 rounded-lg border border-line-1 px-3 py-2 text-sm text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-1"
+                      >
+                        {linked.emoji && <span className="shrink-0">{linked.emoji}</span>}
+                        <span className="truncate">{linked.title || "Untitled"}</span>
+                        <span className="ml-auto shrink-0 text-[10px] text-ink-4">→</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Referenced by — incoming backlinks */}
+            {backlinks.length > 0 && (
+              <div className="mb-4">
+                <p className="mb-2 text-[10px] text-ink-4">Referenced by</p>
+                <div className="flex flex-col gap-1.5">
+                  {backlinks.map((bl) => (
+                    <Link
+                      key={bl._id}
+                      href={`/notes/${bl._id}`}
+                      className="flex items-center gap-2 rounded-lg border border-line-1 px-3 py-2 text-sm text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-1"
+                    >
+                      {bl.emoji && <span className="shrink-0">{bl.emoji}</span>}
+                      <span className="truncate">{bl.title || "Untitled"}</span>
+                      <span className="ml-auto shrink-0 text-[10px] text-ink-4">←</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Empty state — only when both sections are empty */}
+            {backlinks.length === 0 && (note.linkedNoteIds?.length ?? 0) === 0 && (
               <p className="text-xs text-ink-4">
                 No connections yet.{" "}
                 <button
@@ -539,35 +588,12 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
                 >
                   Link another note
                 </button>{" "}
-                to see backlinks here.
+                to build a knowledge graph.
               </p>
-            ) : (
-              <div className="flex flex-col gap-1.5">
-                {backlinks.map((bl) => (
-                  <Link
-                    key={bl._id}
-                    href={`/notes/${bl._id}`}
-                    className="flex items-center gap-2 rounded-lg border border-line-1 px-3 py-2 text-sm text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-1"
-                  >
-                    {bl.emoji && <span className="shrink-0">{bl.emoji}</span>}
-                    <span className="truncate">{bl.title || "Untitled"}</span>
-                    <span className="ml-auto shrink-0 text-[10px] text-ink-4">references this</span>
-                  </Link>
-                ))}
-              </div>
             )}
           </div>
         </div>
       </div>
-
-      {/* Mobile floating AI button */}
-      <button
-        onClick={() => setSlashMenu({ query: "" })}
-        className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-ink-1 text-app shadow-lg transition-transform active:scale-95 md:hidden"
-        aria-label="AI commands"
-      >
-        <span className="text-lg font-bold">/</span>
-      </button>
 
       {autocomplete && (
         <AIAutocompleteOverlay
@@ -607,6 +633,28 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           anchorRef={linkButtonRef}
           onSelect={handleLinkNote}
           onDismiss={() => setShowLinkPicker(false)}
+        />
+      )}
+
+      {showOverflowMenu && (
+        <OverflowMenu
+          noteId={noteId}
+          note={{ pinned: note.pinned }}
+          anchorRef={overflowButtonRef}
+          onDismiss={() => setShowOverflowMenu(false)}
+          onLinkNote={() => { setShowOverflowMenu(false); setShowLinkPicker(true); }}
+          onShare={() => { setShowOverflowMenu(false); setShowSharePanel(true); }}
+          onPin={() => { setShowOverflowMenu(false); togglePin(); }}
+          onExport={() => { setShowOverflowMenu(false); handleExport(); }}
+          onDelete={() => { setShowOverflowMenu(false); handleDelete(); }}
+        />
+      )}
+
+      {showSharePanel && (
+        <SharePanel
+          noteId={noteId}
+          anchorRef={overflowButtonRef}
+          onDismiss={() => setShowSharePanel(false)}
         />
       )}
     </div>

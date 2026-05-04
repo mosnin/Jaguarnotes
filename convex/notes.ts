@@ -25,8 +25,25 @@ export const get = query({
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx);
     const note = await ctx.db.get(args.id);
-    if (!note || note.userId !== userId) return null;
-    return note;
+    if (!note) return null;
+    if (note.userId === userId) return note;
+    // Check collaborator access
+    const share = await ctx.db
+      .query("shares")
+      .withIndex("by_note", (q) => q.eq("noteId", args.id))
+      .first();
+    if (share && (share.collaboratorIds ?? []).includes(userId)) return note;
+    return null;
+  },
+});
+
+export const listShared = query({
+  handler: async (ctx) => {
+    const userId = await requireUser(ctx);
+    const allShares = await ctx.db.query("shares").collect();
+    const mine = allShares.filter((s) => (s.collaboratorIds ?? []).includes(userId));
+    const notes = await Promise.all(mine.map((s) => ctx.db.get(s.noteId)));
+    return notes.filter((n): n is NonNullable<typeof n> => n !== null);
   },
 });
 
@@ -61,7 +78,18 @@ export const update = mutation({
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx);
     const note = await ctx.db.get(args.id);
-    if (!note || note.userId !== userId) throw new Error("Not found");
+    if (!note) throw new Error("Not found");
+
+    if (note.userId !== userId) {
+      // Check collaborator edit access
+      const share = await ctx.db
+        .query("shares")
+        .withIndex("by_note", (q) => q.eq("noteId", args.id))
+        .first();
+      if (!share || !(share.collaboratorIds ?? []).includes(userId) || share.permission !== "edit") {
+        throw new Error("Not authorized");
+      }
+    }
 
     const { id, ...fields } = args;
     const patch = Object.fromEntries(

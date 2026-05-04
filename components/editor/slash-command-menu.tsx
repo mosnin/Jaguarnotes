@@ -13,6 +13,7 @@ const COMMANDS = [
   { id: "explain",   icon: "◎", label: "Explain",    desc: "Insert a structured explanation",          placeholder: "Term or concept...",             group: "Generate" },
   { id: "brainstorm",icon: "✦", label: "Brainstorm", desc: "Generate a bulleted idea list",            placeholder: "Topic...",                       group: "Generate" },
   { id: "outline",   icon: "≡", label: "Outline",    desc: "Generate a document outline",              placeholder: "Subject...",                     group: "Generate" },
+  { id: "research",  icon: "⌖", label: "Research",   desc: "Search the web and synthesize",            placeholder: "What do you want to research?",  group: "Generate" },
   // Think
   { id: "compress",  icon: "◉", label: "Compress",   desc: "Distill writing to its essential truth",   placeholder: "Paste or describe your text...", group: "Think" },
   { id: "punch",     icon: "⚡", label: "Punch",      desc: "Make writing harder, faster, direct",      placeholder: "Paste the text to sharpen...",   group: "Think" },

@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { SidebarProvider, useSidebar } from "@/components/app/sidebar-context";
 import { Sidebar } from "@/components/app/sidebar";
+import { BottomNav } from "@/components/app/bottom-nav";
 
 function AppShell({ children }: { children: React.ReactNode }) {
   const { open, setOpen } = useSidebar();
@@ -27,7 +28,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
       </AnimatePresence>
 
       {/* Full-bleed content */}
-      <main className="h-full w-full overflow-hidden">{children}</main>
+      <main className="h-full w-full overflow-hidden pb-16 md:pb-0">{children}</main>
+      <BottomNav />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { streamCommandAgent } from "@/agents/command-agent";
 const VALID_COMMANDS = [
   "table", "diagram", "explain", "brainstorm", "outline",
   "compress", "punch", "counter", "sowhat", "assume",
-  "question", "premortem", "brief",
+  "question", "premortem", "brief", "research",
 ] as const;
 
 type Command = typeof VALID_COMMANDS[number];

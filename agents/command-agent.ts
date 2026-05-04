@@ -1,11 +1,24 @@
 import OpenAI from "openai";
+import { tavily } from "@tavily/core";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 type Command =
   | "table" | "diagram" | "explain" | "brainstorm" | "outline"
   | "compress" | "punch" | "counter" | "sowhat" | "assume"
-  | "question" | "premortem" | "brief";
+  | "question" | "premortem" | "brief" | "research";
+
+const WEB_COMMANDS = new Set<Command>(["explain", "table", "diagram", "research"]);
+
+async function getWebContext(topic: string): Promise<string> {
+  try {
+    const client = tavily({ apiKey: process.env.TAVILY_API_KEY ?? "" });
+    const r = await client.search(topic, { maxResults: 3 });
+    return r.results.map((x: { title: string; content: string }) => `${x.title}: ${x.content}`).join("\n\n");
+  } catch {
+    return "";
+  }
+}
 
 const SYSTEM_PROMPTS: Record<Command, string> = {
   table: `You are a table generator for a note-taking app.
@@ -82,16 +95,29 @@ Format exactly as follows:
 **Risks** — 2 bullet points on what could go wrong.
 **Next step** — one concrete action, owner, and deadline placeholder.
 No fluff. Every line must be actionable or cut.`,
+
+  research: `You are a research synthesizer for a note-taking app.
+Search the web for the requested topic and write a structured 300-word synthesis.
+Lead with a 1-sentence direct answer.
+Key findings (3-5 bullets).
+End with a "What this means" paragraph.
+Use only the provided web context. Be specific, cite facts, avoid vague generalities.`,
 };
 
 const MAX_TOKENS: Partial<Record<Command, number>> = {
   table: 600, diagram: 400, explain: 400, brainstorm: 500, outline: 500,
   compress: 200, punch: 400, counter: 300, sowhat: 200, assume: 350,
-  question: 250, premortem: 400, brief: 450,
+  question: 250, premortem: 400, brief: 450, research: 500,
 };
 
 export async function streamCommandAgent(command: Command, topic: string): Promise<ReadableStream<Uint8Array>> {
   const encoder = new TextEncoder();
+
+  let systemPrompt = SYSTEM_PROMPTS[command];
+  if (WEB_COMMANDS.has(command)) {
+    const webContext = await getWebContext(topic);
+    if (webContext) systemPrompt += `\n\nWeb context:\n${webContext}`;
+  }
 
   return new ReadableStream({
     async start(controller) {
@@ -99,7 +125,7 @@ export async function streamCommandAgent(command: Command, topic: string): Promi
         const stream = await client.chat.completions.create({
           model: "gpt-4o-mini",
           messages: [
-            { role: "system", content: SYSTEM_PROMPTS[command] },
+            { role: "system", content: systemPrompt },
             { role: "user", content: topic },
           ],
           stream: true,

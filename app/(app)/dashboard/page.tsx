@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const { user } = useUser();
   const router = useRouter();
   const notes = useQuery(api.notes.list) ?? [];
+  const sharedNotes = useQuery(api.notes.listShared) ?? [];
   const createNote = useMutation(api.notes.create);
   const { toggle: toggleSidebar } = useSidebar();
   const searchParams = useSearchParams();
@@ -171,6 +172,23 @@ export default function DashboardPage() {
                 .map((note) => (
                   <NoteCard key={note._id} note={note} onClick={() => router.push(`/notes/${note._id}`)} />
                 ))}
+            </motion.div>
+          </div>
+        )}
+
+        {/* Shared with me */}
+        {sharedNotes.length > 0 && (
+          <div className="mt-8">
+            <p className="mb-4 text-[10px] uppercase tracking-widest text-ink-4">Shared with me</p>
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+              className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            >
+              {sharedNotes.map((note) => (
+                <NoteCard key={note._id} note={note} onClick={() => router.push(`/notes/${note._id}`)} />
+              ))}
             </motion.div>
           </div>
         )}

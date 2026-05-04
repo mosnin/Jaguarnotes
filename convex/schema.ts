@@ -26,4 +26,25 @@ export default defineSchema({
     useCases: v.optional(v.array(v.string())),
     onboarded: v.optional(v.boolean()),
   }).index("by_clerk_id", ["clerkId"]),
+
+  shares: defineTable({
+    noteId: v.id("notes"),
+    ownerId: v.string(),
+    token: v.string(),
+    permission: v.union(v.literal("view"), v.literal("edit")),
+    collaboratorIds: v.optional(v.array(v.string())),
+  })
+    .index("by_token", ["token"])
+    .index("by_note", ["noteId"])
+    .index("by_owner", ["ownerId"]),
+
+  presence: defineTable({
+    noteId: v.id("notes"),
+    userId: v.string(),
+    userName: v.string(),
+    userImageUrl: v.optional(v.string()),
+    lastSeen: v.number(),
+  })
+    .index("by_note", ["noteId"])
+    .index("by_user_note", ["userId", "noteId"]),
 });
