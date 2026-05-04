@@ -76,21 +76,54 @@ export default function LandingPage() {
         {/* Live animated demo */}
         <AnimatedDemo />
 
+        {/* Command capabilities strip */}
+        <div className="mx-auto mt-16 w-full max-w-3xl">
+          <p className="mb-4 text-center text-[10px] uppercase tracking-widest text-ink-4">14 AI commands</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {[
+              { cmd: "/table", desc: "Generate tables" },
+              { cmd: "/diagram", desc: "Mermaid diagrams" },
+              { cmd: "/explain", desc: "Deep explanations" },
+              { cmd: "/brainstorm", desc: "Idea generation" },
+              { cmd: "/outline", desc: "Document structure" },
+              { cmd: "/research", desc: "Web synthesis" },
+              { cmd: "/compress", desc: "Distill to essence" },
+              { cmd: "/punch", desc: "Sharper writing" },
+              { cmd: "/counter", desc: "Steel-man it" },
+              { cmd: "/sowhat", desc: "Surface the insight" },
+              { cmd: "/assume", desc: "Audit assumptions" },
+              { cmd: "/question", desc: "Find blind spots" },
+              { cmd: "/premortem", desc: "Anticipate failure" },
+              { cmd: "/brief", desc: "Executive brief" },
+            ].map((item) => (
+              <div
+                key={item.cmd}
+                className="group relative flex items-center gap-1.5 rounded-full border border-line-1 bg-surface px-3 py-1.5 text-xs transition-all hover:border-ai/40 hover:bg-ai-dim"
+              >
+                <span className="font-mono text-ai">{item.cmd}</span>
+                <span className="max-w-0 overflow-hidden text-ink-4 transition-all duration-200 group-hover:max-w-[120px]">
+                  &nbsp;·&nbsp;{item.desc}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Three truths */}
         <div className="mx-auto mt-32 w-full max-w-3xl">
           <div className="grid gap-16 text-left sm:grid-cols-3">
             {[
               {
-                label: "Tab to think",
-                body: "Any concept, expanded inline. No tab switch, no copy-paste. The thought completes itself.",
+                label: "Slash to create",
+                body: "Type / and choose from 14 AI commands. Table, diagram, outline, research — in seconds.",
               },
               {
-                label: "Sharpen every thought",
-                body: "Compress, punch, counter, pre-mortem. Thirteen focused agents. Each one makes your thinking harder, faster, clearer.",
+                label: "Tab to expand",
+                body: "Mid-thought, hit Tab. The AI finishes your sentence with expert-level context.",
               },
               {
-                label: "Real-time, everywhere",
-                body: "Every note, live on every device. No sync button. No conflict. Always where you left off.",
+                label: "Built for speed",
+                body: "No popups, no modals, no friction. Ideas flow directly onto the page.",
               },
             ].map((f) => (
               <div key={f.label}>
@@ -100,6 +133,15 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
+
+        <p className="mt-20 text-center text-xs text-ink-4">
+          Built on{" "}
+          <span className="text-ink-3">GPT-4o mini</span>
+          {" · "}
+          <span className="text-ink-3">Convex</span>
+          {" · "}
+          <span className="text-ink-3">Next.js</span>
+        </p>
 
         {/* Bottom CTA */}
         <div className="mt-32 text-center">

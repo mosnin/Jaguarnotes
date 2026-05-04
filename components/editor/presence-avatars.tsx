@@ -43,17 +43,21 @@ export function PresenceAvatars({ noteId, currentUserId, currentUserName, curren
       {visible.map((p) => (
         <div
           key={p.userId}
-          title={p.userName}
-          className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full border-2 border-surface bg-ai-dim"
+          title={`${p.userName} is viewing this note`}
+          className="relative h-6 w-6 shrink-0"
         >
-          {p.userImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.userImageUrl} alt={p.userName} className="h-full w-full object-cover" />
-          ) : (
-            <span className="flex h-full w-full items-center justify-center text-[9px] font-medium text-ai">
-              {p.userName.slice(0, 2).toUpperCase()}
-            </span>
-          )}
+          <div className="h-6 w-6 overflow-hidden rounded-full border-2 border-surface bg-ai-dim">
+            {p.userImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={p.userImageUrl} alt={p.userName} className="h-full w-full object-cover" />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center text-[9px] font-medium text-ai">
+                {p.userName.slice(0, 2).toUpperCase()}
+              </span>
+            )}
+          </div>
+          {/* Live indicator */}
+          <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-surface bg-ok" />
         </div>
       ))}
       {overflow > 0 && (
