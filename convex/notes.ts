@@ -1,4 +1,5 @@
-import { v, paginationOptsValidator } from "convex/values";
+import { v } from "convex/values";
+import { paginationOptsValidator } from "convex/server";
 import { query, mutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
