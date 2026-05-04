@@ -44,8 +44,9 @@ export default function DashboardPage() {
   const { user } = useUser();
   const router = useRouter();
   const me = useQuery(api.users.getMe);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { results: notes, status: notesStatus, loadMore } = usePaginatedQuery(
-    api.notes.paginateNotes,
+    api.notes.paginateNotes as any,
     {},
     { initialNumItems: 20 }
   );
