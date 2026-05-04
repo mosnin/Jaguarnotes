@@ -34,6 +34,18 @@ export const upsert = mutation({
         lastSeen: Date.now(),
       });
     }
+
+    // Opportunistic cleanup: remove records older than 2 minutes for this note
+    const twoMinutesAgo = Date.now() - 120_000;
+    const staleRecords = await ctx.db
+      .query("presence")
+      .withIndex("by_note", (q) => q.eq("noteId", args.noteId))
+      .collect();
+    for (const record of staleRecords) {
+      if (record.lastSeen < twoMinutesAgo && record.userId !== userId) {
+        await ctx.db.delete(record._id);
+      }
+    }
   },
 });
 

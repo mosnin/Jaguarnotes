@@ -1,13 +1,34 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
-const acceptRl = new Map<string, number[]>();
-function acceptAllowed(userId: string): boolean {
+async function checkRateLimit(
+  ctx: { db: { query: Function; insert: Function; patch: Function } },
+  userId: string,
+  max: number,
+  windowMs: number
+): Promise<boolean> {
   const now = Date.now();
-  const ts = (acceptRl.get(userId) ?? []).filter((t) => now - t < 60_000);
-  if (ts.length >= 10) return false;
-  ts.push(now);
-  acceptRl.set(userId, ts);
+  const windowStart = now - windowMs;
+  const record = await (ctx.db as any)
+    .query("rateLimits")
+    .withIndex("by_user_endpoint", (q: any) =>
+      q.eq("userId", userId).eq("endpoint", "accept")
+    )
+    .first();
+
+  if (!record) {
+    await (ctx.db as any).insert("rateLimits", {
+      userId,
+      endpoint: "accept",
+      timestamps: [now],
+    });
+    return true;
+  }
+
+  const recent = record.timestamps.filter((t: number) => t > windowStart);
+  if (recent.length >= max) return false;
+  recent.push(now);
+  await (ctx.db as any).patch(record._id, { timestamps: recent });
   return true;
 }
 
@@ -62,7 +83,7 @@ export const accept = mutation({
   args: { token: v.string() },
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx);
-    if (!acceptAllowed(userId)) throw new Error("Rate limited");
+    if (!(await checkRateLimit(ctx, userId, 10, 60_000))) throw new Error("Rate limited");
     const share = await ctx.db
       .query("shares")
       .withIndex("by_token", (q) => q.eq("token", args.token))
@@ -72,6 +93,14 @@ export const accept = mutation({
     const collaboratorIds = share.collaboratorIds ?? [];
     if (!collaboratorIds.includes(userId)) {
       await ctx.db.patch(share._id, { collaboratorIds: [...collaboratorIds, userId] });
+      // Maintain junction table for efficient listShared queries
+      const existing = await (ctx.db as any)
+        .query("collaboratorNotes")
+        .withIndex("by_user", (q: any) => q.eq("userId", userId))
+        .collect();
+      if (!existing.some((r: any) => (r.noteId as string) === (share.noteId as string))) {
+        await (ctx.db as any).insert("collaboratorNotes", { userId, noteId: share.noteId });
+      }
     }
     return share.noteId;
   },

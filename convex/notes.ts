@@ -58,7 +58,8 @@ export const getBacklinks = query({
     if (!note) return [];
     const ids = note.backlinkIds ?? [];
     if (ids.length === 0) return [];
-    const results = await Promise.all(ids.map((id) => ctx.db.get(id)));
+    const cappedIds = ids.slice(0, 50);
+    const results = await Promise.all(cappedIds.map((id) => ctx.db.get(id)));
     return results.filter(
       (n): n is NonNullable<typeof n> => n !== null && n.userId === userId
     );
@@ -95,10 +96,27 @@ export const search = query({
 export const listShared = query({
   handler: async (ctx) => {
     const userId = await requireUser(ctx);
-    const allShares = await ctx.db.query("shares").take(500);
-    const mine = allShares.filter((s) => (s.collaboratorIds ?? []).includes(userId));
-    const notes = await Promise.all(mine.map((s) => ctx.db.get(s.noteId)));
-    return notes.filter((n): n is NonNullable<typeof n> => n !== null);
+
+    // Fast path: indexed lookup via junction table (populated on new accepts)
+    const junctionRows = await (ctx.db as any)
+      .query("collaboratorNotes")
+      .withIndex("by_user", (q: any) => q.eq("userId", userId))
+      .collect();
+
+    const fastNoteIds = new Set(junctionRows.map((r: any) => r.noteId as string));
+
+    // Legacy path: scan reduced to 100 for users who accepted before junction table existed
+    const legacyShares = await ctx.db.query("shares").take(100);
+    const legacyMine = legacyShares.filter(
+      (s) => !fastNoteIds.has(s.noteId as string) && (s.collaboratorIds ?? []).includes(userId)
+    );
+
+    const fastNotes = await Promise.all(junctionRows.map((r: any) => ctx.db.get(r.noteId)));
+    const legacyNotes = await Promise.all(legacyMine.map((s) => ctx.db.get(s.noteId)));
+
+    return [...fastNotes, ...legacyNotes].filter(
+      (n): n is NonNullable<typeof n> => n !== null
+    );
   },
 });
 
@@ -113,6 +131,7 @@ export const create = mutation({
       preview: undefined,
       pinned: false,
       updatedAt: Date.now(),
+      version: 0,
       ...(args.parentId ? { parentId: args.parentId } : {}),
     });
   },
@@ -146,13 +165,16 @@ export const update = mutation({
       if (!share || !(share.collaboratorIds ?? []).includes(userId) || share.permission !== "edit") {
         throw new Error("Not authorized");
       }
+      if (share.expiresAt && share.expiresAt < Date.now()) {
+        throw new Error("Share link has expired");
+      }
     }
 
     const { id, ...fields } = args;
     const patch = Object.fromEntries(
       Object.entries(fields).filter(([, v]) => v !== undefined)
     );
-    await ctx.db.patch(args.id, { ...patch, updatedAt: Date.now() });
+    await ctx.db.patch(args.id, { ...patch, updatedAt: Date.now(), version: (note.version ?? 0) + 1 });
   },
 });
 

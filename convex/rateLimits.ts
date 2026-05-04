@@ -29,7 +29,13 @@ export const check = mutation({
     }
 
     const recent = record.timestamps.filter((t) => t > windowStart);
-    if (recent.length >= args.max) return false;
+    if (recent.length >= args.max) {
+      // Still trim stale data even when rate limiting
+      if (recent.length < record.timestamps.length) {
+        await ctx.db.patch(record._id, { timestamps: recent });
+      }
+      return false;
+    }
 
     recent.push(now);
     await ctx.db.patch(record._id, { timestamps: recent });

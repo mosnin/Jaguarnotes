@@ -97,27 +97,11 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
   const overflowButtonRef = useRef<HTMLButtonElement>(null);
   const saveAttemptRef = useRef(0);
 
-  // One-time hint — dismisses only on Tab press or after 90s
+  // One-time hint — dismisses only when user actually uses Tab autocomplete
   const [showHint, setShowHint] = useState(() => {
     if (typeof window === "undefined") return false;
     return !localStorage.getItem("jn_hint_seen");
   });
-
-  useEffect(() => {
-    if (!showHint) return;
-    function dismissOnTab(e: KeyboardEvent) {
-      if (e.key === "Tab") {
-        setShowHint(false);
-        localStorage.setItem("jn_hint_seen", "1");
-      }
-    }
-    const timer = setTimeout(() => {
-      setShowHint(false);
-      localStorage.setItem("jn_hint_seen", "1");
-    }, 90_000);
-    document.addEventListener("keydown", dismissOnTab);
-    return () => { document.removeEventListener("keydown", dismissOnTab); clearTimeout(timer); };
-  }, [showHint]);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const saveStatusTimerRef = useRef<ReturnType<typeof setTimeout>>();
@@ -154,6 +138,11 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
         clearTimeout(saveStatusTimerRef.current);
         saveStatusTimerRef.current = setTimeout(() => setSaveStatus("idle"), 1500);
       } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        if (message === "Unauthenticated" || message.includes("Unauthenticated")) {
+          router.push("/sign-in");
+          return;
+        }
         if (attempt < 2) {
           const delay = attempt === 0 ? 2_000 : 6_000;
           await new Promise((r) => setTimeout(r, delay));
@@ -206,26 +195,35 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     scheduleSave(JSON.stringify(editor.document), value);
   }
 
-  function addTag() {
+  async function addTag() {
     const tag = tagInput.trim().toLowerCase().replace(/,/g, "");
     if (!tag || tags.includes(tag)) { setTagInput(""); return; }
     const next = [...tags, tag];
     setTags(next);
     setTagInput("");
-    updateNote({ id: noteId as Id<"notes">, tags: next });
+    try {
+      await updateNote({ id: noteId as Id<"notes">, tags: next });
+    } catch {
+      toast.error("Failed to update tags");
+    }
   }
 
-  function removeTag(tag: string) {
+  async function removeTag(tag: string) {
     const next = tags.filter((t) => t !== tag);
     setTags(next);
-    updateNote({ id: noteId as Id<"notes">, tags: next });
+    try {
+      await updateNote({ id: noteId as Id<"notes">, tags: next });
+    } catch {
+      toast.error("Failed to update tags");
+    }
   }
 
-  function pickEmoji(e: string) {
+  async function pickEmoji(e: string) {
     const next = emoji === e ? "" : e;
     setEmoji(next);
     setShowEmojiPicker(false);
-    updateNote({ id: noteId as Id<"notes">, emoji: next });
+    await updateNote({ id: noteId as Id<"notes">, emoji: next });
+    toast.success("Emoji updated");
   }
 
   function togglePin() {
@@ -262,6 +260,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     editor.insertBlocks([refBlock], editor.getTextCursorPosition().block, "after");
     handleEditorChange();
     setShowLinkPicker(false);
+    toast.success("Note linked");
   }
 
   async function handleNewSubNote() {
@@ -317,6 +316,9 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
         e.preventDefault();
         const rect = range.getBoundingClientRect();
         setAutocomplete({ context, position: { top: rect.bottom + 8, left: rect.left } });
+        // Dismiss hint when user actually triggers autocomplete
+        setShowHint(false);
+        localStorage.setItem("jn_hint_seen", "1");
         return;
       }
 
@@ -399,10 +401,25 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     .map((id) => `[data-id="${id}"] { border-left: 2px solid rgba(116,116,255,0.45) !important; padding-left: 14px !important; margin-left: -16px !important; }`)
     .join("");
 
-  if (!note) {
+  if (note === undefined) {
+    // Still loading
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="h-4 w-4 animate-spin rounded-full border-2 border-raised border-t-ink-1/30" />
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-ink-4 border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (note === null) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+        <p className="text-sm text-ink-3">This note was deleted or you no longer have access.</p>
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="rounded-lg bg-raised px-4 py-2 text-sm text-ink-2 transition-colors hover:bg-hover hover:text-ink-1"
+        >
+          Back to dashboard
+        </button>
       </div>
     );
   }
@@ -630,10 +647,10 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
               </div>
             )}
 
-            {/* Referenced by — incoming backlinks */}
+            {/* Linked from — incoming backlinks */}
             {backlinks.length > 0 && (
               <div className="mb-4">
-                <p className="mb-2 text-[10px] text-ink-4">Referenced by</p>
+                <p className="mb-2 text-[10px] text-ink-4">Linked from</p>
                 <div className="flex flex-col gap-1.5">
                   {backlinks.map((bl) => (
                     <Link

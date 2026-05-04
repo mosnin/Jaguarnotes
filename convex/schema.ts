@@ -15,6 +15,7 @@ export default defineSchema({
     backlinkIds: v.optional(v.array(v.id("notes"))),
     parentId: v.optional(v.id("notes")),
     updatedAt: v.optional(v.number()),
+    version: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
     .index("by_user_pinned", ["userId", "pinned"])
@@ -60,4 +61,9 @@ export default defineSchema({
     endpoint: v.string(),
     timestamps: v.array(v.number()),
   }).index("by_user_endpoint", ["userId", "endpoint"]),
+
+  collaboratorNotes: defineTable({
+    userId: v.string(),
+    noteId: v.id("notes"),
+  }).index("by_user", ["userId"]),
 });

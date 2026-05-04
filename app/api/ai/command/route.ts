@@ -39,6 +39,9 @@ export async function POST(req: NextRequest) {
   if (!topic || typeof topic !== "string" || topic.trim().length < 2) {
     return new Response("Invalid topic", { status: 400 });
   }
+  if (topic.length > 4000) {
+    return new Response("Topic too long (max 4000 characters)", { status: 400 });
+  }
 
   const stream = await streamCommandAgent(command as Command, topic.trim().slice(0, 2000), !!think);
 
