@@ -51,6 +51,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
   const [streamedText, setStreamedText] = useState("");
   const [errorType, setErrorType] = useState<ErrorType>(null);
   const [showAllThink, setShowAllThink] = useState(false);
+  const [refineInput, setRefineInput] = useState("");
   const inputRef = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -94,8 +95,10 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
 
   useEffect(() => () => { abortRef.current?.abort(); }, []);
 
-  async function runStream() {
-    if (!selected || !input.trim()) return;
+  async function runStream(topicOverride?: string) {
+    if (!selected) return;
+    const topicToUse = topicOverride ?? input;
+    if (!topicToUse.trim()) return;
     setPhase("streaming");
     setStreamedText("");
     setErrorType(null);
@@ -107,7 +110,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
       const res = await fetch("/api/ai/command", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ command: selected, topic: input }),
+        body: JSON.stringify({ command: selected, topic: topicToUse }),
         signal: controller.signal,
       });
 
@@ -150,6 +153,13 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
     }
   }
 
+  async function handleRefine() {
+    if (!selected || !refineInput.trim()) return;
+    const refinedTopic = `${input}\n\nPrevious output:\n${streamedText}\n\nRefinement instruction: ${refineInput}`;
+    setRefineInput("");
+    await runStream(refinedTopic.slice(0, 2000));
+  }
+
   function insertContent() {
     const blocks = textToBlocks(streamedText, selected ?? "");
     // Stamp the first block with an ai- ID so it gets the blue border marker
@@ -187,18 +197,20 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
     >
       {/* ── LIST ── */}
       {phase === "list" && (
-        <div className="max-h-[440px] overflow-y-auto py-1">
+        <div role="listbox" aria-label="AI commands" className="max-h-[440px] overflow-y-auto py-1">
           {filtered.length === 0 && (
             <p className="px-3 py-4 text-xs text-ink-4">No commands match &ldquo;{query}&rdquo;</p>
           )}
 
           {/* Generate — all 5 always visible */}
           {filtered.filter((c) => c.group === "Generate").length > 0 && (
-            <div>
+            <div role="group" aria-label="Generate">
               <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Generate</p>
               {filtered.filter((c) => c.group === "Generate").map((cmd) => (
                 <button
                   key={cmd.id}
+                  role="option"
+                  aria-selected="false"
                   onClick={() => { setSelected(cmd.id); setPhase("input"); }}
                   className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised"
                 >
@@ -216,11 +228,13 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
 
           {/* Think — featured 3 by default, expand to all 8 */}
           {thinkVisible.length > 0 && (
-            <div>
+            <div role="group" aria-label="Think">
               <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Think</p>
               {thinkVisible.map((cmd) => (
                 <button
                   key={cmd.id}
+                  role="option"
+                  aria-selected="false"
                   onClick={() => { setSelected(cmd.id); setPhase("input"); }}
                   className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised"
                 >
@@ -258,6 +272,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
             </span>
             <span className="text-sm font-medium text-ink-1">{selectedCmd.label}</span>
           </div>
+          <p id="cmd-desc" className="mb-2 text-xs text-ink-3">{selectedCmd.desc}</p>
           {selectedCmd.group === "Think" ? (
             <textarea
               ref={inputRef as React.RefObject<HTMLTextAreaElement>}
@@ -268,6 +283,8 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
                 if (e.key === "Escape") { setSelected(null); setPhase("list"); }
               }}
               placeholder={selectedCmd.placeholder}
+              aria-label={selectedCmd.placeholder}
+              aria-describedby="cmd-desc"
               rows={4}
               className="w-full resize-none rounded-lg border border-line-2 bg-raised px-3 py-2 text-sm text-ink-1 placeholder-ink-4 outline-none transition-colors focus:border-ai/50"
             />
@@ -281,12 +298,14 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
                 if (e.key === "Escape") { setSelected(null); setPhase("list"); }
               }}
               placeholder={selectedCmd.placeholder}
+              aria-label={selectedCmd.placeholder}
+              aria-describedby="cmd-desc"
               className="w-full rounded-lg border border-line-2 bg-raised px-3 py-2 text-sm text-ink-1 placeholder-ink-4 outline-none transition-colors focus:border-ai/50"
             />
           )}
           <div className="mt-2 flex gap-2">
             <button
-              onClick={runStream}
+              onClick={() => runStream()}
               disabled={!input.trim()}
               className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-ai-dim px-3 py-2 text-xs font-medium text-ai transition-colors hover:bg-ai-dim/80 disabled:opacity-30"
             >
@@ -319,7 +338,10 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
                   : "animate-pulse bg-ai shadow-[0_0_6px_#7474ff]"
               }`}
             />
-            <span className={`text-[10px] uppercase tracking-widest ${phase === "error" ? "text-error" : "text-ink-3"}`}>
+            <span
+              role={phase === "error" ? "alert" : undefined}
+              className={`text-[10px] uppercase tracking-widest ${phase === "error" ? "text-error" : "text-ink-3"}`}
+            >
               {phase === "error"
                 ? errorType === "timeout" ? "Request timed out" : "AI unavailable"
                 : phase === "done"
@@ -329,7 +351,11 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
           </div>
 
           {/* Streamed content / error message */}
-          <div className="max-h-64 overflow-y-auto px-4 py-3">
+          <div
+            role="status"
+            aria-live={phase === "streaming" ? "polite" : "off"}
+            className="max-h-64 overflow-y-auto px-4 py-3"
+          >
             {phase === "error" ? (
               <p className="text-sm text-error/80">
                 {errorType === "timeout"
@@ -348,22 +374,45 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
 
           {/* Actions */}
           {(phase === "done" || phase === "error") && (
-            <div className="flex gap-2 border-t border-line-1 p-2">
-              {phase === "done" && (
+            <>
+              <div className="flex gap-2 border-t border-line-1 p-2">
+                {phase === "done" && (
+                  <button
+                    onClick={insertContent}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-ai-dim px-3 py-2 text-xs font-medium text-ai transition-colors hover:bg-ai-dim/80"
+                  >
+                    Insert into note
+                  </button>
+                )}
                 <button
-                  onClick={insertContent}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-ai-dim px-3 py-2 text-xs font-medium text-ai transition-colors hover:bg-ai-dim/80"
+                  onClick={() => { setPhase("input"); setStreamedText(""); setErrorType(null); setRefineInput(""); }}
+                  className={`rounded-lg px-3 text-xs transition-colors hover:bg-raised hover:text-ink-1 ${phase === "error" ? "flex-1 py-2 font-medium text-ink-2" : "text-ink-3"}`}
                 >
-                  Insert into note
+                  {phase === "error" ? "Retry" : "Retry"}
                 </button>
+              </div>
+              {phase === "done" && (
+                <div className="border-t border-line-1 px-3 pb-3 pt-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={refineInput}
+                      onChange={(e) => setRefineInput(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && refineInput.trim()) handleRefine(); }}
+                      placeholder="Refine: make it shorter, add examples..."
+                      className="flex-1 rounded-lg border border-line-2 bg-raised px-3 py-1.5 text-xs text-ink-1 placeholder-ink-4 outline-none transition-colors focus:border-ai/50"
+                      aria-label="Refinement instruction"
+                    />
+                    <button
+                      onClick={handleRefine}
+                      disabled={!refineInput.trim()}
+                      className="rounded-lg bg-ai-dim px-3 py-1.5 text-xs font-medium text-ai transition-colors hover:bg-ai-dim/80 disabled:opacity-30"
+                    >
+                      Refine
+                    </button>
+                  </div>
+                </div>
               )}
-              <button
-                onClick={() => { setPhase("input"); setStreamedText(""); setErrorType(null); }}
-                className={`rounded-lg px-3 text-xs transition-colors hover:bg-raised hover:text-ink-1 ${phase === "error" ? "flex-1 py-2 font-medium text-ink-2" : "text-ink-3"}`}
-              >
-                {phase === "error" ? "Retry" : "Retry"}
-              </button>
-            </div>
+            </>
           )}
         </div>
       )}
