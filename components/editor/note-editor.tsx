@@ -249,6 +249,17 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     router.push("/dashboard");
   }
 
+  // Unsaved-changes guard — warn if tab is closed while a save is in flight
+  useEffect(() => {
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (saveStatus === "saving") {
+        e.preventDefault();
+      }
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [saveStatus]);
+
   // BottomNav AI tab
   useEffect(() => {
     function onOpenSlash() { setSlashMenu({ query: "" }); }

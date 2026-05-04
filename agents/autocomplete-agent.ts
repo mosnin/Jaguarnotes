@@ -13,20 +13,37 @@ export async function streamAutocompleteAgent(context: string): Promise<Readable
   return new ReadableStream({
     async start(controller) {
       try {
-        const stream = await client.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: `Concept to expand: ${context}` },
-          ],
-          stream: true,
-          max_tokens: 150,
-          temperature: 0.7,
-        });
+        const stream = await client.chat.completions.create(
+          {
+            model: "gpt-4o-mini",
+            messages: [
+              { role: "system", content: SYSTEM_PROMPT },
+              { role: "user", content: `Concept to expand: ${context}` },
+            ],
+            stream: true,
+            max_tokens: 150,
+            temperature: 0.7,
+          },
+          { signal: AbortSignal.timeout(15_000) }
+        );
 
-        for await (const chunk of stream) {
-          const text = chunk.choices[0]?.delta?.content ?? "";
-          if (text) controller.enqueue(encoder.encode(text));
+        try {
+          for await (const chunk of stream) {
+            const text = chunk.choices[0]?.delta?.content ?? "";
+            if (text) controller.enqueue(encoder.encode(text));
+          }
+        } catch (streamErr) {
+          if (streamErr instanceof Error && (streamErr.name === "TimeoutError" || streamErr.name === "AbortError")) {
+            controller.enqueue(encoder.encode("[Request timed out. Please try again.]"));
+          } else {
+            throw streamErr;
+          }
+        }
+      } catch (err) {
+        if (err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError")) {
+          controller.enqueue(encoder.encode("[Request timed out. Please try again.]"));
+        } else {
+          controller.enqueue(encoder.encode("[AI unavailable. Please try again.]"));
         }
       } finally {
         controller.close();
