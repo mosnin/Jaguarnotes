@@ -39,6 +39,7 @@ export default defineSchema({
     token: v.string(),
     permission: v.union(v.literal("view"), v.literal("edit")),
     collaboratorIds: v.optional(v.array(v.string())),
+    expiresAt: v.optional(v.number()),
   })
     .index("by_token", ["token"])
     .index("by_note", ["noteId"])

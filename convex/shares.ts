@@ -1,6 +1,16 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
+const acceptRl = new Map<string, number[]>();
+function acceptAllowed(userId: string): boolean {
+  const now = Date.now();
+  const ts = (acceptRl.get(userId) ?? []).filter((t) => now - t < 60_000);
+  if (ts.length >= 10) return false;
+  ts.push(now);
+  acceptRl.set(userId, ts);
+  return true;
+}
+
 async function requireUser(ctx: { auth: { getUserIdentity: () => Promise<{ subject: string } | null> } }) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Unauthenticated");
@@ -27,6 +37,7 @@ export const create = mutation({
       token,
       permission: args.permission,
       collaboratorIds: [],
+      expiresAt: Date.now() + 90 * 24 * 60 * 60 * 1000, // 90 days
     });
     return token;
   },
@@ -40,6 +51,7 @@ export const getByToken = query({
       .withIndex("by_token", (q) => q.eq("token", args.token))
       .first();
     if (!share) return null;
+    if (share.expiresAt && share.expiresAt < Date.now()) return null;
     const note = await ctx.db.get(share.noteId);
     if (!note) return null;
     return { share, note: { _id: note._id, title: note.title, emoji: note.emoji } };
@@ -50,6 +62,7 @@ export const accept = mutation({
   args: { token: v.string() },
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx);
+    if (!acceptAllowed(userId)) throw new Error("Rate limited");
     const share = await ctx.db
       .query("shares")
       .withIndex("by_token", (q) => q.eq("token", args.token))

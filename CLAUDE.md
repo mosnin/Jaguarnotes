@@ -146,3 +146,289 @@ The agent is not a chatbot. It is a focused, single-purpose executor. Each comma
 - Not a product designed by committee
 
 This is a focused, opinionated, AI-native tool for people who think for a living.
+
+---
+
+## Local Development Setup
+
+1. Copy environment variables: `cp .env.local.example .env.local` (then fill in the values — see Environment Variables below)
+2. Install dependencies: `npm install`
+3. Start Convex dev server (keep this terminal running): `npx convex dev`
+4. In a second terminal, start Next.js: `npm run dev`
+5. Open http://localhost:3000
+
+> **Note:** Convex dev must be running alongside Next.js — it handles the real-time database, auth verification, and serverless functions. If Convex is not running, note saves, real-time sync, and auth will fail silently.
+
+**Available npm scripts:**
+
+| Script | Command | Purpose |
+|---|---|---|
+| dev | `npm run dev` | Start Next.js development server |
+| build | `npm run build` | Production build |
+| start | `npm run start` | Run production build locally |
+| lint | `npm run lint` | Run ESLint |
+
+---
+
+## Environment Variables
+
+All variables are required for full functionality. The app will start without them but AI features, auth, and data persistence will not work.
+
+| Variable | Source | Purpose |
+|---|---|---|
+| `NEXT_PUBLIC_CONVEX_URL` | Convex dashboard > Settings > URL & Deploy Key | Public URL for the Convex deployment — used by the client to connect to the real-time database |
+| `CONVEX_DEPLOY_KEY` | Convex dashboard > Settings > URL & Deploy Key | Server-side deploy key for Convex — used for CI/CD deployments and server-side mutations |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk dashboard > API Keys | Public key for Clerk auth — used by the browser to initialize the Clerk session |
+| `CLERK_SECRET_KEY` | Clerk dashboard > API Keys | Secret key for Clerk — used server-side to verify sessions in API routes and Convex actions |
+| `OPENAI_API_KEY` | platform.openai.com | Powers all 14 AI commands and autocomplete — all requests go through GPT-4o mini |
+| `TAVILY_API_KEY` | app.tavily.com | Web search context for the `explain`, `table`, `diagram`, and `research` commands — fetches up to 3 live search results before generation |
+
+A `.env.local.example` file is checked into the repo with the correct variable names and placeholder values.
+
+---
+
+## API Reference
+
+### POST /api/ai/command
+
+Executes an AI slash command and streams the result back to the editor.
+
+- **Auth:** Clerk session required (401 if missing or invalid)
+- **Rate limit:** 20 requests/min per user (429 if exceeded)
+- **Content-Type:** `application/json`
+- **Response:** `text/plain` streaming (chunked transfer encoding)
+
+**Request body:**
+
+```json
+{ "command": "table", "topic": "machine learning algorithms" }
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `command` | string | One of the 14 valid command names (see below) |
+| `topic` | string | The subject or content passed to the AI agent |
+
+**Valid commands:**
+
+| Command | Purpose |
+|---|---|
+| `table` | Generates a fully populated markdown table (4-6 columns, 5-8 rows) |
+| `diagram` | Generates a Mermaid.js diagram (flowchart, sequence, graph, etc.) |
+| `explain` | Structured explanation: definition, key points, why it matters |
+| `brainstorm` | 8-12 sharp, creative ideas as a numbered list |
+| `outline` | Document outline with H2 sections and H3 subsections |
+| `research` | 300-word synthesis from live web search results |
+| `compress` | Distills the input to one sharp, essential paragraph |
+| `punch` | Rewrites input to be harder, faster, more direct |
+| `counter` | Generates the strongest counter-argument to the input |
+| `sowhat` | Surfaces the real implication — the unstated "so what" |
+| `assume` | Lists every buried assumption in the input |
+| `question` | Generates the 5 most important questions not being asked |
+| `premortem` | Imagines the plan failing and explains exactly how and why |
+| `brief` | Collapses input into a tight executive brief |
+
+**Error codes:**
+
+| Code | Meaning |
+|---|---|
+| 400 | Invalid or missing `command` / `topic` |
+| 401 | Unauthenticated — Clerk session missing or expired |
+| 429 | Rate limited — 20 requests/min per user exceeded |
+
+---
+
+### POST /api/ai/autocomplete
+
+Generates an inline completion based on the current editor context.
+
+- **Auth:** Clerk session required (401 if missing or invalid)
+- **Rate limit:** 30 requests/min per user (429 if exceeded)
+- **Content-Type:** `application/json`
+- **Response:** `text/plain` streaming (chunked transfer encoding)
+
+**Request body:**
+
+```json
+{ "context": "The transformer architecture works by..." }
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `context` | string | The last ~200 characters of editor content at the cursor position — used to generate a contextually relevant continuation |
+
+**Error codes:**
+
+| Code | Meaning |
+|---|---|
+| 400 | Missing or empty `context` |
+| 401 | Unauthenticated — Clerk session missing or expired |
+| 429 | Rate limited — 30 requests/min per user exceeded |
+
+---
+
+## Convex Schema
+
+The schema is defined in `/convex/schema.ts`. There are four tables.
+
+### notes
+
+The primary content table. Each row is one note owned by one user.
+
+| Field | Type | Description |
+|---|---|---|
+| `userId` | string | Clerk user ID of the note owner |
+| `title` | string | Note title — also the full-text search field |
+| `content` | string? | JSON-serialized BlockNote block array — the full editor state |
+| `preview` | string? | Plain text excerpt shown on the dashboard card |
+| `emoji` | string? | Optional emoji icon for the note |
+| `pinned` | boolean? | Whether the note is pinned to the top of the dashboard |
+| `aiBlockIds` | string[]? | IDs of blocks that were AI-generated — used for highlighting |
+| `tags` | string[]? | User-defined tag strings |
+| `linkedNoteIds` | id("notes")[]? | Outbound links to other notes (wiki-style) |
+| `backlinkIds` | id("notes")[]? | Inbound links from other notes — updated when another note links here |
+| `parentId` | id("notes")? | Parent note ID for nested/child notes |
+| `updatedAt` | number? | Unix timestamp (ms) of last modification |
+
+**Indexes:**
+
+| Index | Fields | Use |
+|---|---|---|
+| `by_user` | `[userId]` | Fetch all notes for a user (dashboard list) |
+| `by_user_pinned` | `[userId, pinned]` | Fetch pinned notes for a user |
+| `by_user_parent` | `[userId, parentId]` | Fetch child notes under a parent |
+| `search_notes` | search: `title`, filter: `userId` | Full-text search within a user's notes |
+
+---
+
+### users
+
+One row per authenticated user, created during onboarding.
+
+| Field | Type | Description |
+|---|---|---|
+| `clerkId` | string | Clerk user ID — the primary identifier across the app |
+| `email` | string | User's email address from Clerk |
+| `name` | string? | Display name |
+| `role` | string? | Self-reported role from onboarding (e.g. "founder", "researcher") |
+| `useCases` | string[]? | Self-reported use cases selected during onboarding |
+| `onboarded` | boolean? | Whether the user has completed the onboarding flow |
+
+**Indexes:** `by_clerk_id` on `[clerkId]`
+
+---
+
+### shares
+
+Tracks share links and collaborator access for notes.
+
+| Field | Type | Description |
+|---|---|---|
+| `noteId` | id("notes") | The note being shared |
+| `ownerId` | string | Clerk user ID of the note owner |
+| `token` | string | Unique random token used in the share URL |
+| `permission` | "view" \| "edit" | Access level granted by this share link |
+| `collaboratorIds` | string[]? | Array of Clerk user IDs who have explicitly accepted access via this share link |
+
+**Indexes:**
+
+| Index | Fields | Use |
+|---|---|---|
+| `by_note` | `[noteId]` | Look up all share records for a note |
+| `by_token` | `[token]` | Resolve a share URL token to its note and permissions |
+| `by_owner` | `[ownerId]` | Fetch all share links created by a user |
+
+---
+
+### presence
+
+Records real-time cursor presence for collaborative editing. Rows are ephemeral — stale entries (older than 30 seconds) are ignored by the client and periodically cleaned up.
+
+| Field | Type | Description |
+|---|---|---|
+| `noteId` | id("notes") | The note the user is currently viewing |
+| `userId` | string | Clerk user ID |
+| `userName` | string | Display name shown in the presence avatar |
+| `userImageUrl` | string? | Profile image URL for the presence avatar |
+| `lastSeen` | number | Unix timestamp (ms) of the user's last heartbeat — records older than 30s are treated as offline |
+
+**Indexes:**
+
+| Index | Fields | Use |
+|---|---|---|
+| `by_note` | `[noteId]` | Fetch all active users on a given note |
+| `by_user_note` | `[userId, noteId]` | Upsert a user's presence record for a specific note |
+
+---
+
+## AI Agent Architecture
+
+Every AI feature routes through a single streaming agent implementation in `/agents/command-agent.ts`. There is no agent framework — just direct OpenAI streaming calls with tightly scoped system prompts.
+
+### The 14 Commands
+
+Each command maps to a dedicated system prompt in the `SYSTEM_PROMPTS` record. The prompts are intentionally narrow: they specify exact output format, length, and tone. This keeps output consistent and latency low.
+
+Commands are typed as a union: `table | diagram | explain | brainstorm | outline | compress | punch | counter | sowhat | assume | question | premortem | brief | research`
+
+### WEB_COMMANDS
+
+Four commands fetch live web context via Tavily before generation: `explain`, `table`, `diagram`, `research`.
+
+Flow for WEB_COMMANDS:
+1. Call `getWebContext(topic)` — fetches up to 3 Tavily search results
+2. Append the results to the system prompt as `\n\nWeb context:\n{results}`
+3. Then call OpenAI with the enriched prompt
+
+If Tavily fails (network error, bad key), the error is silently caught and generation proceeds without web context.
+
+### Token Limits
+
+Each command has a configured `max_tokens` value to control cost and response length:
+
+| Command | Max tokens |
+|---|---|
+| `table` | 600 |
+| `brainstorm` | 500 |
+| `outline` | 500 |
+| `research` | 500 |
+| `brief` | 450 |
+| `explain` | 400 |
+| `punch` | 400 |
+| `premortem` | 400 |
+| `diagram` | 400 |
+| `assume` | 350 |
+| `counter` | 300 |
+| `question` | 250 |
+| `compress` | 200 |
+| `sowhat` | 200 |
+
+Default fallback for unlisted commands: 500 tokens.
+
+### Streaming and Error Handling
+
+- All responses stream via `ReadableStream<Uint8Array>` with a `TextEncoder`
+- 30-second hard timeout: if the stream has not closed, a sentinel message is enqueued and the stream is closed
+- Rate limit errors from OpenAI are caught and returned as a human-readable sentinel: `[Rate limited. Please wait a moment and try again.]`
+- All other errors return: `[AI unavailable. Please try again.]`
+- Sentinels are encoded inline in the stream — the client can detect them by prefix
+
+---
+
+## Key Design Decisions
+
+### Why Convex over Firebase or Supabase
+
+Convex provides real-time subscriptions, serverless functions, and end-to-end TypeScript types in a single integrated system. With Firebase or Supabase you build and maintain a separate backend layer (Cloud Functions / Edge Functions) alongside the database. With Convex, the database and the functions that operate on it are co-located, type-safe, and deployed together. No ORM, no API layer, no schema migration files.
+
+### Why GPT-4o mini
+
+Fast, cheap, and accurate enough for structured generation tasks (tables, outlines, explanations). The 14 command prompts are designed around its capabilities — narrow scope, explicit format instructions, modest token limits. Swapping to GPT-4o is a one-line change in `command-agent.ts` for any command that needs higher quality at higher cost.
+
+### Why Clerk
+
+Clerk provides production-quality auth (social login, magic link, MFA, session management) with zero custom auth code to maintain. The alternative — building auth with NextAuth or a custom JWT flow — adds hundreds of lines of security-critical code that must be maintained forever. Clerk's Next.js SDK integrates with the App Router middleware in under 10 lines.
+
+### Why BlockNote
+
+BlockNote is the only block-based rich text editor with a clean, idiomatic React API that does not require ProseMirror expertise to customize. Tiptap (the next closest option) requires direct ProseMirror schema manipulation for any non-trivial extension. BlockNote exposes a typed block model that maps cleanly to the `content` field in the `notes` table — blocks serialize to JSON and deserialize without data loss.
