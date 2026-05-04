@@ -127,10 +127,11 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
   // Reset selectedIndex when filtered list changes
   useEffect(() => { setSelectedIndex(0); }, [query, showAllThink]);
 
-  async function runStream(topicOverride?: string) {
+  async function runStream(topicOverride?: string, thinkOverride?: boolean) {
     if (!selected) return;
     const topicToUse = topicOverride ?? input;
     if (!topicToUse.trim()) return;
+    const useThink = thinkOverride ?? thinkMode;
     setPhase("streaming");
     setStreamedText("");
     setErrorType(null);
@@ -142,7 +143,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
       const res = await fetch("/api/ai/command", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ command: selected, topic: topicToUse }),
+        body: JSON.stringify({ command: selected, topic: topicToUse, think: useThink }),
         signal: controller.signal,
       });
 
@@ -319,8 +320,13 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) runStream();
-                if (e.key === "Escape") { setSelected(null); setPhase("list"); }
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault();
+                  setThinkMode(true);
+                  runStream(undefined, true);
+                  return;
+                }
+                if (e.key === "Escape") { setSelected(null); setPhase("list"); setThinkMode(false); }
               }}
               placeholder={selectedCmd.placeholder}
               aria-label={selectedCmd.placeholder}
@@ -334,8 +340,14 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault();
+                  setThinkMode(true);
+                  runStream(undefined, true);
+                  return;
+                }
                 if (e.key === "Enter") runStream();
-                if (e.key === "Escape") { setSelected(null); setPhase("list"); }
+                if (e.key === "Escape") { setSelected(null); setPhase("list"); setThinkMode(false); }
               }}
               placeholder={selectedCmd.placeholder}
               aria-label={selectedCmd.placeholder}
@@ -355,7 +367,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
               )}
             </button>
             <button
-              onClick={() => { setSelected(null); setPhase("list"); }}
+              onClick={() => { setSelected(null); setPhase("list"); setThinkMode(false); }}
               className="rounded-lg px-3 text-xs text-ink-3 transition-colors hover:bg-raised hover:text-ink-1"
             >
               Back
@@ -388,6 +400,9 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
                 ? "Ready to insert"
                 : `${selectedCmd.label}...`}
             </span>
+            {thinkMode && (
+              <span className="rounded border border-ai/20 bg-ai-hint px-1.5 py-0.5 text-[9px] font-mono text-ai">Think</span>
+            )}
           </div>
 
           {/* Streamed content / error message */}
@@ -425,7 +440,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
                   </button>
                 )}
                 <button
-                  onClick={() => { setPhase("input"); setStreamedText(""); setErrorType(null); setRefineInput(""); }}
+                  onClick={() => { setPhase("input"); setStreamedText(""); setErrorType(null); setRefineInput(""); setThinkMode(false); }}
                   className={`rounded-lg px-3 text-xs transition-colors hover:bg-raised hover:text-ink-1 ${phase === "error" ? "flex-1 py-2 font-medium text-ink-2" : "text-ink-3"}`}
                 >
                   {phase === "error" ? "Retry" : "Retry"}
