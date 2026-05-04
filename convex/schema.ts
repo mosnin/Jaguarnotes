@@ -9,6 +9,7 @@ export default defineSchema({
     preview: v.optional(v.string()), // Plain text excerpt for dashboard
     emoji: v.optional(v.string()),
     pinned: v.optional(v.boolean()),
+    aiBlockIds: v.optional(v.array(v.string())),
   })
     .index("by_user", ["userId"])
     .index("by_user_pinned", ["userId", "pinned"]),

@@ -31,12 +31,20 @@ interface SlashCommandMenuProps {
   editor: BlockNoteEditor;
   onInserted: (blockId: string) => void;
   onDismiss: () => void;
+  initialCommand?: string;
+  initialTopic?: string;
 }
 
-export function SlashCommandMenu({ query, editor, onInserted, onDismiss }: SlashCommandMenuProps) {
-  const [selected, setSelected] = useState<CommandId | null>(null);
-  const [input, setInput] = useState("");
-  const [phase, setPhase] = useState<Phase>("list");
+export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initialCommand, initialTopic }: SlashCommandMenuProps) {
+  const [selected, setSelected] = useState<CommandId | null>(() =>
+    initialCommand && COMMANDS.some((c) => c.id === initialCommand)
+      ? (initialCommand as CommandId)
+      : null
+  );
+  const [input, setInput] = useState(initialTopic ?? "");
+  const [phase, setPhase] = useState<Phase>(() =>
+    initialCommand && initialTopic ? "input" : "list"
+  );
   const [streamedText, setStreamedText] = useState("");
   const inputRef = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -50,6 +58,14 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss }: Slash
   useEffect(() => {
     if (selected && phase === "input" && inputRef.current) inputRef.current.focus();
   }, [selected, phase]);
+
+  // Auto-run when pre-populated from URL params or selection toolbar
+  useEffect(() => {
+    if (initialCommand && initialTopic && phase === "input") {
+      runStream();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     function onPointerDown(e: PointerEvent) {

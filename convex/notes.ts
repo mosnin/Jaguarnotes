@@ -52,6 +52,7 @@ export const update = mutation({
     preview: v.optional(v.string()),
     emoji: v.optional(v.string()),
     pinned: v.optional(v.boolean()),
+    aiBlockIds: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx);
