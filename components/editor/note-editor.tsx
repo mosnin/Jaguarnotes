@@ -38,6 +38,10 @@ type SaveStatus = "idle" | "saving" | "saved";
 export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps) {
   const router = useRouter();
   const { user } = useUser();
+
+  // linkQuery must be declared before the useQuery that depends on it
+  const [linkQuery, setLinkQuery] = useState("");
+
   const note = useQuery(api.notes.get, { id: noteId as Id<"notes"> });
   // allNotes is kept for two purposes: (1) resolving outgoing linkedNoteIds to titles in the
   // "Links to" panel, and (2) looking up a target note's existing backlinkIds in handleLinkNote.
@@ -72,7 +76,6 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
   const [tagInput, setTagInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showLinkPicker, setShowLinkPicker] = useState(false);
-  const [linkQuery, setLinkQuery] = useState("");
   const [showOverflowMenu, setShowOverflowMenu] = useState(false);
   const [showSharePanel, setShowSharePanel] = useState(false);
   const [autocomplete, setAutocomplete] = useState<{
