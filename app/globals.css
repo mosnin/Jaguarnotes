@@ -145,3 +145,14 @@ kbd {
   padding-left: 14px !important;
   margin-left: -16px !important;
 }
+
+/* ─── Reduced-motion: suppress specific animations ──────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse {
+    animation: none !important;
+  }
+
+  .animate-spin {
+    animation: none !important;
+  }
+}

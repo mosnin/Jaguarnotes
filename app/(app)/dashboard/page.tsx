@@ -11,9 +11,39 @@ import { staggerContainer, staggerItem, cardHover, buttonTap } from "@/lib/motio
 import { useSidebar } from "@/components/app/sidebar-context";
 import { NoteCardSkeleton } from "@/components/ui/note-card-skeleton";
 
+const ROLE_ACTIONS: Record<string, Array<{ label: string; sub: string; cmd?: string; title: string }>> = {
+  researcher: [
+    { label: "Outline", sub: "Structure your thinking", cmd: "outline", title: "Outline" },
+    { label: "Research", sub: "Synthesize from the web", cmd: "research", title: "Research" },
+    { label: "Brainstorm", sub: "Turn a seed into ideas", cmd: "brainstorm", title: "Brainstorm" },
+  ],
+  founder: [
+    { label: "Brainstorm", sub: "Turn a seed into ideas", cmd: "brainstorm", title: "Brainstorm" },
+    { label: "Brief", sub: "Collapse to exec brief", cmd: "brief", title: "Brief" },
+    { label: "Pre-mortem", sub: "Find failure before it finds you", cmd: "premortem", title: "Pre-mortem" },
+  ],
+  writer: [
+    { label: "Punch", sub: "Make your words hit harder", cmd: "punch", title: "Punch" },
+    { label: "Outline", sub: "Structure from scratch", cmd: "outline", title: "Outline" },
+    { label: "Brainstorm", sub: "Turn a seed into ideas", cmd: "brainstorm", title: "Brainstorm" },
+  ],
+  student: [
+    { label: "Explain", sub: "Deep-dive any concept", cmd: "explain", title: "Explain" },
+    { label: "Outline", sub: "Structure your study notes", cmd: "outline", title: "Outline" },
+    { label: "Brainstorm", sub: "Turn a seed into ideas", cmd: "brainstorm", title: "Brainstorm" },
+  ],
+};
+
+const DEFAULT_ACTIONS = [
+  { label: "Brainstorm", sub: "Turn a seed into a full idea", cmd: "brainstorm", title: "Brainstorm" },
+  { label: "Outline", sub: "Structure a thought from scratch", cmd: "outline", title: "Outline" },
+  { label: "Meeting notes", sub: "Capture it before it's gone", title: "Meeting Notes" },
+];
+
 export default function DashboardPage() {
   const { user } = useUser();
   const router = useRouter();
+  const me = useQuery(api.users.getMe);
   const { results: notes, status: notesStatus, loadMore } = usePaginatedQuery(
     api.notes.paginateNotes,
     {},
@@ -25,6 +55,8 @@ export default function DashboardPage() {
   const searchParams = useSearchParams();
   const activeTag = searchParams.get("tag");
   const [quickTopic, setQuickTopic] = useState("");
+
+  const roleActions = (me?.role && ROLE_ACTIONS[me.role.toLowerCase()]) ? ROLE_ACTIONS[me.role.toLowerCase()] : DEFAULT_ACTIONS;
 
   const pinnedNotes = useMemo(() => notes.filter((n) => n.pinned), [notes]);
   const filteredNotes = useMemo(
@@ -86,7 +118,7 @@ export default function DashboardPage() {
           <p className="mt-2 text-sm text-ink-4">
             {notes.length === 0
               ? "What are you thinking about?"
-              : `${notes.filter((n) => !n.parentId).length} note${notes.filter((n) => !n.parentId).length === 1 ? "" : "s"}`}
+              : `${notes.filter((n) => !n.parentId).length} note${notes.filter((n) => !n.parentId).length === 1 ? "" : "s"}${me?.role ? ` · ${me.role}` : ""}`}
           </p>
         </motion.div>
 
@@ -108,18 +140,17 @@ export default function DashboardPage() {
             <p className="text-xs text-ink-3">Empty canvas, anything goes</p>
           </motion.button>
 
-          {/* Secondary: AI-powered starting points */}
+          {/* Secondary: AI-powered starting points — personalized by role */}
           <div className="grid grid-cols-3 gap-2">
-            {[
-              { label: "Brainstorm",    sub: "Turn a seed into a full idea",    action: async () => { const id = await createNote({ title: "Brainstorm" }); router.push(`/notes/${id}?cmd=brainstorm`); } },
-              { label: "Outline",       sub: "Structure a thought from scratch", action: async () => { const id = await createNote({ title: "Outline" }); router.push(`/notes/${id}?cmd=outline`); } },
-              { label: "Meeting notes", sub: "Capture it before it's gone",     action: async () => { const id = await createNote({ title: "Meeting Notes" }); router.push(`/notes/${id}`); } },
-            ].map((item) => (
+            {roleActions.map((item) => (
               <motion.button
                 key={item.label}
                 variants={staggerItem}
                 {...cardHover}
-                onClick={item.action}
+                onClick={async () => {
+                  const id = await createNote({ title: item.title });
+                  router.push(item.cmd ? `/notes/${id}?cmd=${item.cmd}` : `/notes/${id}`);
+                }}
                 className="flex flex-col gap-1.5 rounded-lg border border-line-1 bg-surface p-4 text-left transition-colors hover:border-line-2 hover:bg-raised"
               >
                 <p className="text-sm font-medium text-ink-1">{item.label}</p>

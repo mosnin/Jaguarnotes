@@ -7,12 +7,12 @@ import { scaleIn, useMotionVariants } from "@/lib/motion";
 import { textToBlocks } from "@/lib/blocks";
 
 const COMMANDS = [
-  // Generate
-  { id: "table",     icon: "⊞", label: "Table",      desc: "Generate a populated table",               placeholder: "Topic...",                       group: "Generate" },
-  { id: "diagram",   icon: "◈", label: "Diagram",    desc: "Generate a Mermaid diagram",               placeholder: "Concept...",                     group: "Generate" },
-  { id: "explain",   icon: "◎", label: "Explain",    desc: "Insert a structured explanation",          placeholder: "Term or concept...",             group: "Generate" },
+  // Generate — ordered by universal usefulness
   { id: "brainstorm",icon: "✦", label: "Brainstorm", desc: "Generate a bulleted idea list",            placeholder: "Topic...",                       group: "Generate" },
   { id: "outline",   icon: "≡", label: "Outline",    desc: "Generate a document outline",              placeholder: "Subject...",                     group: "Generate" },
+  { id: "explain",   icon: "◎", label: "Explain",    desc: "Insert a structured explanation",          placeholder: "Term or concept...",             group: "Generate" },
+  { id: "table",     icon: "⊞", label: "Table",      desc: "Generate a populated table",               placeholder: "Topic...",                       group: "Generate" },
+  { id: "diagram",   icon: "◈", label: "Diagram",    desc: "Generate a Mermaid diagram",               placeholder: "Concept...",                     group: "Generate" },
   { id: "research",  icon: "⌖", label: "Research",   desc: "Search the web and synthesize",            placeholder: "What do you want to research?",  group: "Generate" },
   // Think
   { id: "compress",  icon: "◉", label: "Compress",   desc: "Distill writing to its essential truth",   placeholder: "Paste or describe your text...", group: "Think" },
@@ -139,11 +139,20 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
     const controller = new AbortController();
     abortRef.current = controller;
 
+    // Get note context from first ~10 blocks
+    let noteContext: string | undefined;
+    try {
+      const blocks = editor.document?.slice(0, 10);
+      if (blocks && blocks.length > 0) {
+        noteContext = JSON.stringify(blocks).slice(0, 2000);
+      }
+    } catch { /* ignore */ }
+
     try {
       const res = await fetch("/api/ai/command", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ command: selected, topic: topicToUse, think: useThink }),
+        body: JSON.stringify({ command: selected, topic: topicToUse, think: useThink, noteContext }),
         signal: controller.signal,
       });
 

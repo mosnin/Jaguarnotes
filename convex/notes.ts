@@ -84,12 +84,32 @@ export const search = query({
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx);
     if (!args.query.trim()) return [];
-    return ctx.db
-      .query("notes")
-      .withSearchIndex("search_notes", (q) =>
-        q.search("title", args.query).eq("userId", userId)
-      )
-      .take(20);
+
+    const [titleResults, previewResults] = await Promise.all([
+      ctx.db
+        .query("notes")
+        .withSearchIndex("search_notes", (q) =>
+          q.search("title", args.query).eq("userId", userId)
+        )
+        .take(15),
+      ctx.db
+        .query("notes")
+        .withSearchIndex("search_notes_preview", (q) =>
+          (q as any).search("preview", args.query).eq("userId", userId)
+        )
+        .take(10),
+    ]);
+
+    // Deduplicate by _id, title results take priority
+    const seen = new Set<string>();
+    const results = [];
+    for (const n of titleResults) {
+      if (!seen.has(n._id)) { seen.add(n._id); results.push(n); }
+    }
+    for (const n of previewResults) {
+      if (!seen.has(n._id)) { seen.add(n._id); results.push(n); }
+    }
+    return results.slice(0, 20);
   },
 });
 

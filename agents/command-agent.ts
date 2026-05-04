@@ -110,7 +110,7 @@ const MAX_TOKENS: Partial<Record<Command, number>> = {
   question: 250, premortem: 400, brief: 450, research: 500,
 };
 
-export async function streamCommandAgent(command: Command, topic: string, think = false): Promise<ReadableStream<Uint8Array>> {
+export async function streamCommandAgent(command: Command, topic: string, think = false, noteContext?: string): Promise<ReadableStream<Uint8Array>> {
   const encoder = new TextEncoder();
 
   let systemPrompt = SYSTEM_PROMPTS[command];
@@ -136,7 +136,12 @@ export async function streamCommandAgent(command: Command, topic: string, think 
           model: "gpt-4o-mini",
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: topic },
+            {
+              role: "user",
+              content: noteContext
+                ? `Context from my note:\n${noteContext}\n\nTask: ${topic}`
+                : topic,
+            },
           ],
           stream: true,
           max_tokens: maxTokens,

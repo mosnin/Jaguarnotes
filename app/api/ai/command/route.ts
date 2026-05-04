@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
   const body = await req.json();
-  const { command, topic, think } = body;
+  const { command, topic, think, noteContext } = body;
 
   const canProceed = await convex.mutation(api.rateLimits.check, {
     userId,
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     return new Response("Topic too long (max 4000 characters)", { status: 400 });
   }
 
-  const stream = await streamCommandAgent(command as Command, topic.trim().slice(0, 2000), !!think);
+  const stream = await streamCommandAgent(command as Command, topic.trim().slice(0, 2000), !!think, typeof noteContext === "string" ? noteContext.slice(0, 2000) : undefined);
 
   return new Response(stream, {
     headers: {
