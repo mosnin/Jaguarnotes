@@ -51,6 +51,7 @@ export function OverflowMenu({ note, anchorRef, onDismiss, onLinkNote, onShare, 
       variants={scaleIn}
       initial="hidden"
       animate="show"
+      role="menu"
       style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 60 }}
       className="w-52 overflow-hidden rounded-xl border border-line-3 bg-surface shadow-2xl shadow-black/70 py-1"
     >
@@ -81,6 +82,7 @@ export function OverflowMenu({ note, anchorRef, onDismiss, onLinkNote, onShare, 
             icon={<PinIcon filled={!!note.pinned} />}
             label={note.pinned ? "Unpin" : "Pin"}
             active={!!note.pinned}
+            ariaPressed={!!note.pinned}
           />
           <MenuItem onClick={onExport} icon={<DownloadIcon />} label="Export .md" />
           <div className="my-1 border-t border-line-1" />
@@ -89,6 +91,7 @@ export function OverflowMenu({ note, anchorRef, onDismiss, onLinkNote, onShare, 
             icon={<TrashIcon />}
             label="Delete"
             danger
+            ariaLabel="Delete note (requires confirmation)"
           />
         </>
       )}
@@ -96,16 +99,21 @@ export function OverflowMenu({ note, anchorRef, onDismiss, onLinkNote, onShare, 
   );
 }
 
-function MenuItem({ onClick, icon, label, danger, active }: {
+function MenuItem({ onClick, icon, label, danger, active, ariaLabel, ariaPressed }: {
   onClick: () => void;
   icon: React.ReactNode;
   label: string;
   danger?: boolean;
   active?: boolean;
+  ariaLabel?: string;
+  ariaPressed?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
+      role="menuitem"
+      aria-label={ariaLabel}
+      aria-pressed={ariaPressed}
       className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-raised ${
         danger ? "text-error" : active ? "text-ai" : "text-ink-2"
       }`}

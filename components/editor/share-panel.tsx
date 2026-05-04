@@ -76,6 +76,9 @@ export function SharePanel({ noteId, anchorRef, onDismiss }: SharePanelProps) {
       variants={scaleIn}
       initial="hidden"
       animate="show"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Share note"
       style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 60 }}
       className="w-80 overflow-hidden rounded-xl border border-line-3 bg-surface shadow-2xl shadow-black/70"
     >

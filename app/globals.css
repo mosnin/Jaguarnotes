@@ -111,6 +111,14 @@ kbd {
   line-height: 1.6;
 }
 
+/* ─── Reduced-motion accessibility ─────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ─── BlockNote editor overrides ────────────────────────────────────── */
 .bn-editor {
   background: transparent !important;

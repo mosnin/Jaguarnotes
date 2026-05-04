@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { scaleIn } from "@/lib/motion";
 
@@ -41,6 +41,8 @@ const SECTIONS = [
 ] as const;
 
 export function ShortcutsModal({ onDismiss }: ShortcutsModalProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape" || e.key === "?") onDismiss();
@@ -49,19 +51,50 @@ export function ShortcutsModal({ onDismiss }: ShortcutsModalProps) {
     return () => document.removeEventListener("keydown", onKey);
   }, [onDismiss]);
 
+  // Focus the panel on mount so keyboard users can interact immediately
+  useEffect(() => {
+    panelRef.current?.focus();
+  }, []);
+
+  // Focus trap: cycle Tab / Shift+Tab within the panel
+  function onPanelKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key !== "Tab") return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    const focusable = Array.from(
+      panel.querySelectorAll<HTMLElement>(
+        'a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])'
+      )
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+    } else {
+      if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  }
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-app/80 backdrop-blur-sm"
       onPointerDown={(e) => { if (e.target === e.currentTarget) onDismiss(); }}
     >
       <motion.div
+        ref={panelRef}
         variants={scaleIn}
         initial="hidden"
         animate="show"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="shortcuts-title"
+        tabIndex={-1}
+        onKeyDown={onPanelKeyDown}
         className="w-full max-w-sm overflow-hidden rounded-2xl border border-line-3 bg-surface shadow-2xl shadow-black/70"
       >
         <div className="border-b border-line-1 px-5 py-4">
-          <p className="text-sm font-semibold text-ink-1">Keyboard shortcuts</p>
+          <p id="shortcuts-title" className="text-sm font-semibold text-ink-1">Keyboard shortcuts</p>
         </div>
         <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
           {SECTIONS.map((section) => (

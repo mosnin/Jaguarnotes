@@ -17,9 +17,10 @@ interface NoteResult {
 
 interface SearchModalProps {
   onDismiss: () => void;
+  triggerRef?: React.RefObject<HTMLElement>;
 }
 
-export function SearchModal({ onDismiss }: SearchModalProps) {
+export function SearchModal({ onDismiss, triggerRef }: SearchModalProps) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [cursor, setCursor] = useState(0);
@@ -48,7 +49,7 @@ export function SearchModal({ onDismiss }: SearchModalProps) {
     if (e.key === "ArrowDown") { e.preventDefault(); setCursor((c) => Math.min(c + 1, results.length - 1)); }
     if (e.key === "ArrowUp")   { e.preventDefault(); setCursor((c) => Math.max(c - 1, 0)); }
     if (e.key === "Enter" && results[cursor]) { openNote(results[cursor]._id); }
-    if (e.key === "Escape") onDismiss();
+    if (e.key === "Escape") { triggerRef?.current?.focus(); onDismiss(); }
   }
 
   return (
@@ -60,6 +61,9 @@ export function SearchModal({ onDismiss }: SearchModalProps) {
         variants={scaleIn}
         initial="hidden"
         animate="show"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search notes"
         className="w-full max-w-lg overflow-hidden rounded-2xl border border-line-3 bg-surface shadow-2xl shadow-black/70"
       >
         {/* Input */}
@@ -73,13 +77,17 @@ export function SearchModal({ onDismiss }: SearchModalProps) {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Search notes..."
+            role="combobox"
+            aria-expanded={results.length > 0}
+            aria-haspopup="listbox"
+            aria-autocomplete="list"
             className="flex-1 bg-transparent text-sm text-ink-1 placeholder-ink-4 outline-none"
           />
           <kbd className="rounded border border-line-2 bg-raised px-1.5 py-0.5 text-[10px] font-mono text-ink-4">Esc</kbd>
         </div>
 
         {/* Results */}
-        <div className="max-h-[360px] overflow-y-auto py-1">
+        <div role="listbox" aria-label="Search results" className="max-h-[360px] overflow-y-auto py-1">
           {!debouncedQuery && (
             <p className="px-4 py-6 text-center text-xs text-ink-4">Type to search all notes</p>
           )}
@@ -90,6 +98,8 @@ export function SearchModal({ onDismiss }: SearchModalProps) {
             <button
               key={note._id}
               onPointerDown={() => openNote(note._id)}
+              role="option"
+              aria-selected={i === cursor}
               className={`flex w-full items-start gap-3 px-4 py-2.5 text-left transition-colors ${
                 i === cursor ? "bg-raised" : "hover:bg-raised"
               }`}
