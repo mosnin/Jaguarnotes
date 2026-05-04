@@ -116,7 +116,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
       } else if (e.key === "Enter") {
         e.preventDefault();
         const cmd = flatListCommands[selectedIndex];
-        if (cmd) { setSelected(cmd.id); setPhase("input"); }
+        if (cmd) { setSelected(cmd.id); setPhase("input"); setThinkMode(false); }
       }
     }
     document.addEventListener("keydown", onKeyDown);
@@ -248,7 +248,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
                   id={`cmd-option-${i}`}
                   role="option"
                   aria-selected={selectedIndex === i}
-                  onClick={() => { setSelected(cmd.id); setPhase("input"); }}
+                  onClick={() => { setSelected(cmd.id); setPhase("input"); setThinkMode(false); }}
                   className={`flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised${selectedIndex === i ? " bg-raised" : ""}`}
                 >
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
@@ -275,7 +275,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
                     id={`cmd-option-${flatIndex}`}
                     role="option"
                     aria-selected={selectedIndex === flatIndex}
-                    onClick={() => { setSelected(cmd.id); setPhase("input"); }}
+                    onClick={() => { setSelected(cmd.id); setPhase("input"); setThinkMode(false); }}
                     className={`flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised${selectedIndex === flatIndex ? " bg-raised" : ""}`}
                   >
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
