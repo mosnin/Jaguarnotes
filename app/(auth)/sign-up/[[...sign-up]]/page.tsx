@@ -5,7 +5,7 @@ export default function SignUpPage() {
     <SignUp
       appearance={{
         variables: {
-          colorPrimary: "#6366f1",
+          colorPrimary: "#ffffff",
           colorBackground: "#111111",
           colorInputBackground: "#0a0a0a",
           colorInputText: "#ededed",
@@ -25,7 +25,7 @@ export default function SignUpPage() {
           formFieldLabel: "text-[#888] text-xs",
           formFieldInput: "bg-[#0a0a0a] border-[#1e1e1e] text-white placeholder-[#333] focus:border-indigo-500",
           formButtonPrimary: "bg-gradient-to-r from-indigo-500 to-violet-600 hover:opacity-90 transition-opacity",
-          footerActionLink: "text-indigo-400 hover:text-indigo-300",
+          footerActionLink: "text-white/70 hover:text-white",
         },
       }}
       redirectUrl="/onboarding"

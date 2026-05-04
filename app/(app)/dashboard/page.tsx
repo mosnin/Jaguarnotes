@@ -5,12 +5,14 @@ import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { formatDistanceToNow } from "@/lib/utils";
+import { useSidebar } from "@/components/app/sidebar-context";
 
 export default function DashboardPage() {
   const { user } = useUser();
   const router = useRouter();
   const notes = useQuery(api.notes.list) ?? [];
   const createNote = useMutation(api.notes.create);
+  const { toggle: toggleSidebar } = useSidebar();
 
   async function handleNewNote() {
     const id = await createNote({ title: "Untitled" });
@@ -21,116 +23,86 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
-      {/* Header */}
-      <div className="border-b border-[#1a1a1a] px-8 py-6">
-        <h1 className="text-2xl font-bold text-white">
-          Good {getTimeOfDay()}, {firstName}.
-        </h1>
-        <p className="mt-1 text-sm text-[#555]">
-          {notes.length === 0
-            ? "Your workspace is empty. Create your first note."
-            : `${notes.length} note${notes.length === 1 ? "" : "s"} in your workspace.`}
-        </p>
+      {/* Top bar — sidebar toggle only */}
+      <div className="flex h-10 shrink-0 items-center px-6 md:px-8">
+        <button
+          onClick={toggleSidebar}
+          className="flex h-7 w-7 items-center justify-center rounded-md text-[#2a2a2a] transition-colors hover:bg-[#161616] hover:text-[#666]"
+          aria-label="Toggle sidebar"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
       </div>
 
-      <div className="flex-1 px-8 py-6">
-        {/* Quick actions */}
-        <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <button
-            onClick={handleNewNote}
-            className="group flex flex-col gap-2 rounded-xl border border-[#1e1e1e] bg-[#111] p-4 text-left transition-all hover:border-indigo-500/30 hover:bg-[#0f0f1a]"
-          >
-            <span className="text-xl">✦</span>
-            <div>
-              <p className="text-sm font-medium text-white">New note</p>
-              <p className="text-xs text-[#444]">Blank canvas</p>
-            </div>
-          </button>
-          <button
-            onClick={async () => {
-              const id = await createNote({ title: "Brainstorm" });
-              router.push(`/notes/${id}?cmd=brainstorm`);
-            }}
-            className="group flex flex-col gap-2 rounded-xl border border-[#1e1e1e] bg-[#111] p-4 text-left transition-all hover:border-indigo-500/30 hover:bg-[#0f0f1a]"
-          >
-            <span className="text-xl">💡</span>
-            <div>
-              <p className="text-sm font-medium text-white">Brainstorm</p>
-              <p className="text-xs text-[#444]">AI idea generation</p>
-            </div>
-          </button>
-          <button
-            onClick={async () => {
-              const id = await createNote({ title: "Research" });
-              router.push(`/notes/${id}?cmd=outline`);
-            }}
-            className="group flex flex-col gap-2 rounded-xl border border-[#1e1e1e] bg-[#111] p-4 text-left transition-all hover:border-indigo-500/30 hover:bg-[#0f0f1a]"
-          >
-            <span className="text-xl">🔬</span>
-            <div>
-              <p className="text-sm font-medium text-white">Research</p>
-              <p className="text-xs text-[#444]">AI structured outline</p>
-            </div>
-          </button>
-          <button
-            onClick={async () => {
-              const id = await createNote({ title: "Meeting Notes" });
-              router.push(`/notes/${id}`);
-            }}
-            className="group flex flex-col gap-2 rounded-xl border border-[#1e1e1e] bg-[#111] p-4 text-left transition-all hover:border-indigo-500/30 hover:bg-[#0f0f1a]"
-          >
-            <span className="text-xl">📋</span>
-            <div>
-              <p className="text-sm font-medium text-white">Meeting notes</p>
-              <p className="text-xs text-[#444]">Fast capture</p>
-            </div>
-          </button>
+      <div className="flex-1 px-6 pb-16 pt-6 md:px-8 md:pt-10">
+        {/* Greeting */}
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+            Good {getTimeOfDay()}, {firstName}.
+          </h1>
+          <p className="mt-2 text-sm text-[#333]">
+            {notes.length === 0
+              ? "Your workspace is empty."
+              : `${notes.length} note${notes.length === 1 ? "" : "s"}`}
+          </p>
+        </div>
+
+        {/* Quick actions — neutral, no indigo hover */}
+        <div className="mb-10 grid gap-2 grid-cols-2 sm:grid-cols-4">
+          {[
+            { label: "New note",       sub: "Blank canvas",         action: handleNewNote },
+            { label: "Brainstorm",     sub: "AI idea generation",   action: async () => { const id = await createNote({ title: "Brainstorm" }); router.push(`/notes/${id}?cmd=brainstorm`); } },
+            { label: "Outline",        sub: "AI structured outline", action: async () => { const id = await createNote({ title: "Outline" }); router.push(`/notes/${id}?cmd=outline`); } },
+            { label: "Meeting notes",  sub: "Fast capture",          action: async () => { const id = await createNote({ title: "Meeting Notes" }); router.push(`/notes/${id}`); } },
+          ].map((item) => (
+            <button
+              key={item.label}
+              onClick={item.action}
+              className="flex flex-col gap-1.5 rounded-xl border border-[#161616] p-4 text-left transition-colors hover:border-[#222] hover:bg-[#0d0d0d]"
+            >
+              <p className="text-sm font-medium text-white">{item.label}</p>
+              <p className="text-xs text-[#333]">{item.sub}</p>
+            </button>
+          ))}
         </div>
 
         {/* Notes grid */}
         {notes.length > 0 && (
           <div>
-            <h2 className="mb-4 text-xs uppercase tracking-widest text-[#333]">Recent notes</h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <p className="mb-4 text-[10px] uppercase tracking-widest text-[#2a2a2a]">Recent</p>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {notes.map((note) => (
                 <button
                   key={note._id}
                   onClick={() => router.push(`/notes/${note._id}`)}
-                  className="group flex flex-col gap-3 rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 text-left transition-all hover:border-[#2a2a2a] hover:bg-[#111]"
+                  className="flex flex-col gap-2 rounded-xl border border-[#111] p-4 text-left transition-colors hover:border-[#1e1e1e] hover:bg-[#0d0d0d]"
                 >
                   <div className="flex items-start justify-between">
-                    <span className="text-lg">📄</span>
-                    <span className="text-[10px] text-[#333]">
-                      {formatDistanceToNow(note._creationTime)}
-                    </span>
-                  </div>
-                  <div>
                     <p className="truncate text-sm font-medium text-white">
                       {note.title || "Untitled"}
                     </p>
-                    <p className="mt-1 line-clamp-2 text-xs text-[#444]">
-                      {note.preview || "No content yet"}
-                    </p>
+                    <span className="ml-2 shrink-0 text-[10px] text-[#222]">
+                      {formatDistanceToNow(note._creationTime)}
+                    </span>
                   </div>
+                  <p className="line-clamp-2 text-xs leading-relaxed text-[#333]">
+                    {note.preview || "No content yet"}
+                  </p>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Empty state */}
+        {/* Empty state — confident, no indigo */}
         {notes.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-600/20">
-              <span className="text-2xl">✦</span>
-            </div>
-            <h3 className="text-lg font-semibold text-white">Your workspace is ready.</h3>
-            <p className="mt-2 max-w-xs text-sm text-[#555]">
-              Create your first note and let the AI work alongside you.
-            </p>
+          <div className="flex flex-col items-start py-10">
+            <p className="mb-6 text-[#222]">Nothing here yet.</p>
             <button
               onClick={handleNewNote}
-              className="mt-6 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-[0_0_30px_rgba(99,102,241,0.3)] transition-all hover:shadow-[0_0_50px_rgba(99,102,241,0.4)]"
+              className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-black transition-opacity hover:opacity-85"
             >
               Create first note
             </button>

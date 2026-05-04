@@ -152,7 +152,7 @@ export default function OnboardingPage() {
             <p className="text-sm text-[#555]">That&apos;s it. Tab expands anything. / generates everything.</p>
             <button
               onClick={() => router.push("/dashboard")}
-              className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 py-3.5 text-sm font-semibold text-white shadow-[0_0_30px_rgba(99,102,241,0.3)] transition-all hover:shadow-[0_0_50px_rgba(99,102,241,0.45)]"
+              className="w-full rounded-xl bg-white py-3.5 text-sm font-semibold text-black transition-opacity hover:opacity-85"
             >
               Open my workspace →
             </button>

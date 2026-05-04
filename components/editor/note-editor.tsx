@@ -10,6 +10,7 @@ import "@blocknote/mantine/style.css";
 import { AIAutocompleteOverlay } from "./ai-autocomplete-overlay";
 import { SlashCommandMenu } from "./slash-command-menu";
 import { AIWelcome } from "./ai-welcome";
+import { useSidebar } from "@/components/app/sidebar-context";
 
 interface NoteEditorProps {
   noteId: string;
@@ -18,21 +19,16 @@ interface NoteEditorProps {
 export function NoteEditor({ noteId }: NoteEditorProps) {
   const note = useQuery(api.notes.get, { id: noteId as Id<"notes"> });
   const updateNote = useMutation(api.notes.update);
+  const { toggle: toggleSidebar } = useSidebar();
 
   const [title, setTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isEmpty, setIsEmpty] = useState(true);
-
-  // AI autocomplete state
   const [autocomplete, setAutocomplete] = useState<{
     context: string;
     position: { top: number; left: number };
   } | null>(null);
-
-  // Slash command state
   const [slashMenu, setSlashMenu] = useState<{ query: string } | null>(null);
-
-  // AI-generated block IDs — drives visual markers
   const [aiBlockIds, setAiBlockIds] = useState<Set<string>>(new Set());
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
@@ -41,7 +37,6 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
     initialContent: note?.content ? JSON.parse(note.content) : undefined,
   });
 
-  // Sync title and isEmpty on note load
   useEffect(() => {
     if (note) {
       setTitle(note.title ?? "Untitled");
@@ -50,7 +45,6 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
     }
   }, [note?._id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-save
   const scheduleSave = useCallback(
     (content: string, newTitle?: string) => {
       clearTimeout(saveTimeoutRef.current);
@@ -97,17 +91,14 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
     scheduleSave(JSON.stringify(editor.document), value);
   }
 
-  // Tab → AI autocomplete; / → slash menu
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      // Escape closes any overlay
       if (e.key === "Escape") {
         setAutocomplete(null);
         setSlashMenu(null);
         return;
       }
 
-      // Tab → autocomplete
       if (e.key === "Tab" && !e.shiftKey && !autocomplete && !slashMenu) {
         const sel = window.getSelection();
         if (!sel?.rangeCount) return;
@@ -115,26 +106,20 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
         const text = range.startContainer.textContent ?? "";
         const before = text.slice(0, range.startOffset).trim();
         if (before.length < 2) return;
-
-        const words = before.split(/\s+/);
-        const context = words.slice(-5).join(" ");
+        const context = before.split(/\s+/).slice(-5).join(" ");
         if (!context) return;
-
         e.preventDefault();
         const rect = range.getBoundingClientRect();
         setAutocomplete({ context, position: { top: rect.bottom + 8, left: rect.left } });
         return;
       }
 
-      // / → slash menu (only when at start of content or after whitespace)
       if (e.key === "/" && !autocomplete && !slashMenu) {
         const sel = window.getSelection();
         if (!sel?.rangeCount) return;
-        const range = sel.getRangeAt(0);
-        const before = (range.startContainer.textContent ?? "").slice(0, range.startOffset);
+        const before = (sel.getRangeAt(0).startContainer.textContent ?? "")
+          .slice(0, sel.getRangeAt(0).startOffset);
         if (before.trim() !== "" && !before.endsWith(" ")) return;
-
-        // Slight delay so "/" character registers first
         setTimeout(() => setSlashMenu({ query: "" }), 10);
       }
     }
@@ -154,99 +139,79 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
     handleEditorChange();
   }
 
-  function handleWelcomeCommand(command: string, topic: string) {
-    setSlashMenu(null);
-    // Trigger the slash menu with the pre-filled command
-    void fetch("/api/ai/command", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ command, topic }),
-    });
-  }
-
-  // Dynamic CSS for AI-generated blocks
+  // AI block marker: left border only — one clean signal
   const aiBlockStyles = [...aiBlockIds]
     .map(
       (id) => `
-    [data-id="${id}"] {
-      border-left: 2px solid rgba(99, 102, 241, 0.35) !important;
-      padding-left: 12px !important;
-      background: linear-gradient(90deg, rgba(99,102,241,0.04) 0%, transparent 100%) !important;
-      border-radius: 0 4px 4px 0 !important;
-      position: relative;
-    }
-    [data-id="${id}"]::before {
-      content: "✦";
-      position: absolute;
-      left: -18px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 8px;
-      color: rgba(99, 102, 241, 0.5);
-      line-height: 1;
-    }
-  `
+      [data-id="${id}"] {
+        border-left: 2px solid rgba(99, 102, 241, 0.5) !important;
+        padding-left: 14px !important;
+        margin-left: -16px !important;
+      }
+    `
     )
     .join("");
 
   if (!note) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#1a1a1a] border-t-indigo-500" />
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1a1a1a] border-t-white/30" />
       </div>
     );
   }
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden">
-      {/* AI block styles */}
       {aiBlockStyles && <style>{aiBlockStyles}</style>}
 
-      {/* Toolbar */}
-      <div className="flex items-center justify-between border-b border-[#1a1a1a] px-6 py-3">
+      {/* Minimal top bar — sidebar toggle + save pulse, nothing else */}
+      <div className="flex h-10 shrink-0 items-center px-4">
+        <button
+          onClick={toggleSidebar}
+          className="group flex h-7 w-7 items-center justify-center rounded-md text-[#2a2a2a] transition-colors hover:bg-[#161616] hover:text-[#666]"
+          aria-label="Toggle sidebar"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        {/* Save indicator — a single dot, no text */}
         <span
-          className={`text-xs text-[#2a2a2a] transition-opacity duration-500 ${
+          className={`ml-3 h-1.5 w-1.5 rounded-full bg-white/20 transition-opacity duration-700 ${
             isSaving ? "opacity-100" : "opacity-0"
           }`}
-        >
-          Saving...
-        </span>
-        <div className="flex items-center gap-2 text-[10px] text-[#2a2a2a]">
-          <kbd className="rounded border border-[#1e1e1e] bg-[#111] px-1.5 py-0.5 font-mono">Tab</kbd>
-          <span>autocomplete</span>
-          <span className="mx-2 opacity-30">·</span>
-          <kbd className="rounded border border-[#1e1e1e] bg-[#111] px-1.5 py-0.5 font-mono">/</kbd>
-          <span>commands</span>
-        </div>
+        />
       </div>
 
-      {/* Editor */}
+      {/* Full-bleed editor */}
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-4xl px-8 py-12">
+        <div className="mx-auto w-full max-w-3xl px-6 pb-32 pt-8 md:px-12 md:pt-14">
+          {/* Title — large and owning the space */}
           <input
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="Untitled"
-            className="mb-8 w-full bg-transparent text-4xl font-bold text-white placeholder-[#1e1e1e] outline-none"
+            className="mb-10 w-full bg-transparent text-[2.75rem] font-bold leading-tight tracking-tight text-white placeholder-[#1c1c1c] outline-none md:text-5xl"
           />
 
-          {/* Empty state — AI shows up unprompted */}
           {isEmpty && (
             <AIWelcome
-              onCommand={handleWelcomeCommand}
+              onCommand={(cmd, topic) => {
+                setSlashMenu(null);
+                void fetch("/api/ai/command", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ command: cmd, topic }),
+                });
+              }}
               onDismiss={() => setIsEmpty(false)}
             />
           )}
 
-          <div className={isEmpty ? "opacity-0 h-0 overflow-hidden" : ""}>
-            <BlockNoteView
-              editor={editor}
-              onChange={handleEditorChange}
-              theme="dark"
-            />
+          <div className={isEmpty ? "pointer-events-none opacity-0 h-0 overflow-hidden" : ""}>
+            <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
           </div>
-
-          {/* BlockNote always mounted so it stays ready */}
           {isEmpty && (
             <div className="hidden">
               <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
@@ -255,7 +220,15 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
         </div>
       </div>
 
-      {/* Autocomplete overlay */}
+      {/* Mobile floating AI button */}
+      <button
+        onClick={() => setSlashMenu({ query: "" })}
+        className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform active:scale-95 md:hidden"
+        aria-label="AI commands"
+      >
+        <span className="text-lg font-bold">/</span>
+      </button>
+
       {autocomplete && (
         <AIAutocompleteOverlay
           context={autocomplete.context}
@@ -266,7 +239,6 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
         />
       )}
 
-      {/* Slash command menu */}
       {slashMenu && (
         <SlashCommandMenu
           query={slashMenu.query}

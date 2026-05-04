@@ -19,6 +19,11 @@
   box-sizing: border-box;
 }
 
+/* Sidebar transition */
+.duration-250 {
+  transition-duration: 250ms;
+}
+
 html,
 body {
   margin: 0;
@@ -55,12 +60,12 @@ main {
 
 /* Selection */
 ::selection {
-  background: rgba(99, 102, 241, 0.3);
-  color: #ededed;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
-/* Focus ring */
+/* Focus ring — white, not indigo. Indigo is reserved for AI-active states. */
 :focus-visible {
-  outline: 2px solid #6366f1;
+  outline: 1px solid rgba(255, 255, 255, 0.2);
   outline-offset: 2px;
 }

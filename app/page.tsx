@@ -5,39 +5,26 @@ import { AnimatedDemo } from "@/components/landing/animated-demo";
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#0a0a0a]">
-      {/* Background grid */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage:
-            "linear-gradient(#6366f1 1px, transparent 1px), linear-gradient(90deg, #6366f1 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-        }}
-      />
-
-      {/* Glow orb */}
-      <div className="pointer-events-none absolute left-1/2 top-0 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-[120px]" />
+      {/* Single, confident glow — not decoration, just depth */}
+      <div className="pointer-events-none absolute left-1/2 top-0 h-[700px] w-[900px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-indigo-600/[0.07] blur-[140px]" />
 
       {/* Nav */}
       <nav className="relative z-10 flex w-full items-center justify-between px-6 py-5 md:px-12">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
-            <span className="text-sm font-bold text-white">J</span>
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
+            <span className="text-xs font-bold text-white">J</span>
           </div>
-          <span className="text-base font-semibold tracking-tight text-white">Jaguarnotes</span>
+          <span className="text-sm font-semibold tracking-tight text-white">Jaguarnotes</span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <SignedOut>
-            <Link
-              href="/sign-in"
-              className="text-sm text-[#888] transition-colors hover:text-white"
-            >
+            <Link href="/sign-in" className="text-sm text-[#555] transition-colors hover:text-white">
               Sign in
             </Link>
             <Link
               href="/sign-up"
-              className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90"
+              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-85"
             >
               Get started
             </Link>
@@ -45,7 +32,7 @@ export default function LandingPage() {
           <SignedIn>
             <Link
               href="/dashboard"
-              className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90"
+              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-85"
             >
               Open app
             </Link>
@@ -54,43 +41,28 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <main className="relative z-10 flex flex-col items-center px-6 pb-32 pt-24 text-center md:pt-32">
-        {/* Badge */}
-        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#1e1e1e] bg-[#111] px-4 py-1.5 text-xs text-[#888]">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#4ade80]" />
-          AI-native · Real-time · Agentic
-        </div>
+      <main className="relative z-10 flex flex-col items-center px-6 pb-32 pt-20 text-center md:pt-28">
 
-        {/* Headline */}
-        <h1 className="mx-auto max-w-4xl text-5xl font-bold leading-[1.08] tracking-tight text-white md:text-7xl lg:text-8xl">
-          Notes that{" "}
-          <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-            think
-          </span>{" "}
-          with you.
+        {/* Headline — 4 words, two lines, states the truth */}
+        <h1 className="mx-auto max-w-2xl text-6xl font-bold leading-[1.05] tracking-tight text-white md:text-7xl lg:text-8xl">
+          Think out loud.
         </h1>
-
-        {/* Sub */}
-        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-[#888] md:text-xl">
-          Jaguarnotes is the workspace where AI does the writing. You direct.
-          Type a concept, trigger a command — your ideas expand instantly.
+        <p className="mt-4 text-xl font-normal text-[#555] md:text-2xl">
+          The AI writes the rest.
         </p>
 
         {/* CTAs */}
-        <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
+        <div className="mt-10 flex items-center gap-4">
           <SignedOut>
             <Link
               href="/sign-up"
-              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-7 py-3.5 text-sm font-semibold text-white shadow-[0_0_40px_rgba(99,102,241,0.35)] transition-all hover:shadow-[0_0_60px_rgba(99,102,241,0.5)]"
+              className="rounded-xl bg-white px-8 py-3.5 text-sm font-semibold text-black transition-opacity hover:opacity-85"
             >
               Start for free
-              <svg className="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
             </Link>
             <Link
               href="/sign-in"
-              className="inline-flex items-center gap-2 rounded-xl border border-[#1e1e1e] bg-[#111] px-7 py-3.5 text-sm font-medium text-[#888] transition-colors hover:border-[#333] hover:text-white"
+              className="text-sm text-[#444] transition-colors hover:text-white"
             >
               Sign in
             </Link>
@@ -98,85 +70,63 @@ export default function LandingPage() {
           <SignedIn>
             <Link
               href="/dashboard"
-              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-7 py-3.5 text-sm font-semibold text-white shadow-[0_0_40px_rgba(99,102,241,0.35)] transition-all hover:shadow-[0_0_60px_rgba(99,102,241,0.5)]"
+              className="rounded-xl bg-white px-8 py-3.5 text-sm font-semibold text-black transition-opacity hover:opacity-85"
             >
-              Open your workspace
-              <svg className="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              Open workspace
             </Link>
           </SignedIn>
         </div>
 
-        {/* Live animated demo — shows the product working, not a screenshot */}
+        {/* Live animated demo */}
         <AnimatedDemo />
 
-        {/* Features */}
-        <div className="mx-auto mt-32 w-full max-w-5xl">
-          <p className="mb-16 text-xs uppercase tracking-widest text-[#333]">
-            Built for the way you actually think
-          </p>
-          <div className="grid gap-px bg-[#1e1e1e] sm:grid-cols-3">
+        {/* Three truths — no grid chrome, just type */}
+        <div className="mx-auto mt-32 w-full max-w-3xl">
+          <div className="grid gap-16 text-left sm:grid-cols-3">
             {[
               {
-                icon: "⌥",
-                title: "Tab to think",
-                desc: "Expand any concept inline. No context switch. No copy-paste. Just Tab.",
+                label: "Tab to think",
+                body: "Expand any concept inline. No context switch. No copy-paste. The AI completes the thought.",
               },
               {
-                icon: "/",
-                title: "13 AI commands",
-                desc: "Generate, compress, punch, counter, brief — the AI does the work. You direct.",
+                label: "13 AI commands",
+                body: "Generate, compress, punch, counter, brief — each one a scoped agent with a single job.",
               },
               {
-                icon: "⚡",
-                title: "Real-time, everywhere",
-                desc: "Convex keeps every note live across all devices. PWA-ready. Always in sync.",
+                label: "Real-time, everywhere",
+                body: "Convex keeps every note live across all devices. PWA-ready. Always in sync.",
               },
             ].map((f) => (
-              <div key={f.title} className="bg-[#0a0a0a] p-8 transition-colors hover:bg-[#0f0f0f]">
-                <div className="mb-4 text-2xl">{f.icon}</div>
-                <h3 className="mb-2 text-sm font-semibold text-white">{f.title}</h3>
-                <p className="text-sm leading-relaxed text-[#555]">{f.desc}</p>
+              <div key={f.label}>
+                <p className="mb-2 text-sm font-semibold text-white">{f.label}</p>
+                <p className="text-sm leading-relaxed text-[#444]">{f.body}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Bottom CTA */}
-        <div className="mx-auto mt-32 max-w-2xl text-center">
-          <h2 className="text-4xl font-bold tracking-tight text-white md:text-5xl">
-            Think it. Direct it.{" "}
-            <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-              Ship it.
-            </span>
-          </h2>
-          <p className="mt-4 text-[#555]">
-            Join the workspace built for people who think for a living.
-          </p>
-          <div className="mt-8">
-            <SignedOut>
-              <Link
-                href="/sign-up"
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-8 py-4 text-sm font-semibold text-white shadow-[0_0_40px_rgba(99,102,241,0.35)] transition-all hover:shadow-[0_0_60px_rgba(99,102,241,0.5)]"
-              >
-                Start free today
-              </Link>
-            </SignedOut>
-            <SignedIn>
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-8 py-4 text-sm font-semibold text-white shadow-[0_0_40px_rgba(99,102,241,0.35)] transition-all hover:shadow-[0_0_60px_rgba(99,102,241,0.5)]"
-              >
-                Open workspace
-              </Link>
-            </SignedIn>
-          </div>
+        {/* Bottom CTA — one line */}
+        <div className="mt-32 text-center">
+          <SignedOut>
+            <Link
+              href="/sign-up"
+              className="rounded-xl bg-white px-8 py-4 text-sm font-semibold text-black transition-opacity hover:opacity-85"
+            >
+              Start free today
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <Link
+              href="/dashboard"
+              className="rounded-xl bg-white px-8 py-4 text-sm font-semibold text-black transition-opacity hover:opacity-85"
+            >
+              Open workspace
+            </Link>
+          </SignedIn>
         </div>
 
-        {/* Footer */}
-        <footer className="mt-32 w-full border-t border-[#111] pt-8 text-center text-xs text-[#333]">
-          © {new Date().getFullYear()} Jaguarnotes. Built for people who think for a living.
+        <footer className="mt-24 text-xs text-[#222]">
+          © {new Date().getFullYear()} Jaguarnotes
         </footer>
       </main>
     </div>
