@@ -1,4 +1,5 @@
-import { Component, ReactNode } from "react";
+import React, { Component, ReactNode } from "react";
+import { trackError } from "@/lib/telemetry";
 
 interface Props { children: ReactNode; fallback?: ReactNode; }
 interface State { error: Error | null; }
@@ -8,6 +9,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    trackError("ErrorBoundary", error);
   }
 
   render() {

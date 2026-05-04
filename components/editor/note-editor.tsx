@@ -23,6 +23,7 @@ import { PresenceAvatars } from "./presence-avatars";
 import { useSidebar } from "@/components/app/sidebar-context";
 import { blocksToMarkdown } from "@/lib/blocks";
 import { toast } from "@/lib/toast";
+import { trackError } from "@/lib/telemetry";
 
 const EMOJIS = ["📝","💡","🎯","🔍","📊","✅","🚀","💬","📌","⚡","🌟","🎨","📅","🧠","💭","🔑","📈","🗒️","🔗","📋","🏗️","🧪","🎤","📣","🌱"];
 
@@ -152,9 +153,10 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           setSaveStatus("saved");
           clearTimeout(saveStatusTimerRef.current);
           saveStatusTimerRef.current = setTimeout(() => setSaveStatus("idle"), 1500);
-        } catch {
+        } catch (err) {
           setSaveStatus("idle");
           toast.error("Save failed — check your connection.");
+          trackError("scheduleSave", err);
         }
       }, 800);
     },
@@ -308,6 +310,26 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     document.addEventListener("mouseup", onMouseUp);
     return () => document.removeEventListener("mouseup", onMouseUp);
   }, []);
+
+  // Undo / Redo
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      // Only intercept when not inside an input/textarea (title field, tag input, etc.)
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        editor.undo();
+      }
+      if (e.key === "y" || (e.key === "z" && e.shiftKey)) {
+        e.preventDefault();
+        editor.redo();
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [editor]);
 
   function handleAutocompleteInsert(text: string) {
     editor.insertInlineContent([{ type: "text", text: " " + text, styles: {} }]);
