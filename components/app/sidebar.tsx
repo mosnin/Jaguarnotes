@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { motion } from "framer-motion";
+import { slideLeft } from "@/lib/motion";
 import { useSidebar } from "./sidebar-context";
 
 export function Sidebar() {
@@ -21,23 +23,23 @@ export function Sidebar() {
   }
 
   return (
-    <aside
-      className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-[#0d0d0d] transition-transform duration-250 ease-out ${
-        open ? "translate-x-0" : "-translate-x-full"
-      }`}
-      style={{ borderRight: "1px solid #161616" }}
+    <motion.aside
+      initial={false}
+      animate={open ? "show" : "hidden"}
+      variants={slideLeft}
+      className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-surface border-r border-line-1"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-5">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-indigo-500 to-violet-600">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-[#7474ff] to-violet-500">
             <span className="text-xs font-bold text-white">J</span>
           </div>
-          <span className="text-sm font-semibold tracking-tight text-white">Jaguarnotes</span>
+          <span className="text-sm font-semibold tracking-tight text-ink-1">Jaguarnotes</span>
         </div>
         <button
           onClick={() => setOpen(false)}
-          className="rounded-md p-1.5 text-[#333] transition-colors hover:text-[#888]"
+          className="rounded-md p-1.5 text-ink-4 transition-colors hover:text-ink-2"
           aria-label="Close sidebar"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,7 +52,7 @@ export function Sidebar() {
       <div className="px-3 pb-3">
         <button
           onClick={handleNewNote}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[#555] transition-colors hover:bg-[#161616] hover:text-white"
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-ink-3 transition-colors hover:bg-hover hover:text-ink-1"
         >
           <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
@@ -66,8 +68,8 @@ export function Sidebar() {
           onClick={() => setOpen(false)}
           className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
             pathname === "/dashboard"
-              ? "bg-[#161616] text-white"
-              : "text-[#444] hover:bg-[#161616] hover:text-[#888]"
+              ? "bg-raised text-ink-1"
+              : "text-ink-4 hover:bg-hover hover:text-ink-2"
           }`}
         >
           <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,7 +82,7 @@ export function Sidebar() {
       {/* Notes list */}
       <div className="flex-1 overflow-y-auto px-3 pt-4">
         {notes.length > 0 && (
-          <p className="mb-1 px-3 text-[10px] uppercase tracking-widest text-[#2a2a2a]">Recent</p>
+          <p className="mb-1 px-3 text-[10px] uppercase tracking-widest text-ink-4">Recent</p>
         )}
         {notes.slice(0, 20).map((note) => (
           <Link
@@ -89,8 +91,8 @@ export function Sidebar() {
             onClick={() => setOpen(false)}
             className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
               pathname === `/notes/${note._id}`
-                ? "bg-[#161616] text-white"
-                : "text-[#3a3a3a] hover:bg-[#161616] hover:text-[#888]"
+                ? "bg-raised text-ink-1"
+                : "text-ink-4 hover:bg-hover hover:text-ink-2"
             }`}
           >
             <span className="truncate">{note.title || "Untitled"}</span>
@@ -99,14 +101,14 @@ export function Sidebar() {
       </div>
 
       {/* Account */}
-      <div className="border-t border-[#111] p-4">
+      <div className="border-t border-line-1 p-4">
         <UserButton
           appearance={{
-            variables: { colorPrimary: "#6366f1" },
+            variables: { colorPrimary: "#7474ff" },
             elements: { userButtonAvatarBox: "h-7 w-7" },
           }}
         />
       </div>
-    </aside>
+    </motion.aside>
   );
 }

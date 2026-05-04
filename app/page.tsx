@@ -4,27 +4,27 @@ import { AnimatedDemo } from "@/components/landing/animated-demo";
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[#0a0a0a]">
+    <div className="relative min-h-screen w-full overflow-hidden bg-app">
       {/* Single, confident glow — not decoration, just depth */}
-      <div className="pointer-events-none absolute left-1/2 top-0 h-[700px] w-[900px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-indigo-600/[0.07] blur-[140px]" />
+      <div className="pointer-events-none absolute left-1/2 top-0 h-[700px] w-[900px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-ai/[0.07] blur-[140px]" />
 
       {/* Nav */}
       <nav className="relative z-10 flex w-full items-center justify-between px-6 py-5 md:px-12">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#7474ff] to-violet-500">
             <span className="text-xs font-bold text-white">J</span>
           </div>
-          <span className="text-sm font-semibold tracking-tight text-white">Jaguarnotes</span>
+          <span className="text-sm font-semibold tracking-tight text-ink-1">Jaguarnotes</span>
         </div>
 
         <div className="flex items-center gap-4">
           <SignedOut>
-            <Link href="/sign-in" className="text-sm text-[#555] transition-colors hover:text-white">
+            <Link href="/sign-in" className="text-sm text-ink-3 transition-colors hover:text-ink-1">
               Sign in
             </Link>
             <Link
               href="/sign-up"
-              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-85"
+              className="rounded-lg bg-ink-1 px-4 py-2 text-sm font-semibold text-app transition-opacity hover:opacity-85"
             >
               Get started
             </Link>
@@ -32,7 +32,7 @@ export default function LandingPage() {
           <SignedIn>
             <Link
               href="/dashboard"
-              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-85"
+              className="rounded-lg bg-ink-1 px-4 py-2 text-sm font-semibold text-app transition-opacity hover:opacity-85"
             >
               Open app
             </Link>
@@ -43,11 +43,11 @@ export default function LandingPage() {
       {/* Hero */}
       <main className="relative z-10 flex flex-col items-center px-6 pb-32 pt-20 text-center md:pt-28">
 
-        {/* Headline — 4 words, two lines, states the truth */}
-        <h1 className="mx-auto max-w-2xl text-6xl font-bold leading-[1.05] tracking-tight text-white md:text-7xl lg:text-8xl">
+        {/* Headline */}
+        <h1 className="mx-auto max-w-2xl text-6xl font-bold leading-[1.05] tracking-tight text-ink-1 md:text-7xl lg:text-8xl">
           Think out loud.
         </h1>
-        <p className="mt-4 text-xl font-normal text-[#555] md:text-2xl">
+        <p className="mt-4 text-xl font-normal text-ink-3 md:text-2xl">
           The AI writes the rest.
         </p>
 
@@ -56,13 +56,13 @@ export default function LandingPage() {
           <SignedOut>
             <Link
               href="/sign-up"
-              className="rounded-xl bg-white px-8 py-3.5 text-sm font-semibold text-black transition-opacity hover:opacity-85"
+              className="rounded-xl bg-ink-1 px-8 py-3.5 text-sm font-semibold text-app transition-opacity hover:opacity-85"
             >
               Start for free
             </Link>
             <Link
               href="/sign-in"
-              className="text-sm text-[#444] transition-colors hover:text-white"
+              className="text-sm text-ink-3 transition-colors hover:text-ink-1"
             >
               Sign in
             </Link>
@@ -70,7 +70,7 @@ export default function LandingPage() {
           <SignedIn>
             <Link
               href="/dashboard"
-              className="rounded-xl bg-white px-8 py-3.5 text-sm font-semibold text-black transition-opacity hover:opacity-85"
+              className="rounded-xl bg-ink-1 px-8 py-3.5 text-sm font-semibold text-app transition-opacity hover:opacity-85"
             >
               Open workspace
             </Link>
@@ -80,7 +80,7 @@ export default function LandingPage() {
         {/* Live animated demo */}
         <AnimatedDemo />
 
-        {/* Three truths — no grid chrome, just type */}
+        {/* Three truths */}
         <div className="mx-auto mt-32 w-full max-w-3xl">
           <div className="grid gap-16 text-left sm:grid-cols-3">
             {[
@@ -98,19 +98,19 @@ export default function LandingPage() {
               },
             ].map((f) => (
               <div key={f.label}>
-                <p className="mb-2 text-sm font-semibold text-white">{f.label}</p>
-                <p className="text-sm leading-relaxed text-[#444]">{f.body}</p>
+                <p className="mb-2 text-sm font-semibold text-ink-1">{f.label}</p>
+                <p className="text-sm leading-relaxed text-ink-3">{f.body}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Bottom CTA — one line */}
+        {/* Bottom CTA */}
         <div className="mt-32 text-center">
           <SignedOut>
             <Link
               href="/sign-up"
-              className="rounded-xl bg-white px-8 py-4 text-sm font-semibold text-black transition-opacity hover:opacity-85"
+              className="rounded-xl bg-ink-1 px-8 py-4 text-sm font-semibold text-app transition-opacity hover:opacity-85"
             >
               Start free today
             </Link>
@@ -118,14 +118,14 @@ export default function LandingPage() {
           <SignedIn>
             <Link
               href="/dashboard"
-              className="rounded-xl bg-white px-8 py-4 text-sm font-semibold text-black transition-opacity hover:opacity-85"
+              className="rounded-xl bg-ink-1 px-8 py-4 text-sm font-semibold text-app transition-opacity hover:opacity-85"
             >
               Open workspace
             </Link>
           </SignedIn>
         </div>
 
-        <footer className="mt-24 text-xs text-[#222]">
+        <footer className="mt-24 text-xs text-ink-4">
           © {new Date().getFullYear()} Jaguarnotes
         </footer>
       </main>

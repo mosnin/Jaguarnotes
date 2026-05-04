@@ -1,71 +1,139 @@
 @import "tailwindcss";
 
 @theme {
+  /* ─── Typefaces ─────────────────────────────────────────────────────── */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --color-jaguar-black: #0a0a0a;
-  --color-jaguar-surface: #111111;
-  --color-jaguar-border: #1e1e1e;
-  --color-jaguar-muted: #2a2a2a;
-  --color-jaguar-text: #ededed;
-  --color-jaguar-subtext: #888888;
-  --color-jaguar-accent: #6366f1;
-  --color-jaguar-accent-glow: rgba(99, 102, 241, 0.15);
-  --color-jaguar-green: #22c55e;
+  /* ─── Color system ───────────────────────────────────────────────────
+     Principle: blue-tinted near-blacks create premium depth.
+     Indigo (#7474ff) appears ONLY when AI is active.
+     Everything else: white on near-black, one accent, no noise.
+  ─────────────────────────────────────────────────────────────────────── */
+
+  /* Backgrounds */
+  --color-app:       #080810;   /* base — barely-black with a hint of indigo */
+  --color-surface:   #0d0d1a;   /* cards, sidebar */
+  --color-raised:    #121224;   /* inputs, elevated panels */
+  --color-hover:     #17172e;   /* hover state */
+  --color-selected:  #1c1c38;   /* active / selected */
+
+  /* Borders */
+  --color-line-1:    #141428;   /* faintest — structural dividers */
+  --color-line-2:    #1e1e3c;   /* default border */
+  --color-line-3:    #2c2c54;   /* strong border, interactive edges */
+
+  /* Text — Apple's exact off-white ladder */
+  --color-ink-1:     #f5f5f7;   /* primary — Apple off-white */
+  --color-ink-2:     #8e8e9e;   /* secondary */
+  --color-ink-3:     #4c4c5e;   /* tertiary */
+  --color-ink-4:     #26263a;   /* ghost / disabled */
+
+  /* AI accent — only appears when intelligence is present */
+  --color-ai:        #7474ff;   /* electric indigo-violet */
+  --color-ai-dim:    rgba(116, 116, 255, 0.16);
+  --color-ai-hint:   rgba(116, 116, 255, 0.07);
+
+  /* Semantic */
+  --color-ok:        #30d158;   /* Apple green */
+  --color-warn:      #ff9f0a;   /* Apple amber */
+  --color-error:     #ff453a;   /* Apple red */
+
+  /* ─── Border radius — Apple-calibrated ────────────────────────────── */
+  --radius-xs:  6px;    /* chips, badges, tiny tags */
+  --radius-sm:  8px;    /* small buttons, kbd */
+  --radius-md:  11px;   /* buttons, inputs, form fields */
+  --radius-lg:  16px;   /* cards, panels */
+  --radius-xl:  20px;   /* overlays, menus */
+  --radius-2xl: 28px;   /* large floating surfaces */
+  --radius-3xl: 36px;   /* hero cards */
+
+  /* ─── Type scale — tight, intentional ────────────────────────────── */
+  --text-display:    4.5rem;    /* hero */
+  --text-title-1:    2.25rem;   /* page titles */
+  --text-title-2:    1.5rem;    /* section titles */
+  --text-headline:   1.0625rem; /* 17px — body emphasis */
+  --text-body:       0.9375rem; /* 15px — default reading */
+  --text-caption:    0.8125rem; /* 13px — supporting */
+  --text-micro:      0.6875rem; /* 11px — labels */
 }
 
-* {
+/* ─── Base reset ─────────────────────────────────────────────────────── */
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
-/* Sidebar transition */
-.duration-250 {
-  transition-duration: 250ms;
-}
-
-html,
-body {
+html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background-color: #0a0a0a;
-  color: #ededed;
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  background-color: #080810;
+  color: #f5f5f7;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Full-width layout — no max-width cap on root */
-#__next,
-main {
-  width: 100%;
-}
+#__next, main { width: 100%; }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #2a2a2a;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #3a3a3a;
-}
+/* ─── Scrollbar — invisible until hovered ───────────────────────────── */
+::-webkit-scrollbar         { width: 5px; height: 5px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   { background: #1e1e3c; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #2c2c54; }
 
-/* Selection */
+/* ─── Selection ─────────────────────────────────────────────────────── */
 ::selection {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+  background: rgba(116, 116, 255, 0.22);
+  color: #f5f5f7;
 }
 
-/* Focus ring — white, not indigo. Indigo is reserved for AI-active states. */
+/* ─── Focus ─────────────────────────────────────────────────────────── */
 :focus-visible {
-  outline: 1px solid rgba(255, 255, 255, 0.2);
+  outline: 1.5px solid rgba(116, 116, 255, 0.5);
   outline-offset: 2px;
+}
+
+/* ─── Keyboard hint style ───────────────────────────────────────────── */
+kbd {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  border: 1px solid #1e1e3c;
+  background: #0d0d1a;
+  color: #4c4c5e;
+  line-height: 1.6;
+}
+
+/* ─── BlockNote editor overrides ────────────────────────────────────── */
+.bn-editor {
+  background: transparent !important;
+  padding: 0 !important;
+}
+.bn-block-outer {
+  padding-inline: 0 !important;
+}
+.bn-editor [class*="bn-"] {
+  font-family: var(--font-geist-sans), system-ui, sans-serif !important;
+}
+.bn-editor p, .bn-editor li {
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+  color: #c8c8d8 !important;
+}
+.bn-editor h1 { font-size: 1.75rem !important; font-weight: 700 !important; color: #f5f5f7 !important; letter-spacing: -0.02em !important; }
+.bn-editor h2 { font-size: 1.25rem !important; font-weight: 600 !important; color: #e8e8f2 !important; }
+.bn-editor h3 { font-size: 1.0625rem !important; font-weight: 600 !important; color: #d8d8ea !important; }
+
+/* ─── AI block marker — one clean left border, nothing else ─────────── */
+[data-ai-block="true"] {
+  border-left: 2px solid rgba(116, 116, 255, 0.45) !important;
+  padding-left: 14px !important;
+  margin-left: -16px !important;
 }

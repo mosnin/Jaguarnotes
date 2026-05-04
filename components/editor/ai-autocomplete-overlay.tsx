@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { BlockNoteEditor } from "@blocknote/core";
+import { scaleIn } from "@/lib/motion";
 
 interface AIAutocompleteOverlayProps {
   context: string;
@@ -88,33 +90,38 @@ export function AIAutocompleteOverlay({
   };
 
   return (
-    <div
+    <motion.div
       ref={overlayRef}
       style={style}
-      className="w-88 max-w-sm rounded-xl border border-[#2a2a2a] bg-[#0f0f0f] shadow-2xl shadow-black/70 animate-in fade-in slide-in-from-bottom-1 duration-150"
+      variants={scaleIn}
+      initial="hidden"
+      animate="show"
+      className="w-88 max-w-sm rounded-xl border border-line-3 bg-surface shadow-2xl shadow-black/70"
     >
       {/* Header */}
-      <div className="flex items-center gap-2 border-b border-[#1a1a1a] px-3 py-2">
+      <div className="flex items-center gap-2 border-b border-line-1 px-3 py-2">
         <span
           className={`h-1.5 w-1.5 rounded-full transition-colors duration-500 ${
-            done ? "bg-emerald-400 shadow-[0_0_6px_#4ade80]" : "animate-pulse bg-indigo-400 shadow-[0_0_6px_#818cf8]"
+            done
+              ? "bg-ok shadow-[0_0_6px_#30d158]"
+              : "animate-pulse bg-ai shadow-[0_0_6px_#7474ff]"
           }`}
         />
-        <span className="text-[10px] uppercase tracking-widest text-[#444]">
+        <span className="text-[10px] uppercase tracking-widest text-ink-3">
           {done ? "Ready to insert" : "AI thinking..."}
         </span>
-        <span className="ml-auto max-w-[120px] truncate text-[10px] text-[#2a2a2a]">"{context}"</span>
+        <span className="ml-auto max-w-[120px] truncate text-[10px] text-ink-4">&ldquo;{context}&rdquo;</span>
       </div>
 
       {/* Streaming text */}
       <div className="min-h-[48px] px-4 py-3">
         {error ? (
-          <p className="text-xs text-red-400">Something went wrong. Try again.</p>
+          <p className="text-xs text-error">Something went wrong. Try again.</p>
         ) : (
-          <p className="text-sm leading-relaxed text-[#d4d4d4]">
+          <p className="text-sm leading-relaxed text-ink-2">
             {text}
             {!done && (
-              <span className="ml-0.5 inline-block h-3.5 w-px animate-pulse bg-indigo-400" />
+              <span className="ml-0.5 inline-block h-3.5 w-px animate-pulse bg-ai" />
             )}
           </p>
         )}
@@ -122,22 +129,22 @@ export function AIAutocompleteOverlay({
 
       {/* Actions — only shown when done */}
       {done && !error && (
-        <div className="flex items-center gap-2 border-t border-[#1a1a1a] p-2">
+        <div className="flex items-center gap-2 border-t border-line-1 p-2">
           <button
             onClick={() => onInsert(text)}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-indigo-500/10 px-3 py-2 text-xs font-medium text-indigo-400 transition-colors hover:bg-indigo-500/20"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-ai-dim px-3 py-2 text-xs font-medium text-ai transition-colors hover:bg-ai-dim/80"
           >
             Insert
-            <kbd className="rounded border border-indigo-500/20 bg-indigo-500/5 px-1 py-0.5 text-[9px] font-mono">↵</kbd>
+            <kbd className="rounded border border-ai/20 bg-ai-hint px-1 py-0.5 text-[9px] font-mono">↵</kbd>
           </button>
           <button
             onClick={onDismiss}
-            className="rounded-lg px-3 py-2 text-xs text-[#444] transition-colors hover:bg-[#1a1a1a] hover:text-[#888]"
+            className="rounded-lg px-3 py-2 text-xs text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
           >
             Dismiss
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

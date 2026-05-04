@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { BlockNoteEditor, PartialBlock } from "@blocknote/core";
+import { scaleIn } from "@/lib/motion";
 
 const COMMANDS = [
   // Generate
@@ -57,7 +59,6 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss }: Slash
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [onDismiss]);
 
-  // Clean up stream on unmount
   useEffect(() => () => { abortRef.current?.abort(); }, []);
 
   async function runStream() {
@@ -108,7 +109,6 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss }: Slash
     onDismiss();
   }
 
-  // Position below cursor
   const [pos] = useState(() => {
     const sel = window.getSelection();
     if (sel?.rangeCount) {
@@ -126,35 +126,38 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss }: Slash
   };
 
   return (
-    <div
+    <motion.div
       ref={menuRef}
       style={style}
-      className="w-80 overflow-hidden rounded-xl border border-[#2a2a2a] bg-[#0f0f0f] shadow-2xl shadow-black/70 animate-in fade-in slide-in-from-bottom-1 duration-150"
+      variants={scaleIn}
+      initial="hidden"
+      animate="show"
+      className="w-80 overflow-hidden rounded-xl border border-line-3 bg-surface shadow-2xl shadow-black/70"
     >
       {/* ── LIST ── */}
       {phase === "list" && (
         <div className="max-h-[440px] overflow-y-auto py-1">
           {filtered.length === 0 && (
-            <p className="px-3 py-4 text-xs text-[#333]">No commands match &quot;{query}&quot;</p>
+            <p className="px-3 py-4 text-xs text-ink-4">No commands match &ldquo;{query}&rdquo;</p>
           )}
           {(["Generate", "Think"] as const).map((group) => {
             const cmds = filtered.filter((c) => c.group === group);
             if (!cmds.length) return null;
             return (
               <div key={group}>
-                <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-[#333]">{group}</p>
+                <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">{group}</p>
                 {cmds.map((cmd) => (
                   <button
                     key={cmd.id}
                     onClick={() => { setSelected(cmd.id); setPhase("input"); }}
-                    className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-[#1a1a1a]"
+                    className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised"
                   >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#1a1a1a] text-sm text-indigo-400">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
                       {cmd.icon}
                     </span>
                     <div>
-                      <p className="text-sm font-medium text-white">{cmd.label}</p>
-                      <p className="text-xs text-[#444]">{cmd.desc}</p>
+                      <p className="text-sm font-medium text-ink-1">{cmd.label}</p>
+                      <p className="text-xs text-ink-3">{cmd.desc}</p>
                     </div>
                   </button>
                 ))}
@@ -168,10 +171,10 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss }: Slash
       {phase === "input" && selectedCmd && (
         <div className="p-3">
           <div className="mb-3 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#1a1a1a] text-sm text-indigo-400">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-raised text-sm text-ai">
               {selectedCmd.icon}
             </span>
-            <span className="text-sm font-medium text-white">{selectedCmd.label}</span>
+            <span className="text-sm font-medium text-ink-1">{selectedCmd.label}</span>
           </div>
           {selectedCmd.group === "Think" ? (
             <textarea
@@ -184,7 +187,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss }: Slash
               }}
               placeholder={selectedCmd.placeholder}
               rows={4}
-              className="w-full resize-none rounded-lg border border-[#1e1e1e] bg-[#0a0a0a] px-3 py-2 text-sm text-white placeholder-[#2a2a2a] outline-none transition-colors focus:border-indigo-500/50"
+              className="w-full resize-none rounded-lg border border-line-2 bg-raised px-3 py-2 text-sm text-ink-1 placeholder-ink-4 outline-none transition-colors focus:border-ai/50"
             />
           ) : (
             <input
@@ -196,23 +199,23 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss }: Slash
                 if (e.key === "Escape") { setSelected(null); setPhase("list"); }
               }}
               placeholder={selectedCmd.placeholder}
-              className="w-full rounded-lg border border-[#1e1e1e] bg-[#0a0a0a] px-3 py-2 text-sm text-white placeholder-[#2a2a2a] outline-none transition-colors focus:border-indigo-500/50"
+              className="w-full rounded-lg border border-line-2 bg-raised px-3 py-2 text-sm text-ink-1 placeholder-ink-4 outline-none transition-colors focus:border-ai/50"
             />
           )}
           <div className="mt-2 flex gap-2">
             <button
               onClick={runStream}
               disabled={!input.trim()}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-indigo-500/10 px-3 py-2 text-xs font-medium text-indigo-400 transition-colors hover:bg-indigo-500/20 disabled:opacity-30"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-ai-dim px-3 py-2 text-xs font-medium text-ai transition-colors hover:bg-ai-dim/80 disabled:opacity-30"
             >
               Generate
               {selectedCmd.group === "Think" && (
-                <kbd className="rounded border border-indigo-500/20 bg-indigo-500/5 px-1 text-[9px] font-mono">⌘↵</kbd>
+                <kbd className="rounded border border-ai/20 bg-ai-hint px-1 text-[9px] font-mono">⌘↵</kbd>
               )}
             </button>
             <button
               onClick={() => { setSelected(null); setPhase("list"); }}
-              className="rounded-lg px-3 text-xs text-[#444] transition-colors hover:bg-[#1a1a1a] hover:text-[#888]"
+              className="rounded-lg px-3 text-xs text-ink-3 transition-colors hover:bg-raised hover:text-ink-1"
             >
               Back
             </button>
@@ -224,41 +227,41 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss }: Slash
       {(phase === "streaming" || phase === "done") && selectedCmd && (
         <div className="flex flex-col">
           {/* Header */}
-          <div className="flex items-center gap-2 border-b border-[#1a1a1a] px-3 py-2">
+          <div className="flex items-center gap-2 border-b border-line-1 px-3 py-2">
             <span
               className={`h-1.5 w-1.5 rounded-full transition-colors duration-500 ${
                 phase === "done"
-                  ? "bg-emerald-400 shadow-[0_0_6px_#4ade80]"
-                  : "animate-pulse bg-indigo-400 shadow-[0_0_6px_#818cf8]"
+                  ? "bg-ok shadow-[0_0_6px_#30d158]"
+                  : "animate-pulse bg-ai shadow-[0_0_6px_#7474ff]"
               }`}
             />
-            <span className="text-[10px] uppercase tracking-widest text-[#444]">
+            <span className="text-[10px] uppercase tracking-widest text-ink-3">
               {phase === "done" ? "Ready to insert" : `${selectedCmd.label}...`}
             </span>
           </div>
 
           {/* Streamed content */}
           <div className="max-h-64 overflow-y-auto px-4 py-3">
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#d4d4d4]">
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-2">
               {streamedText}
               {phase === "streaming" && (
-                <span className="ml-0.5 inline-block h-3.5 w-px animate-pulse bg-indigo-400" />
+                <span className="ml-0.5 inline-block h-3.5 w-px animate-pulse bg-ai" />
               )}
             </p>
           </div>
 
           {/* Insert action */}
           {phase === "done" && (
-            <div className="flex gap-2 border-t border-[#1a1a1a] p-2">
+            <div className="flex gap-2 border-t border-line-1 p-2">
               <button
                 onClick={insertContent}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-indigo-500/10 px-3 py-2 text-xs font-medium text-indigo-400 transition-colors hover:bg-indigo-500/20"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-ai-dim px-3 py-2 text-xs font-medium text-ai transition-colors hover:bg-ai-dim/80"
               >
                 Insert into note
               </button>
               <button
                 onClick={() => { setPhase("input"); setStreamedText(""); }}
-                className="rounded-lg px-3 text-xs text-[#444] transition-colors hover:bg-[#1a1a1a] hover:text-[#888]"
+                className="rounded-lg px-3 text-xs text-ink-3 transition-colors hover:bg-raised hover:text-ink-1"
               >
                 Retry
               </button>
@@ -266,6 +269,6 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss }: Slash
           )}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

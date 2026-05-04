@@ -144,7 +144,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
     .map(
       (id) => `
       [data-id="${id}"] {
-        border-left: 2px solid rgba(99, 102, 241, 0.5) !important;
+        border-left: 2px solid rgba(116, 116, 255, 0.45) !important;
         padding-left: 14px !important;
         margin-left: -16px !important;
       }
@@ -155,7 +155,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
   if (!note) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1a1a1a] border-t-white/30" />
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-raised border-t-ink-1/30" />
       </div>
     );
   }
@@ -168,7 +168,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       <div className="flex h-10 shrink-0 items-center px-4">
         <button
           onClick={toggleSidebar}
-          className="group flex h-7 w-7 items-center justify-center rounded-md text-[#2a2a2a] transition-colors hover:bg-[#161616] hover:text-[#666]"
+          className="group flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
           aria-label="Toggle sidebar"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,7 +178,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
 
         {/* Save indicator — a single dot, no text */}
         <span
-          className={`ml-3 h-1.5 w-1.5 rounded-full bg-white/20 transition-opacity duration-700 ${
+          className={`ml-3 h-1.5 w-1.5 rounded-full bg-ink-1/20 transition-opacity duration-700 ${
             isSaving ? "opacity-100" : "opacity-0"
           }`}
         />
@@ -192,7 +192,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="Untitled"
-            className="mb-10 w-full bg-transparent text-[2.75rem] font-bold leading-tight tracking-tight text-white placeholder-[#1c1c1c] outline-none md:text-5xl"
+            className="mb-10 w-full bg-transparent text-[2.75rem] font-bold leading-tight tracking-tight text-ink-1 placeholder-ink-4 outline-none md:text-5xl"
           />
 
           {isEmpty && (
@@ -223,7 +223,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       {/* Mobile floating AI button */}
       <button
         onClick={() => setSlashMenu({ query: "" })}
-        className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform active:scale-95 md:hidden"
+        className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-ink-1 text-app shadow-lg transition-transform active:scale-95 md:hidden"
         aria-label="AI commands"
       >
         <span className="text-lg font-bold">/</span>
