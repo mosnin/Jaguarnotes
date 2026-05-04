@@ -6,6 +6,7 @@
  */
 
 import type { Transition, Variants } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 
 /* ─── Spring presets ───────────────────────────────────────────────── */
 
@@ -100,3 +101,15 @@ export const iconHover = {
   whileHover: { scale: 1.08, transition: springSnap },
   whileTap:   { scale: 0.93, transition: springSnap },
 } as const;
+
+/**
+ * Hook — returns motion props that respect prefers-reduced-motion.
+ * Components using AnimatePresence / motion.div should call this and
+ * spread the result onto <motion.div> to disable animations when the
+ * user has requested reduced motion.
+ */
+export function useMotionVariants(variants: import("framer-motion").Variants) {
+  const reduce = useReducedMotion();
+  if (reduce) return { variants: undefined, initial: false, animate: false, exit: undefined };
+  return { variants };
+}

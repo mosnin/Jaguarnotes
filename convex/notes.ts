@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v, paginationOptsValidator } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
@@ -16,7 +16,19 @@ export const list = query({
       .query("notes")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .order("desc")
-      .collect();
+      .take(100);
+  },
+});
+
+export const paginateNotes = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const userId = await requireUser(ctx);
+    return ctx.db
+      .query("notes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .order("desc")
+      .paginate(args.paginationOpts);
   },
 });
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useState, memo, useMemo } from "react";
+import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -14,8 +14,11 @@ import { NoteCardSkeleton } from "@/components/ui/note-card-skeleton";
 export default function DashboardPage() {
   const { user } = useUser();
   const router = useRouter();
-  const notesQuery = useQuery(api.notes.list);
-  const notes = notesQuery ?? [];
+  const { results: notes, status: notesStatus, loadMore } = usePaginatedQuery(
+    api.notes.paginateNotes,
+    {},
+    { initialNumItems: 20 }
+  );
   const sharedNotes = useQuery(api.notes.listShared) ?? [];
   const createNote = useMutation(api.notes.create);
   const { toggle: toggleSidebar } = useSidebar();
@@ -23,10 +26,20 @@ export default function DashboardPage() {
   const activeTag = searchParams.get("tag");
   const [quickTopic, setQuickTopic] = useState("");
 
-  // Tag clusters — tags appearing on 3+ notes surface as actionable groups
-  const tagFrequency = new Map<string, number>();
-  notes.forEach((n) => (n.tags ?? []).forEach((t) => tagFrequency.set(t, (tagFrequency.get(t) ?? 0) + 1)));
-  const clusters = [...tagFrequency.entries()].filter(([, c]) => c >= 3).sort((a, b) => b[1] - a[1]);
+  const pinnedNotes = useMemo(() => notes.filter((n) => n.pinned), [notes]);
+  const filteredNotes = useMemo(
+    () => notes.filter((n) => !n.pinned && !n.parentId && (!activeTag || (n.tags ?? []).includes(activeTag))),
+    [notes, activeTag]
+  );
+  const tagFrequency = useMemo(() => {
+    const freq = new Map<string, number>();
+    notes.forEach((n) => (n.tags ?? []).forEach((t) => freq.set(t, (freq.get(t) ?? 0) + 1)));
+    return freq;
+  }, [notes]);
+  const clusters = useMemo(
+    () => [...tagFrequency.entries()].filter(([, c]) => c >= 3).sort((a, b) => b[1] - a[1]),
+    [tagFrequency]
+  );
 
   async function handleNewNote() {
     const id = await createNote({ title: "Untitled" });
@@ -142,7 +155,7 @@ export default function DashboardPage() {
         )}
 
         {/* Pinned notes */}
-        {notes.some((n) => n.pinned) && (
+        {pinnedNotes.length > 0 && (
           <div className="mb-8">
             <p className="mb-4 text-[10px] uppercase tracking-widest text-ink-4">Pinned</p>
             <motion.div
@@ -151,7 +164,7 @@ export default function DashboardPage() {
               animate="show"
               className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
-              {notes.filter((n) => n.pinned).map((note) => (
+              {pinnedNotes.map((note) => (
                 <NoteCard key={note._id} note={note} onClick={() => router.push(`/notes/${note._id}`)} />
               ))}
             </motion.div>
@@ -159,17 +172,17 @@ export default function DashboardPage() {
         )}
 
         {/* Recent notes grid — skeleton while loading */}
-        {notesQuery === undefined ? (
+        {notesStatus === "LoadingFirstPage" ? (
           <div>
             <p className="mb-4 text-[10px] uppercase tracking-widest text-ink-4">Notes</p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {Array.from({ length: 6 }).map((_, i) => <NoteCardSkeleton key={i} />)}
             </div>
           </div>
-        ) : notes.filter((n) => !n.pinned && !n.parentId && (!activeTag || (n.tags ?? []).includes(activeTag))).length > 0 ? (
+        ) : filteredNotes.length > 0 ? (
           <div>
             <p className="mb-4 text-[10px] uppercase tracking-widest text-ink-4">
-              {activeTag ? activeTag : notes.some((n) => n.pinned) ? "Recent" : "Notes"}
+              {activeTag ? activeTag : pinnedNotes.length > 0 ? "Recent" : "Notes"}
             </p>
             <motion.div
               variants={staggerContainer}
@@ -177,12 +190,18 @@ export default function DashboardPage() {
               animate="show"
               className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
-              {notes
-                .filter((n) => !n.pinned && !n.parentId && (!activeTag || (n.tags ?? []).includes(activeTag)))
-                .map((note) => (
-                  <NoteCard key={note._id} note={note} onClick={() => router.push(`/notes/${note._id}`)} />
-                ))}
+              {filteredNotes.map((note) => (
+                <NoteCard key={note._id} note={note} onClick={() => router.push(`/notes/${note._id}`)} />
+              ))}
             </motion.div>
+            {notesStatus === "CanLoadMore" && (
+              <button
+                onClick={() => loadMore(20)}
+                className="mt-4 w-full rounded-lg border border-line-1 py-2 text-xs text-ink-4 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-2"
+              >
+                Load more notes
+              </button>
+            )}
           </div>
         ) : null}
 
@@ -237,7 +256,7 @@ export default function DashboardPage() {
   );
 }
 
-function NoteCard({ note, onClick }: { note: { _id: string; _creationTime: number; title: string; preview?: string; emoji?: string; tags?: string[]; pinned?: boolean }; onClick: () => void }) {
+const NoteCard = memo(function NoteCard({ note, onClick }: { note: { _id: string; _creationTime: number; title: string; preview?: string; emoji?: string; tags?: string[]; pinned?: boolean }; onClick: () => void }) {
   return (
     <motion.button
       variants={staggerItem}
@@ -271,7 +290,7 @@ function NoteCard({ note, onClick }: { note: { _id: string; _creationTime: numbe
       )}
     </motion.button>
   );
-}
+});
 
 function getTimeOfDay() {
   const h = new Date().getHours();
