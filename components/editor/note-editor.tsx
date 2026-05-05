@@ -594,14 +594,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
             <AIWelcome onInsert={handleAIInsert} onDismiss={() => setIsEmpty(false)} />
           )}
 
-          <div className={isEmpty ? "pointer-events-none opacity-0 h-0 overflow-hidden" : ""}>
-            <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
-          </div>
-          {isEmpty && (
-            <div className="hidden">
-              <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
-            </div>
-          )}
+          <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
 
           {/* Sub-notes — always rendered, Norman's affordance fix */}
           <div className="mt-12 border-t border-line-1 pt-6">
