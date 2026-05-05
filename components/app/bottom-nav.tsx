@@ -30,6 +30,9 @@ export function BottomNav() {
 
   const isHome = pathname === "/dashboard";
   const isSettings = pathname.startsWith("/settings");
+  const isNotePage = pathname?.startsWith("/notes/");
+
+  if (isNotePage) return null;
 
   return (
     <nav

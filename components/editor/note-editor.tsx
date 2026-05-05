@@ -110,7 +110,9 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     initialContent: note?.content ? JSON.parse(note.content) : undefined,
   });
 
-  // Load note state on mount
+  // Load note state when the note finishes loading from Convex.
+  // Critical: useCreateBlockNote ignores `initialContent` changes after first render,
+  // so we must explicitly hydrate the editor's blocks here via replaceBlocks.
   useEffect(() => {
     if (note) {
       setTitle(note.title ?? "Untitled");
@@ -119,6 +121,17 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
       if (note.aiBlockIds?.length) setAiBlockIds(new Set(note.aiBlockIds));
       setTags(note.tags ?? []);
       setEmoji(note.emoji ?? "");
+
+      if (hasContent && editor) {
+        try {
+          const blocks = JSON.parse(note.content!) as PartialBlock[];
+          if (Array.isArray(blocks) && blocks.length > 0) {
+            editor.replaceBlocks(editor.document, blocks);
+          }
+        } catch (err) {
+          trackError("loadNoteContent", err);
+        }
+      }
     }
   }, [note?._id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -336,18 +349,40 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [autocomplete, slashMenu]);
 
-  // Selection toolbar
+  // Selection toolbar — works on mouse AND touch.
   useEffect(() => {
-    function onMouseUp() {
+    function showForCurrentSelection() {
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed) { setSelectionToolbar(null); return; }
       const text = sel.toString().trim();
-      if (text.length < 10) { setSelectionToolbar(null); return; }
-      const rect = sel.getRangeAt(0).getBoundingClientRect();
-      setSelectionToolbar({ text, position: { top: rect.top - 44, left: rect.left + rect.width / 2 } });
+      if (text.length < 4) { setSelectionToolbar(null); return; }
+      const range = sel.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      setSelectionToolbar({
+        text,
+        position: { top: Math.max(rect.top - 44, 12), left: rect.left + rect.width / 2 },
+      });
+    }
+    function onMouseUp() { showForCurrentSelection(); }
+    // Touch: selection is finalized after touchend; defer with requestAnimationFrame.
+    function onTouchEnd() {
+      requestAnimationFrame(showForCurrentSelection);
+    }
+    // Catch programmatic / iOS callout-driven selection changes too.
+    let selChangeTimer: ReturnType<typeof setTimeout> | undefined;
+    function onSelectionChange() {
+      clearTimeout(selChangeTimer);
+      selChangeTimer = setTimeout(showForCurrentSelection, 200);
     }
     document.addEventListener("mouseup", onMouseUp);
-    return () => document.removeEventListener("mouseup", onMouseUp);
+    document.addEventListener("touchend", onTouchEnd);
+    document.addEventListener("selectionchange", onSelectionChange);
+    return () => {
+      document.removeEventListener("mouseup", onMouseUp);
+      document.removeEventListener("touchend", onTouchEnd);
+      document.removeEventListener("selectionchange", onSelectionChange);
+      clearTimeout(selChangeTimer);
+    };
   }, []);
 
   // Undo / Redo
@@ -359,11 +394,13 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       if (e.key === "z" && !e.shiftKey) {
         e.preventDefault();
-        editor.undo();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (editor as any)._tiptapEditor?.commands?.undo?.();
       }
       if (e.key === "y" || (e.key === "z" && e.shiftKey)) {
         e.preventDefault();
-        editor.redo();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (editor as any)._tiptapEditor?.commands?.redo?.();
       }
     }
     document.addEventListener("keydown", onKeyDown);
@@ -478,7 +515,8 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           {/* Undo / Redo */}
           <div className="flex items-center gap-0.5">
             <button
-              onClick={() => (editor as any).undo()}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onClick={() => (editor as any)._tiptapEditor?.commands?.undo?.()}
               className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
               aria-label="Undo"
               title="Undo (⌘Z)"
@@ -488,7 +526,8 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
               </svg>
             </button>
             <button
-              onClick={() => (editor as any).redo()}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onClick={() => (editor as any)._tiptapEditor?.commands?.redo?.()}
               className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
               aria-label="Redo"
               title="Redo (⌘Y)"
@@ -522,11 +561,11 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
       </div>
 
       {/* Editor */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-3xl px-6 pb-24 pt-8 md:px-12 md:pb-32 md:pt-14">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="mx-auto w-full max-w-3xl px-4 pb-24 pt-6 md:px-12 md:pb-32 md:pt-14">
 
           {/* Emoji + Title row */}
-          <div className="mb-3 flex items-start gap-3">
+          <div className="mb-3 flex min-w-0 items-start gap-3">
             {/* Emoji picker */}
             <div className="relative mt-2 shrink-0">
               <button
@@ -558,7 +597,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
               placeholder="Untitled"
-              className="flex-1 cursor-text border-b border-transparent bg-transparent text-[2.75rem] font-bold leading-tight tracking-tight text-ink-1 placeholder-ink-4 outline-none transition-colors hover:border-line-1 focus:border-transparent md:text-5xl"
+              className="min-w-0 flex-1 cursor-text border-b border-transparent bg-transparent text-3xl font-bold leading-tight tracking-tight text-ink-1 placeholder-ink-4 outline-none transition-colors hover:border-line-1 focus:border-transparent md:text-5xl"
             />
           </div>
 
@@ -598,7 +637,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
               When the AIWelcome is active we hide it visually but keep it in the DOM
               so editor.insertBlocks() works for AI insertions. */}
           <div className={isEmpty ? "opacity-0 h-0 overflow-hidden" : ""}>
-            <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
+            <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" slashMenu={false} />
           </div>
 
           {/* Sub-notes — always rendered, Norman's affordance fix */}
@@ -731,6 +770,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
         <SelectionToolbar
           text={selectionToolbar.text}
           position={selectionToolbar.position}
+          onDismiss={() => setSelectionToolbar(null)}
           onCommand={(cmd, text) => {
             setSlashMenu({ query: "", initialCommand: cmd, initialTopic: text });
             setSelectionToolbar(null);

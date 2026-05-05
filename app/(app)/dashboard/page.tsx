@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, memo, useMemo } from "react";
+import { useState, memo, useMemo, useEffect } from "react";
 import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -76,6 +76,8 @@ export default function DashboardPage() {
   const [quickTopic, setQuickTopic]   = useState("");
   const [timeFilter, setTimeFilter]   = useState<TimeFilter>("week");
   const [tagFilter,  setTagFilter]    = useState<"all" | "recent">("all");
+  const [timeOfDay,  setTimeOfDay]    = useState<string | null>(null);
+  useEffect(() => { setTimeOfDay(getTimeOfDay()); }, []);
 
   const roleActions = (me?.role && ROLE_ACTIONS[me.role.toLowerCase()])
     ? ROLE_ACTIONS[me.role.toLowerCase()]
@@ -139,7 +141,7 @@ export default function DashboardPage() {
           className="mb-8 px-6 md:px-8"
         >
           <h1 className="text-2xl font-bold tracking-tight text-ink-1 md:text-3xl">
-            Good {getTimeOfDay()}, {firstName}.
+            {timeOfDay ? `Good ${timeOfDay}, ${firstName}.` : `Hi, ${firstName}.`}
           </h1>
           <p className="mt-1 text-sm text-ink-4">
             {notes.length === 0
