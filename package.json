@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "convex deploy --cmd 'next build'",
+    "build": "if [ \"$VERCEL_ENV\" = \"production\" ]; then convex deploy --cmd 'next build'; else NEXT_PUBLIC_CONVEX_URL=https://curious-retriever-30.convex.cloud next build; fi",
     "start": "next start",
     "lint": "next lint"
   },
