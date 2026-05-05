@@ -12,11 +12,11 @@
   ─────────────────────────────────────────────────────────────────────── */
 
   /* Backgrounds */
-  --color-app:       #080810;   /* base — barely-black with a hint of indigo */
-  --color-surface:   #0d0d1a;   /* cards, sidebar */
-  --color-raised:    #121224;   /* inputs, elevated panels */
-  --color-hover:     #17172e;   /* hover state */
-  --color-selected:  #1c1c38;   /* active / selected */
+  --color-app:       #262626;   /* primary base */
+  --color-surface:   #955912;   /* secondary — cards, sidebar */
+  --color-raised:    #2e2e2e;   /* inputs, elevated panels */
+  --color-hover:     #353535;   /* hover state */
+  --color-selected:  #3d3d3d;   /* active / selected */
 
   /* Borders */
   --color-line-1:    #141428;   /* faintest — structural dividers */
@@ -29,10 +29,10 @@
   --color-ink-3:     #4c4c5e;   /* tertiary */
   --color-ink-4:     #26263a;   /* ghost / disabled */
 
-  /* AI accent — only appears when intelligence is present */
-  --color-ai:        #7474ff;   /* electric indigo-violet */
-  --color-ai-dim:    rgba(116, 116, 255, 0.16);
-  --color-ai-hint:   rgba(116, 116, 255, 0.07);
+  /* Accent — only appears when intelligence is present */
+  --color-ai:        #986222;   /* warm amber accent */
+  --color-ai-dim:    rgba(152, 98, 34, 0.16);
+  --color-ai-hint:   rgba(152, 98, 34, 0.07);
 
   /* Semantic */
   --color-ok:        #30d158;   /* Apple green */
@@ -67,7 +67,7 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background-color: #080810;
+  background-color: #262626;
   color: #f5f5f7;
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   font-size: 15px;
@@ -87,7 +87,7 @@ html, body {
 
 /* ─── Selection ─────────────────────────────────────────────────────── */
 ::selection {
-  background: rgba(116, 116, 255, 0.22);
+  background: rgba(152, 98, 34, 0.22);
   color: #f5f5f7;
 }
 
