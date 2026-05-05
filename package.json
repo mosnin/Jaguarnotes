@@ -19,10 +19,10 @@
     "convex": "^1.17.0",
     "framer-motion": "^12.0.0",
     "lucide-react": "^0.488.0",
-    "next": "15.3.2",
+    "next": "^15.5.15",
     "openai": "^4.96.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
