@@ -4,6 +4,14 @@ import { useRouter, usePathname } from "next/navigation";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useSidebar } from "./sidebar-context";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Home01Icon,
+  Note01Icon,
+  Add01Icon,
+  AiBrain01Icon,
+  Settings01Icon,
+} from "@hugeicons/core-free-icons";
 
 export function BottomNav() {
   const router = useRouter();
@@ -21,38 +29,51 @@ export function BottomNav() {
   }
 
   const isHome = pathname === "/dashboard";
+  const isSettings = pathname.startsWith("/settings");
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 flex h-16 items-stretch border-t border-line-1 bg-surface md:hidden"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+    <nav
+      className="fixed inset-x-0 bottom-0 z-30 flex h-16 items-stretch border-t border-line-1 bg-surface md:hidden"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      aria-label="Main navigation"
+    >
       <TabButton onClick={() => router.push("/dashboard")} active={isHome} label="Home">
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
+        <HugeiconsIcon icon={Home01Icon} size={22} strokeWidth={isHome ? 2 : 1.5} />
       </TabButton>
 
       <TabButton onClick={toggleSidebar} active={false} label="Notes">
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h7" />
-        </svg>
+        <HugeiconsIcon icon={Note01Icon} size={22} strokeWidth={1.5} />
       </TabButton>
 
-      <TabButton onClick={handleNew} active={false} label="New">
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-        </svg>
-      </TabButton>
+      {/* Centre new-note action */}
+      <button
+        onClick={handleNew}
+        aria-label="New note"
+        className="relative flex flex-1 flex-col items-center justify-center gap-1 min-h-[44px] transition-colors text-white"
+      >
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl neu-btn" style={{ backgroundColor: "#2563EB" }}>
+          <HugeiconsIcon icon={Add01Icon} size={20} strokeWidth={2} color="white" />
+        </span>
+        <span className="text-[10px] text-ink-4">New</span>
+      </button>
 
       <TabButton onClick={handleAI} active={false} label="AI">
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 001.357 2.059l.214.107a2.25 2.25 0 001.357.126l.214-.107A2.25 2.25 0 0019.5 8.818V3.104m-9.75 0A24.255 24.255 0 0112 3" />
-        </svg>
+        <HugeiconsIcon icon={AiBrain01Icon} size={22} strokeWidth={1.5} />
+      </TabButton>
+
+      <TabButton onClick={() => router.push("/settings")} active={isSettings} label="Settings">
+        <HugeiconsIcon icon={Settings01Icon} size={22} strokeWidth={isSettings ? 2 : 1.5} />
       </TabButton>
     </nav>
   );
 }
 
-function TabButton({ onClick, active, label, children }: {
+function TabButton({
+  onClick,
+  active,
+  label,
+  children,
+}: {
   onClick: () => void;
   active: boolean;
   label: string;
@@ -62,6 +83,7 @@ function TabButton({ onClick, active, label, children }: {
     <button
       onClick={onClick}
       aria-label={label}
+      aria-current={active ? "page" : undefined}
       className={`flex flex-1 flex-col items-center justify-center gap-1 min-h-[44px] transition-colors ${
         active ? "text-ai" : "text-ink-4 hover:text-ink-2"
       }`}

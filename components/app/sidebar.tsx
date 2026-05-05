@@ -10,6 +10,13 @@ import { motion } from "framer-motion";
 import { slideLeft } from "@/lib/motion";
 import { Logo } from "@/components/ui/logo";
 import { useSidebar } from "./sidebar-context";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Home01Icon,
+  Add01Icon,
+  Settings01Icon,
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 
 export function Sidebar() {
   const { open, setOpen } = useSidebar();
@@ -32,6 +39,7 @@ export function Sidebar() {
       animate={open ? "show" : "hidden"}
       variants={slideLeft}
       className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-surface border-r border-line-1"
+      aria-label="Sidebar navigation"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4">
@@ -41,9 +49,7 @@ export function Sidebar() {
           className="rounded-md p-1.5 text-ink-4 transition-colors hover:text-ink-2"
           aria-label="Close sidebar"
         >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={1.5} />
         </button>
       </div>
 
@@ -54,11 +60,7 @@ export function Sidebar() {
           label="Dashboard"
           active={pathname === "/dashboard"}
           onClick={() => setOpen(false)}
-          icon={
-            <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-          }
+          icon={<HugeiconsIcon icon={Home01Icon} size={14} strokeWidth={1.5} />}
         />
       </div>
 
@@ -70,10 +72,9 @@ export function Sidebar() {
         <button
           onClick={handleNewNote}
           className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-ink-3 transition-colors hover:bg-hover hover:text-ink-1 neu-sm"
+          aria-label="Create new note"
         >
-          <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-          </svg>
+          <HugeiconsIcon icon={Add01Icon} size={14} strokeWidth={1.5} className="shrink-0" />
           New note
         </button>
       </div>
@@ -85,6 +86,7 @@ export function Sidebar() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search notes…"
+            aria-label="Search notes"
             className="w-full rounded-md bg-raised px-3 py-1.5 text-xs text-ink-2 placeholder-ink-4 outline-none transition-all focus:bg-hover neu-inset"
           />
         </div>
@@ -95,11 +97,12 @@ export function Sidebar() {
         const allTags = [...new Set(notes.flatMap((n) => n.tags ?? []))];
         if (allTags.length === 0) return null;
         return (
-          <div className="flex flex-wrap gap-1 px-3 pb-2">
+          <div className="flex flex-wrap gap-1 px-3 pb-2" role="group" aria-label="Filter by tag">
             {allTags.map((tag) => (
               <button
                 key={tag}
                 onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                aria-pressed={selectedTag === tag}
                 className={`rounded-full border px-2 py-0.5 text-[10px] transition-colors ${
                   selectedTag === tag
                     ? "border-ai/40 bg-ai-dim text-ai"
@@ -114,14 +117,13 @@ export function Sidebar() {
       })()}
 
       {/* Notes list — hierarchical tree */}
-      <div className="flex-1 overflow-y-auto px-3 pt-2">
+      <div className="flex-1 overflow-y-auto px-3 pt-2" role="list" aria-label="Notes">
         {notes.length > 0 && (
           <p className="mb-1 px-3 text-[10px] uppercase tracking-widest text-ink-4">
             {search || selectedTag ? "Results" : "Recent"}
           </p>
         )}
         {(() => {
-          // Build child map for tree rendering
           const childMap = new Map<string, typeof notes>();
           notes.forEach((n) => {
             if (n.parentId) {
@@ -131,7 +133,6 @@ export function Sidebar() {
             }
           });
 
-          // Root notes matching search/tag filter
           const rootNotes = notes
             .filter((n) => {
               if (n.parentId) return false;
@@ -144,10 +145,11 @@ export function Sidebar() {
           return rootNotes.map((note) => {
             const kids = childMap.get(note._id) ?? [];
             return (
-              <div key={note._id}>
+              <div key={note._id} role="listitem">
                 <Link
                   href={`/notes/${note._id}`}
                   onClick={() => setOpen(false)}
+                  aria-current={pathname === `/notes/${note._id}` ? "page" : undefined}
                   className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
                     pathname === `/notes/${note._id}`
                       ? "bg-raised text-ink-1"
@@ -165,6 +167,7 @@ export function Sidebar() {
                     key={child._id}
                     href={`/notes/${child._id}`}
                     onClick={() => setOpen(false)}
+                    aria-current={pathname === `/notes/${child._id}` ? "page" : undefined}
                     className={`ml-4 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition-colors ${
                       pathname === `/notes/${child._id}`
                         ? "bg-raised text-ink-1"
@@ -189,12 +192,7 @@ export function Sidebar() {
           label="Settings"
           active={pathname.startsWith("/settings")}
           onClick={() => setOpen(false)}
-          icon={
-            <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          }
+          icon={<HugeiconsIcon icon={Settings01Icon} size={14} strokeWidth={1.5} />}
         />
       </div>
 
@@ -228,6 +226,7 @@ function NavItem({
     <Link
       href={href}
       onClick={onClick}
+      aria-current={active ? "page" : undefined}
       className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all ${
         active
           ? "bg-raised text-ink-1 neu-sm"
