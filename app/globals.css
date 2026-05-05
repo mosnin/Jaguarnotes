@@ -58,6 +58,16 @@
   --text-micro:      0.6875rem;
 }
 
+/* ─── ui-neumorphism CSS variable overrides ─────────────────────────── */
+:root {
+  --light-bg:             #EDF4FF;
+  --light-bg-dark-shadow: #C5D5E8;
+  --light-bg-light-shadow: #FFFFFF;
+  --primary:              #2563EB;
+  --primary-dark:         #1D4ED8;
+  --primary-light:        #93C5FD;
+}
+
 /* ─── Base reset ─────────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
