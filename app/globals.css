@@ -11,17 +11,21 @@
      Everything else: white on near-black, one accent, no noise.
   ─────────────────────────────────────────────────────────────────────── */
 
-  /* Backgrounds */
+  /* Backgrounds — warm gray ladder */
   --color-app:       #262626;   /* primary base */
-  --color-surface:   #955912;   /* secondary — cards, sidebar */
-  --color-raised:    #2e2e2e;   /* inputs, elevated panels */
-  --color-hover:     #353535;   /* hover state */
-  --color-selected:  #3d3d3d;   /* active / selected */
+  --color-surface:   #2d2d2d;   /* cards, sidebar */
+  --color-raised:    #353535;   /* inputs, elevated panels */
+  --color-hover:     #3d3d3d;   /* hover state */
+  --color-selected:  #454545;   /* active / selected */
 
-  /* Borders */
-  --color-line-1:    #141428;   /* faintest — structural dividers */
-  --color-line-2:    #1e1e3c;   /* default border */
-  --color-line-3:    #2c2c54;   /* strong border, interactive edges */
+  /* Secondary accent — used sparingly: pinned indicators, special highlights */
+  --color-secondary: #955912;
+  --color-secondary-dim: rgba(149, 89, 18, 0.16);
+
+  /* Borders — match warm gray bg */
+  --color-line-1:    #2e2e2e;   /* faintest — structural dividers */
+  --color-line-2:    #3a3a3a;   /* default border */
+  --color-line-3:    #4a4a4a;   /* strong border, interactive edges */
 
   /* Text — Apple's exact off-white ladder */
   --color-ink-1:     #f5f5f7;   /* primary — Apple off-white */
@@ -82,8 +86,8 @@ html, body {
 /* ─── Scrollbar — invisible until hovered ───────────────────────────── */
 ::-webkit-scrollbar         { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track   { background: transparent; }
-::-webkit-scrollbar-thumb   { background: #1e1e3c; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #2c2c54; }
+::-webkit-scrollbar-thumb   { background: #3a3a3a; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #4a4a4a; }
 
 /* ─── Selection ─────────────────────────────────────────────────────── */
 ::selection {
