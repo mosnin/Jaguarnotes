@@ -43,8 +43,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={() => setOpen(false)}
-            className="fixed inset-0 z-30 backdrop-blur-sm lg:hidden"
-            style={{ backgroundColor: "rgba(237, 244, 255, 0.7)" }}
+            className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm lg:hidden"
           />
         )}
       </AnimatePresence>

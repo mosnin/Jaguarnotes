@@ -32,7 +32,6 @@ export function Sidebar() {
       animate={open ? "show" : "hidden"}
       variants={slideLeft}
       className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-surface border-r border-line-1"
-      style={{ boxShadow: "4px 0 20px #C5D5E8" }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-5">
