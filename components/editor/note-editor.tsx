@@ -110,7 +110,9 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     initialContent: note?.content ? JSON.parse(note.content) : undefined,
   });
 
-  // Load note state on mount
+  // Load note state when the note finishes loading from Convex.
+  // Critical: useCreateBlockNote ignores `initialContent` changes after first render,
+  // so we must explicitly hydrate the editor's blocks here via replaceBlocks.
   useEffect(() => {
     if (note) {
       setTitle(note.title ?? "Untitled");
@@ -119,6 +121,17 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
       if (note.aiBlockIds?.length) setAiBlockIds(new Set(note.aiBlockIds));
       setTags(note.tags ?? []);
       setEmoji(note.emoji ?? "");
+
+      if (hasContent && editor) {
+        try {
+          const blocks = JSON.parse(note.content!) as PartialBlock[];
+          if (Array.isArray(blocks) && blocks.length > 0) {
+            editor.replaceBlocks(editor.document, blocks);
+          }
+        } catch (err) {
+          trackError("loadNoteContent", err);
+        }
+      }
     }
   }, [note?._id]); // eslint-disable-line react-hooks/exhaustive-deps
 
