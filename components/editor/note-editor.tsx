@@ -594,14 +594,12 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
             <AIWelcome onInsert={handleAIInsert} onDismiss={() => setIsEmpty(false)} />
           )}
 
-          <div className={isEmpty ? "pointer-events-none opacity-0 h-0 overflow-hidden" : ""}>
+          {/* Single BlockNoteView — always mounted so ProseMirror has one DOM binding.
+              When the AIWelcome is active we hide it visually but keep it in the DOM
+              so editor.insertBlocks() works for AI insertions. */}
+          <div className={isEmpty ? "opacity-0 h-0 overflow-hidden" : ""}>
             <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
           </div>
-          {isEmpty && (
-            <div className="hidden">
-              <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
-            </div>
-          )}
 
           {/* Sub-notes — always rendered, Norman's affordance fix */}
           <div className="mt-12 border-t border-line-1 pt-6">

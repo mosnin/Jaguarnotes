@@ -171,25 +171,20 @@ kbd {
 /* ─── BlockNote editor overrides ────────────────────────────────────── */
 /* theme="dark" stays on BlockNoteView; we force all visible surfaces to
    our navy-on-light-blue palette with !important overrides. */
+
+/* Editor root and ProseMirror content area */
 .bn-editor,
-.bn-editor .mantine-Paper-root,
-.bn-editor [data-mantine-color-scheme] {
+.bn-editor .ProseMirror,
+.bn-editor [contenteditable] {
   background: transparent !important;
   background-color: transparent !important;
   padding: 0 !important;
   color: #1B3652 !important;
   caret-color: #2563EB !important;
 }
-/* Blanket navy override for all editor content */
+/* Blanket text color — targets all inline/block content */
 .bn-editor * {
   color: #1B3652 !important;
-}
-/* ProseMirror contenteditable */
-.bn-editor .ProseMirror,
-.bn-editor [contenteditable] {
-  background: transparent !important;
-  color: #1B3652 !important;
-  caret-color: #2563EB !important;
 }
 .bn-block-outer {
   padding-inline: 0 !important;
@@ -205,20 +200,80 @@ kbd {
 .bn-editor h1 { font-size: 1.75rem !important; font-weight: 700 !important; color: #1B3652 !important; letter-spacing: -0.02em !important; }
 .bn-editor h2 { font-size: 1.25rem !important; font-weight: 600 !important; color: #2D4A63 !important; }
 .bn-editor h3 { font-size: 1.0625rem !important; font-weight: 600 !important; color: #3D5A74 !important; }
-/* Mantine popover/dropdown menus (slash command menu, formatting toolbar) */
+
+/* ── Block side menu (+ add button and drag handle) ── */
+.bn-side-menu {
+  background: transparent !important;
+}
+.bn-side-menu button,
+.bn-drag-handle-menu button,
+[class*="dragHandle"],
+[class*="sideMenu"] button {
+  background: transparent !important;
+  color: #A8C2D8 !important;
+}
+.bn-side-menu button:hover,
+.bn-drag-handle-menu button:hover,
+[class*="dragHandle"]:hover,
+[class*="sideMenu"] button:hover {
+  background: #E2EEFF !important;
+  color: #1B3652 !important;
+}
+
+/* ── Formatting toolbar ── */
+.bn-formatting-toolbar,
+[class*="formattingToolbar"] {
+  background: #F4F8FF !important;
+  border: 1px solid #D5E4F5 !important;
+  box-shadow: 2px 2px 8px #C5D5E8, -2px -2px 8px #FFFFFF !important;
+}
+.bn-formatting-toolbar button,
+[class*="formattingToolbar"] button {
+  background: transparent !important;
+  color: #4A6D8C !important;
+}
+.bn-formatting-toolbar button:hover,
+[class*="formattingToolbar"] button:hover,
+.bn-formatting-toolbar button[data-active="true"],
+[class*="formattingToolbar"] button[data-active="true"] {
+  background: #E2EEFF !important;
+  color: #1B3652 !important;
+}
+
+/* ── Slash command menu and all Mantine popovers ── */
 .mantine-Popover-dropdown,
-.mantine-Menu-dropdown {
+.mantine-Menu-dropdown,
+.bn-slash-menu,
+[class*="slashMenu"] {
   background: #F4F8FF !important;
   border: 1px solid #D5E4F5 !important;
   box-shadow: 4px 4px 10px #C5D5E8, -4px -4px 10px #FFFFFF !important;
 }
 .mantine-Popover-dropdown *,
-.mantine-Menu-dropdown * {
+.mantine-Menu-dropdown *,
+.bn-slash-menu *,
+[class*="slashMenu"] * {
   color: #1B3652 !important;
+  background: transparent !important;
 }
 .mantine-Menu-item:hover,
-.mantine-Popover-dropdown [data-hovered] {
+.mantine-Popover-dropdown [data-hovered],
+.bn-slash-menu [data-selected],
+.bn-slash-menu [aria-selected="true"],
+[class*="slashMenu"] [data-selected],
+[class*="slashMenu"] [aria-selected="true"] {
   background: #E2EEFF !important;
+  color: #1B3652 !important;
+}
+
+/* ── Mantine ActionIcon (used for toolbar icon buttons) ── */
+.mantine-ActionIcon-root {
+  background: transparent !important;
+  color: #4A6D8C !important;
+}
+.mantine-ActionIcon-root:hover {
+  background: #E2EEFF !important;
+  color: #1B3652 !important;
 }
 
 /* ─── AI block marker ───────────────────────────────────────────────── */
