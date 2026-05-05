@@ -595,11 +595,11 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           )}
 
           <div className={isEmpty ? "pointer-events-none opacity-0 h-0 overflow-hidden" : ""}>
-            <BlockNoteView editor={editor} onChange={handleEditorChange} theme="light" />
+            <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
           </div>
           {isEmpty && (
             <div className="hidden">
-              <BlockNoteView editor={editor} onChange={handleEditorChange} theme="light" />
+              <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
             </div>
           )}
 

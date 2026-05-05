@@ -168,19 +168,28 @@ kbd {
   .animate-spin  { animation: none !important; }
 }
 
-/* ─── BlockNote editor overrides (light theme) ──────────────────────── */
-.bn-editor {
+/* ─── BlockNote editor overrides ────────────────────────────────────── */
+/* theme="dark" stays on BlockNoteView; we force all visible surfaces to
+   our navy-on-light-blue palette with !important overrides. */
+.bn-editor,
+.bn-editor .mantine-Paper-root,
+.bn-editor [data-mantine-color-scheme] {
   background: transparent !important;
+  background-color: transparent !important;
   padding: 0 !important;
   color: #1B3652 !important;
-  caret-color: #2563EB;
+  caret-color: #2563EB !important;
 }
-/* Force every nested element in the editor to use a visible navy color.
-   BlockNote's content lives across many tags (p, span, div, contenteditable
-   wrappers); without this catch-all, theme="light" can leave inline content
-   with an inherited color that's invisible on the white-blue background. */
-.bn-editor *:not([data-ai-block]) {
-  color: inherit;
+/* Blanket navy override for all editor content */
+.bn-editor * {
+  color: #1B3652 !important;
+}
+/* ProseMirror contenteditable */
+.bn-editor .ProseMirror,
+.bn-editor [contenteditable] {
+  background: transparent !important;
+  color: #1B3652 !important;
+  caret-color: #2563EB !important;
 }
 .bn-block-outer {
   padding-inline: 0 !important;
@@ -196,6 +205,21 @@ kbd {
 .bn-editor h1 { font-size: 1.75rem !important; font-weight: 700 !important; color: #1B3652 !important; letter-spacing: -0.02em !important; }
 .bn-editor h2 { font-size: 1.25rem !important; font-weight: 600 !important; color: #2D4A63 !important; }
 .bn-editor h3 { font-size: 1.0625rem !important; font-weight: 600 !important; color: #3D5A74 !important; }
+/* Mantine popover/dropdown menus (slash command menu, formatting toolbar) */
+.mantine-Popover-dropdown,
+.mantine-Menu-dropdown {
+  background: #F4F8FF !important;
+  border: 1px solid #D5E4F5 !important;
+  box-shadow: 4px 4px 10px #C5D5E8, -4px -4px 10px #FFFFFF !important;
+}
+.mantine-Popover-dropdown *,
+.mantine-Menu-dropdown * {
+  color: #1B3652 !important;
+}
+.mantine-Menu-item:hover,
+.mantine-Popover-dropdown [data-hovered] {
+  background: #E2EEFF !important;
+}
 
 /* ─── AI block marker ───────────────────────────────────────────────── */
 [data-ai-block="true"] {
