@@ -1,78 +1,193 @@
 @import "tailwindcss";
 
+/* ─── Leopard Fur Palette ─────────────────────────────────────────────────
+   Inspired by the colors of leopard fur (not the spots):
+   - Light mode: warm cream underbelly, sandy tan
+   - Dark mode: rich tawny coat, deep shadow brown
+   The accent gold mirrors the leopard's golden coat pigment.
+───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Light — cream underbelly, sandy tan */
+  --bg-app:        #f5ebd6;
+  --bg-surface:    #fbf4e0;
+  --bg-raised:     #ede1c0;
+  --bg-hover:      #e3d3a8;
+  --bg-selected:   #d8c590;
+
+  --border-1:      #e6d8b4;
+  --border-2:      #d2bf90;
+  --border-3:      #b8a16a;
+
+  --text-1:        #1f1810;
+  --text-2:        #5a4632;
+  --text-3:        #8c785a;
+  --text-4:        #b3a17e;
+
+  --accent:        #986222;            /* user-specified amber accent */
+  --accent-dim:    rgba(152, 98, 34, 0.14);
+  --accent-hint:   rgba(152, 98, 34, 0.06);
+
+  --secondary:     #955912;            /* deeper amber, used sparingly */
+  --secondary-dim: rgba(149, 89, 18, 0.14);
+
+  --selection-bg:  rgba(152, 98, 34, 0.22);
+  --kbd-bg:        #ede1c0;
+  --kbd-border:    #d2bf90;
+  --kbd-text:      #5a4632;
+  --scrollbar:     #d2bf90;
+  --scrollbar-hover: #b8a16a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark — tawny coat, deep brown shadows */
+    --bg-app:        #1c160e;
+    --bg-surface:    #261e14;
+    --bg-raised:     #2f261a;
+    --bg-hover:      #3a2f22;
+    --bg-selected:   #45382a;
+
+    --border-1:      #2a2118;
+    --border-2:      #3a2f22;
+    --border-3:      #564633;
+
+    --text-1:        #f5ebd6;
+    --text-2:        #c8b48a;
+    --text-3:        #8c785a;
+    --text-4:        #5a4632;
+
+    --accent:        #c8973f;            /* lighter gold for dark contrast */
+    --accent-dim:    rgba(200, 151, 63, 0.16);
+    --accent-hint:   rgba(200, 151, 63, 0.07);
+
+    --secondary:     #b87a1f;            /* readable secondary on dark */
+    --secondary-dim: rgba(184, 122, 31, 0.16);
+
+    --selection-bg:  rgba(200, 151, 63, 0.26);
+    --kbd-bg:        #2f261a;
+    --kbd-border:    #3a2f22;
+    --kbd-text:      #c8b48a;
+    --scrollbar:     #3a2f22;
+    --scrollbar-hover: #564633;
+  }
+}
+
+/* Manual override class — flips to dark regardless of system */
+.theme-dark {
+  --bg-app:        #1c160e;
+  --bg-surface:    #261e14;
+  --bg-raised:     #2f261a;
+  --bg-hover:      #3a2f22;
+  --bg-selected:   #45382a;
+  --border-1:      #2a2118;
+  --border-2:      #3a2f22;
+  --border-3:      #564633;
+  --text-1:        #f5ebd6;
+  --text-2:        #c8b48a;
+  --text-3:        #8c785a;
+  --text-4:        #5a4632;
+  --accent:        #c8973f;
+  --accent-dim:    rgba(200, 151, 63, 0.16);
+  --accent-hint:   rgba(200, 151, 63, 0.07);
+  --secondary:     #b87a1f;
+  --secondary-dim: rgba(184, 122, 31, 0.16);
+  --selection-bg:  rgba(200, 151, 63, 0.26);
+  --kbd-bg:        #2f261a;
+  --kbd-border:    #3a2f22;
+  --kbd-text:      #c8b48a;
+  --scrollbar:     #3a2f22;
+  --scrollbar-hover: #564633;
+}
+
+.theme-light {
+  --bg-app:        #f5ebd6;
+  --bg-surface:    #fbf4e0;
+  --bg-raised:     #ede1c0;
+  --bg-hover:      #e3d3a8;
+  --bg-selected:   #d8c590;
+  --border-1:      #e6d8b4;
+  --border-2:      #d2bf90;
+  --border-3:      #b8a16a;
+  --text-1:        #1f1810;
+  --text-2:        #5a4632;
+  --text-3:        #8c785a;
+  --text-4:        #b3a17e;
+  --accent:        #986222;
+  --accent-dim:    rgba(152, 98, 34, 0.14);
+  --accent-hint:   rgba(152, 98, 34, 0.06);
+  --secondary:     #955912;
+  --secondary-dim: rgba(149, 89, 18, 0.14);
+  --selection-bg:  rgba(152, 98, 34, 0.22);
+  --kbd-bg:        #ede1c0;
+  --kbd-border:    #d2bf90;
+  --kbd-text:      #5a4632;
+  --scrollbar:     #d2bf90;
+  --scrollbar-hover: #b8a16a;
+}
+
 @theme {
-  /* ─── Typefaces ─────────────────────────────────────────────────────── */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* ─── Color system ───────────────────────────────────────────────────
-     Principle: blue-tinted near-blacks create premium depth.
-     Indigo (#7474ff) appears ONLY when AI is active.
-     Everything else: white on near-black, one accent, no noise.
-  ─────────────────────────────────────────────────────────────────────── */
+  /* Backgrounds */
+  --color-app:       var(--bg-app);
+  --color-surface:   var(--bg-surface);
+  --color-raised:    var(--bg-raised);
+  --color-hover:     var(--bg-hover);
+  --color-selected:  var(--bg-selected);
 
-  /* Backgrounds — warm gray ladder */
-  --color-app:       #262626;   /* primary base */
-  --color-surface:   #2d2d2d;   /* cards, sidebar */
-  --color-raised:    #353535;   /* inputs, elevated panels */
-  --color-hover:     #3d3d3d;   /* hover state */
-  --color-selected:  #454545;   /* active / selected */
+  /* Borders */
+  --color-line-1:    var(--border-1);
+  --color-line-2:    var(--border-2);
+  --color-line-3:    var(--border-3);
 
-  /* Secondary accent — used sparingly: pinned indicators, special highlights */
-  --color-secondary: #955912;
-  --color-secondary-dim: rgba(149, 89, 18, 0.16);
+  /* Text */
+  --color-ink-1:     var(--text-1);
+  --color-ink-2:     var(--text-2);
+  --color-ink-3:     var(--text-3);
+  --color-ink-4:     var(--text-4);
 
-  /* Borders — match warm gray bg */
-  --color-line-1:    #2e2e2e;   /* faintest — structural dividers */
-  --color-line-2:    #3a3a3a;   /* default border */
-  --color-line-3:    #4a4a4a;   /* strong border, interactive edges */
+  /* Accents */
+  --color-ai:           var(--accent);
+  --color-ai-dim:       var(--accent-dim);
+  --color-ai-hint:      var(--accent-hint);
+  --color-secondary:    var(--secondary);
+  --color-secondary-dim: var(--secondary-dim);
 
-  /* Text — Apple's exact off-white ladder */
-  --color-ink-1:     #f5f5f7;   /* primary — Apple off-white */
-  --color-ink-2:     #8e8e9e;   /* secondary */
-  --color-ink-3:     #4c4c5e;   /* tertiary */
-  --color-ink-4:     #26263a;   /* ghost / disabled */
+  /* Semantic — constant across modes */
+  --color-ok:        #58c66c;
+  --color-warn:      #d4a558;
+  --color-error:     #d4534a;
 
-  /* Accent — only appears when intelligence is present */
-  --color-ai:        #986222;   /* warm amber accent */
-  --color-ai-dim:    rgba(152, 98, 34, 0.16);
-  --color-ai-hint:   rgba(152, 98, 34, 0.07);
+  /* Radii — Apple-calibrated */
+  --radius-xs:  6px;
+  --radius-sm:  8px;
+  --radius-md:  11px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+  --radius-2xl: 28px;
+  --radius-3xl: 36px;
 
-  /* Semantic */
-  --color-ok:        #30d158;   /* Apple green */
-  --color-warn:      #ff9f0a;   /* Apple amber */
-  --color-error:     #ff453a;   /* Apple red */
-
-  /* ─── Border radius — Apple-calibrated ────────────────────────────── */
-  --radius-xs:  6px;    /* chips, badges, tiny tags */
-  --radius-sm:  8px;    /* small buttons, kbd */
-  --radius-md:  11px;   /* buttons, inputs, form fields */
-  --radius-lg:  16px;   /* cards, panels */
-  --radius-xl:  20px;   /* overlays, menus */
-  --radius-2xl: 28px;   /* large floating surfaces */
-  --radius-3xl: 36px;   /* hero cards */
-
-  /* ─── Type scale — tight, intentional ────────────────────────────── */
-  --text-display:    4.5rem;    /* hero */
-  --text-title-1:    2.25rem;   /* page titles */
-  --text-title-2:    1.5rem;    /* section titles */
-  --text-headline:   1.0625rem; /* 17px — body emphasis */
-  --text-body:       0.9375rem; /* 15px — default reading */
-  --text-caption:    0.8125rem; /* 13px — supporting */
-  --text-micro:      0.6875rem; /* 11px — labels */
+  /* Type scale */
+  --text-display:    4.5rem;
+  --text-title-1:    2.25rem;
+  --text-title-2:    1.5rem;
+  --text-headline:   1.0625rem;
+  --text-body:       0.9375rem;
+  --text-caption:    0.8125rem;
+  --text-micro:      0.6875rem;
 }
 
 /* ─── Base reset ─────────────────────────────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background-color: #262626;
-  color: #f5f5f7;
+  background-color: var(--bg-app);
+  color: var(--text-1);
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.5;
@@ -83,21 +198,21 @@ html, body {
 
 #__next, main { width: 100%; }
 
-/* ─── Scrollbar — invisible until hovered ───────────────────────────── */
+/* ─── Scrollbar ──────────────────────────────────────────────────────── */
 ::-webkit-scrollbar         { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track   { background: transparent; }
-::-webkit-scrollbar-thumb   { background: #3a3a3a; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #4a4a4a; }
+::-webkit-scrollbar-thumb   { background: var(--scrollbar); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
 
 /* ─── Selection ─────────────────────────────────────────────────────── */
 ::selection {
-  background: rgba(152, 98, 34, 0.22);
-  color: #f5f5f7;
+  background: var(--selection-bg);
+  color: var(--text-1);
 }
 
 /* ─── Focus ─────────────────────────────────────────────────────────── */
 :focus-visible {
-  outline: 1.5px solid rgba(116, 116, 255, 0.5);
+  outline: 1.5px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -109,9 +224,9 @@ kbd {
   font-size: 11px;
   padding: 1px 5px;
   border-radius: 5px;
-  border: 1px solid #1e1e3c;
-  background: #0d0d1a;
-  color: #4c4c5e;
+  border: 1px solid var(--kbd-border);
+  background: var(--kbd-bg);
+  color: var(--kbd-text);
   line-height: 1.6;
 }
 
@@ -121,6 +236,8 @@ kbd {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+  .animate-pulse { animation: none !important; }
+  .animate-spin  { animation: none !important; }
 }
 
 /* ─── BlockNote editor overrides ────────────────────────────────────── */
@@ -128,35 +245,22 @@ kbd {
   background: transparent !important;
   padding: 0 !important;
 }
-.bn-block-outer {
-  padding-inline: 0 !important;
-}
+.bn-block-outer { padding-inline: 0 !important; }
 .bn-editor [class*="bn-"] {
   font-family: var(--font-geist-sans), system-ui, sans-serif !important;
 }
 .bn-editor p, .bn-editor li {
   font-size: 15px !important;
   line-height: 1.7 !important;
-  color: #c8c8d8 !important;
+  color: var(--text-2) !important;
 }
-.bn-editor h1 { font-size: 1.75rem !important; font-weight: 700 !important; color: #f5f5f7 !important; letter-spacing: -0.02em !important; }
-.bn-editor h2 { font-size: 1.25rem !important; font-weight: 600 !important; color: #e8e8f2 !important; }
-.bn-editor h3 { font-size: 1.0625rem !important; font-weight: 600 !important; color: #d8d8ea !important; }
+.bn-editor h1 { font-size: 1.75rem !important; font-weight: 700 !important; color: var(--text-1) !important; letter-spacing: -0.02em !important; }
+.bn-editor h2 { font-size: 1.25rem !important; font-weight: 600 !important; color: var(--text-1) !important; }
+.bn-editor h3 { font-size: 1.0625rem !important; font-weight: 600 !important; color: var(--text-2) !important; }
 
-/* ─── AI block marker — one clean left border, nothing else ─────────── */
+/* ─── AI block marker ───────────────────────────────────────────────── */
 [data-ai-block="true"] {
-  border-left: 2px solid rgba(116, 116, 255, 0.45) !important;
+  border-left: 2px solid var(--accent) !important;
   padding-left: 14px !important;
   margin-left: -16px !important;
-}
-
-/* ─── Reduced-motion: suppress specific animations ──────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .animate-pulse {
-    animation: none !important;
-  }
-
-  .animate-spin {
-    animation: none !important;
-  }
 }
