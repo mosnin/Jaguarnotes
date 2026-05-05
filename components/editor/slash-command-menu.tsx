@@ -7,25 +7,34 @@ import { scaleIn, useMotionVariants } from "@/lib/motion";
 import { textToBlocks, blocksToMarkdown } from "@/lib/blocks";
 
 const COMMANDS = [
+  // Format — direct, no input needed (Don Norman: most-frequent affordance first)
+  { id: "h1",        icon: "H₁", label: "Heading 1",     desc: "Top-level section",                       placeholder: "",                                 group: "Format" },
+  { id: "h2",        icon: "H₂", label: "Heading 2",     desc: "Subsection",                              placeholder: "",                                 group: "Format" },
+  { id: "h3",        icon: "H₃", label: "Heading 3",     desc: "Sub-subsection",                          placeholder: "",                                 group: "Format" },
+  { id: "bullet",    icon: "•",  label: "Bulleted list", desc: "Unordered list",                          placeholder: "",                                 group: "Format" },
+  { id: "numbered",  icon: "1.", label: "Numbered list", desc: "Ordered list",                            placeholder: "",                                 group: "Format" },
+  { id: "quote",     icon: "❝",  label: "Quote",         desc: "Block quote",                             placeholder: "",                                 group: "Format" },
+  { id: "code",      icon: "⌗",  label: "Code block",    desc: "Monospace, no AI",                        placeholder: "",                                 group: "Format" },
   // Generate — ordered by universal usefulness
-  { id: "brainstorm",icon: "✦", label: "Brainstorm", desc: "Generate a bulleted idea list",            placeholder: "Topic...",                       group: "Generate" },
-  { id: "outline",   icon: "≡", label: "Outline",    desc: "Generate a document outline",              placeholder: "Subject...",                     group: "Generate" },
-  { id: "explain",   icon: "◎", label: "Explain",    desc: "Insert a structured explanation",          placeholder: "Term or concept...",             group: "Generate" },
-  { id: "table",     icon: "⊞", label: "Table",      desc: "Generate a populated table",               placeholder: "Topic...",                       group: "Generate" },
-  { id: "diagram",   icon: "◈", label: "Diagram",    desc: "Generate a Mermaid diagram",               placeholder: "Concept...",                     group: "Generate" },
-  { id: "research",  icon: "⌖", label: "Research",   desc: "Search the web and synthesize",            placeholder: "What do you want to research?",  group: "Generate" },
-  // Think
-  { id: "compress",  icon: "◉", label: "Compress",   desc: "Distill writing to its essential truth",   placeholder: "Paste or describe your text...", group: "Think" },
-  { id: "punch",     icon: "⚡", label: "Punch",      desc: "Make writing harder, faster, direct",      placeholder: "Paste the text to sharpen...",   group: "Think" },
-  { id: "counter",   icon: "⇄", label: "Counter",    desc: "Steel-man the opposing argument",          placeholder: "Your argument or plan...",        group: "Think" },
-  { id: "sowhat",    icon: "→", label: "So What",    desc: "Surface the real implication",             placeholder: "Paste your note or idea...",      group: "Think" },
-  { id: "assume",    icon: "?", label: "Assume",     desc: "List every buried assumption",             placeholder: "Your plan, idea, or argument...", group: "Think" },
-  { id: "question",  icon: "✺", label: "Question",   desc: "5 questions you should be asking",        placeholder: "Topic or what you've written...", group: "Think" },
-  { id: "premortem", icon: "☠", label: "Pre-mortem", desc: "Imagine failure — find out how and why",  placeholder: "Your plan or decision...",        group: "Think" },
-  { id: "brief",     icon: "▤", label: "Brief",      desc: "Collapse into a one-page executive brief", placeholder: "Paste your note or idea...",      group: "Think" },
+  { id: "brainstorm",icon: "✦",  label: "Brainstorm",    desc: "Generate a bulleted idea list",           placeholder: "Topic...",                         group: "Generate" },
+  { id: "outline",   icon: "≡",  label: "Outline",       desc: "Generate a document outline",             placeholder: "Subject...",                       group: "Generate" },
+  { id: "explain",   icon: "◎",  label: "Explain",       desc: "Insert a structured explanation",         placeholder: "Term or concept...",               group: "Generate" },
+  { id: "table",     icon: "⊞",  label: "Table",         desc: "Generate a populated table",              placeholder: "Topic...",                         group: "Generate" },
+  { id: "diagram",   icon: "◈",  label: "Diagram",       desc: "Generate a Mermaid diagram",              placeholder: "Concept...",                       group: "Generate" },
+  { id: "research",  icon: "⌖",  label: "Research",      desc: "Search the web and synthesize",           placeholder: "What do you want to research?",    group: "Generate" },
+  // Think — operate on existing text
+  { id: "compress",  icon: "◉",  label: "Compress",      desc: "Distill writing to its essential truth",  placeholder: "Paste or describe your text...",   group: "Think" },
+  { id: "punch",     icon: "⚡",  label: "Punch",         desc: "Make writing harder, faster, direct",     placeholder: "Paste the text to sharpen...",     group: "Think" },
+  { id: "counter",   icon: "⇄",  label: "Counter",       desc: "Steel-man the opposing argument",         placeholder: "Your argument or plan...",         group: "Think" },
+  { id: "sowhat",    icon: "→",  label: "So What",       desc: "Surface the real implication",            placeholder: "Paste your note or idea...",       group: "Think" },
+  { id: "assume",    icon: "?",  label: "Assume",        desc: "List every buried assumption",            placeholder: "Your plan, idea, or argument...",  group: "Think" },
+  { id: "question",  icon: "✺",  label: "Question",      desc: "5 questions you should be asking",        placeholder: "Topic or what you've written...",  group: "Think" },
+  { id: "premortem", icon: "☠",  label: "Pre-mortem",    desc: "Imagine failure — find out how and why",  placeholder: "Your plan or decision...",         group: "Think" },
+  { id: "brief",     icon: "▤",  label: "Brief",         desc: "Collapse into a one-page executive brief",placeholder: "Paste your note or idea...",       group: "Think" },
 ] as const;
 
 type CommandId = typeof COMMANDS[number]["id"];
+const FORMAT_IDS = new Set(["h1", "h2", "h3", "bullet", "numbered", "quote", "code"]);
 type Phase = "list" | "input" | "streaming" | "done" | "error";
 type ErrorType = "timeout" | "server" | null;
 
@@ -71,9 +80,44 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
     : thinkFiltered.filter((c) => THINK_FEATURED.includes(c.id as typeof THINK_FEATURED[number]));
   const thinkHiddenCount = thinkFiltered.length - thinkVisible.length;
 
+  // Format commands always shown in full — they're cheap, no input needed
+  const formatVisible = filtered.filter((c) => c.group === "Format");
   // Flat ordered list of commands shown in list phase — used for keyboard nav indices
+  // Order: Format → Generate → Think (most-frequent affordance first)
   const generateVisible = filtered.filter((c) => c.group === "Generate");
-  const flatListCommands = [...generateVisible, ...thinkVisible];
+  const flatListCommands = [...formatVisible, ...generateVisible, ...thinkVisible];
+
+  // Direct executor for format commands — no input/streaming phase
+  function executeFormat(formatId: string) {
+    try {
+      const cursor = editor.getTextCursorPosition();
+      if (!cursor) { onDismiss(); return; }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updates: Record<string, any> = {
+        h1:       { type: "heading", props: { level: 1 } },
+        h2:       { type: "heading", props: { level: 2 } },
+        h3:       { type: "heading", props: { level: 3 } },
+        bullet:   { type: "bulletListItem" },
+        numbered: { type: "numberedListItem" },
+        quote:    { type: "quote" },
+        code:     { type: "codeBlock" },
+      };
+      if (updates[formatId]) {
+        editor.updateBlock(cursor.block, updates[formatId]);
+      }
+    } catch { /* swallow — invalid block type for current cursor */ }
+    onDismiss();
+  }
+
+  function selectCommand(id: CommandId) {
+    if (FORMAT_IDS.has(id)) {
+      executeFormat(id);
+    } else {
+      setSelected(id);
+      setPhase("input");
+      setThinkMode(false);
+    }
+  }
 
   const motionProps = useMotionVariants(scaleIn);
 
@@ -116,7 +160,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
       } else if (e.key === "Enter") {
         e.preventDefault();
         const cmd = flatListCommands[selectedIndex];
-        if (cmd) { setSelected(cmd.id); setPhase("input"); setThinkMode(false); }
+        if (cmd) selectCommand(cmd.id);
       }
     }
     document.addEventListener("keydown", onKeyDown);
@@ -207,12 +251,45 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
     await runStream(refinedTopic.slice(0, 2000));
   }
 
+  // When the slash menu was opened from a selection (AI command on highlighted text),
+  // remember the block at cursor so we can offer "Replace" to overwrite it with the
+  // AI output instead of just appending below.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const initialBlockRef = useRef<any>(null);
+  useEffect(() => {
+    if (initialCommand && initialTopic) {
+      try {
+        initialBlockRef.current = editor.getTextCursorPosition()?.block ?? null;
+      } catch { initialBlockRef.current = null; }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function insertContent() {
     const blocks = textToBlocks(streamedText, selected ?? "");
     // Stamp the first block with an ai- ID so it gets the blue border marker
     const firstId = `ai-${crypto.randomUUID()}`;
     const stamped = blocks.map((b, i) => i === 0 ? { ...b, id: firstId } : b);
-    editor.insertBlocks(stamped, editor.getTextCursorPosition().block, "after");
+    try {
+      editor.insertBlocks(stamped, editor.getTextCursorPosition().block, "after");
+    } catch { /* swallow */ }
+    onInserted(firstId);
+    onDismiss();
+  }
+
+  function replaceContent() {
+    const blocks = textToBlocks(streamedText, selected ?? "");
+    const firstId = `ai-${crypto.randomUUID()}`;
+    const stamped = blocks.map((b, i) => i === 0 ? { ...b, id: firstId } : b);
+    const target = initialBlockRef.current;
+    try {
+      if (target) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        editor.replaceBlocks([target], stamped as any);
+      } else {
+        editor.insertBlocks(stamped, editor.getTextCursorPosition().block, "after");
+      }
+    } catch { /* swallow */ }
     onInserted(firstId);
     onDismiss();
   }
@@ -252,20 +329,20 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
             <p className="px-3 py-4 text-xs text-ink-4">No commands match &ldquo;{query}&rdquo;</p>
           )}
 
-          {/* Generate — all 5 always visible */}
-          {generateVisible.length > 0 && (
-            <div role="group" aria-label="Generate">
-              <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Generate</p>
-              {generateVisible.map((cmd, i) => (
+          {/* Format — direct, no input. Shown first because it's the most-frequent affordance. */}
+          {formatVisible.length > 0 && (
+            <div role="group" aria-label="Format">
+              <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Format</p>
+              {formatVisible.map((cmd, i) => (
                 <button
                   key={cmd.id}
                   id={`cmd-option-${i}`}
                   role="option"
                   aria-selected={selectedIndex === i}
-                  onClick={() => { setSelected(cmd.id); setPhase("input"); setThinkMode(false); }}
+                  onClick={() => selectCommand(cmd.id)}
                   className={`flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised${selectedIndex === i ? " bg-raised" : ""}`}
                 >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ink-2">
                     {cmd.icon}
                   </span>
                   <div>
@@ -277,19 +354,47 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
             </div>
           )}
 
-          {/* Think — featured 3 by default, expand to all 8 */}
-          {thinkVisible.length > 0 && (
-            <div role="group" aria-label="Think">
-              <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Think</p>
-              {thinkVisible.map((cmd, i) => {
-                const flatIndex = generateVisible.length + i;
+          {/* Generate — AI-driven content creation */}
+          {generateVisible.length > 0 && (
+            <div role="group" aria-label="Generate">
+              <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Generate with AI</p>
+              {generateVisible.map((cmd, i) => {
+                const flatIndex = formatVisible.length + i;
                 return (
                   <button
                     key={cmd.id}
                     id={`cmd-option-${flatIndex}`}
                     role="option"
                     aria-selected={selectedIndex === flatIndex}
-                    onClick={() => { setSelected(cmd.id); setPhase("input"); setThinkMode(false); }}
+                    onClick={() => selectCommand(cmd.id)}
+                    className={`flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised${selectedIndex === flatIndex ? " bg-raised" : ""}`}
+                  >
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
+                      {cmd.icon}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium text-ink-1">{cmd.label}</p>
+                      <p className="text-xs text-ink-3">{cmd.desc}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Think — featured 3 by default, expand to all 8 */}
+          {thinkVisible.length > 0 && (
+            <div role="group" aria-label="Think">
+              <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Transform with AI</p>
+              {thinkVisible.map((cmd, i) => {
+                const flatIndex = formatVisible.length + generateVisible.length + i;
+                return (
+                  <button
+                    key={cmd.id}
+                    id={`cmd-option-${flatIndex}`}
+                    role="option"
+                    aria-selected={selectedIndex === flatIndex}
+                    onClick={() => selectCommand(cmd.id)}
                     className={`flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised${selectedIndex === flatIndex ? " bg-raised" : ""}`}
                   >
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
@@ -448,19 +553,27 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
           {(phase === "done" || phase === "error") && (
             <>
               <div className="flex gap-2 border-t border-line-1 p-2">
+                {phase === "done" && initialBlockRef.current && (
+                  <button
+                    onClick={replaceContent}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-ai px-3 py-2 text-xs font-medium text-app transition-opacity hover:opacity-90"
+                  >
+                    Replace selection
+                  </button>
+                )}
                 {phase === "done" && (
                   <button
                     onClick={insertContent}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-ai-dim px-3 py-2 text-xs font-medium text-ai transition-colors hover:bg-ai-dim/80"
+                    className={`flex items-center justify-center gap-1.5 rounded-lg bg-ai-dim px-3 py-2 text-xs font-medium text-ai transition-colors hover:bg-ai-dim/80 ${initialBlockRef.current ? "" : "flex-1"}`}
                   >
-                    Insert into note
+                    Insert below
                   </button>
                 )}
                 <button
                   onClick={() => { setPhase("input"); setStreamedText(""); setErrorType(null); setRefineInput(""); setThinkMode(false); }}
                   className={`rounded-lg px-3 text-xs transition-colors hover:bg-raised hover:text-ink-1 ${phase === "error" ? "flex-1 py-2 font-medium text-ink-2" : "text-ink-3"}`}
                 >
-                  {phase === "error" ? "Retry" : "Retry"}
+                  Retry
                 </button>
               </div>
               {phase === "done" && (

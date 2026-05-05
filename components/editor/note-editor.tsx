@@ -633,7 +633,12 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
             <AIWelcome onInsert={handleAIInsert} onDismiss={() => setIsEmpty(false)} />
           )}
 
-          <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
+          <BlockNoteView
+            editor={editor}
+            onChange={handleEditorChange}
+            theme="dark"
+            slashMenu={false}
+          />
 
           {/* Sub-notes — always rendered, Norman's affordance fix */}
           <div className="mt-12 border-t border-line-1 pt-6">
