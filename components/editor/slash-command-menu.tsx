@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { BlockNoteEditor } from "@blocknote/core";
 import { scaleIn, useMotionVariants } from "@/lib/motion";
-import { textToBlocks } from "@/lib/blocks";
+import { textToBlocks, blocksToMarkdown } from "@/lib/blocks";
 
 const COMMANDS = [
   // Generate — ordered by universal usefulness
@@ -139,12 +139,17 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
     const controller = new AbortController();
     abortRef.current = controller;
 
-    // Get note context from first ~10 blocks
+    // Convert the user's actual note content to readable markdown so the AI
+    // can ground its answer in what's already written. Sending raw JSON blocks
+    // (the previous approach) caused the AI to ignore note context entirely.
     let noteContext: string | undefined;
     try {
-      const blocks = editor.document?.slice(0, 10);
-      if (blocks && blocks.length > 0) {
-        noteContext = JSON.stringify(blocks).slice(0, 2000);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const blocks = (editor.document ?? []) as any[];
+      if (blocks.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const md = blocksToMarkdown(blocks as any);
+        if (md.trim().length > 0) noteContext = md.slice(0, 4000);
       }
     } catch { /* ignore */ }
 

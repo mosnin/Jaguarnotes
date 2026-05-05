@@ -110,6 +110,11 @@ const MAX_TOKENS: Partial<Record<Command, number>> = {
   question: 250, premortem: 400, brief: 450, research: 500,
 };
 
+// Commands that operate on existing text rather than generating from a topic.
+const TRANSFORMATIVE = new Set<Command>([
+  "compress", "punch", "counter", "sowhat", "assume", "question", "premortem", "brief",
+]);
+
 export async function streamCommandAgent(command: Command, topic: string, think = false, noteContext?: string): Promise<ReadableStream<Uint8Array>> {
   const encoder = new TextEncoder();
 
@@ -117,12 +122,36 @@ export async function streamCommandAgent(command: Command, topic: string, think 
   if (think) {
     systemPrompt = "Think step by step before answering.\n\n" + systemPrompt;
   }
+  // When the user has note content, force the model to ground its answer in it.
+  if (noteContext && noteContext.trim().length > 0) {
+    systemPrompt +=
+      "\n\nIMPORTANT: The user is working inside an existing note. Their note content is provided in the user message between <note> tags. " +
+      "Ground your answer in that note. Reference specific phrases, ideas, or claims from it. " +
+      "Do NOT produce generic output that ignores what they have already written.";
+  }
   if (WEB_COMMANDS.has(command)) {
     const webContext = await getWebContext(topic);
     if (webContext) systemPrompt += `\n\nWeb context:\n${webContext}`;
   }
 
   const maxTokens = think ? (MAX_TOKENS[command] ?? 500) * 2 : (MAX_TOKENS[command] ?? 500);
+
+  // Build a structured user message that distinguishes the note from the
+  // specific selection/topic. For transformative commands, the excerpt IS what
+  // the operation is applied to; for generative commands, it's the request.
+  const hasNote = !!noteContext && noteContext.trim().length > 0;
+  const hasTopic = !!topic && topic.trim().length > 0;
+  let userMessage: string;
+  if (hasNote && hasTopic) {
+    const requestLabel = TRANSFORMATIVE.has(command)
+      ? "Apply the requested transformation specifically to the <excerpt> above, using the surrounding <note> for tone, voice, and context"
+      : "My request, drawing on the note above where relevant";
+    userMessage = `<note>\n${noteContext}\n</note>\n\n<excerpt>\n${topic}\n</excerpt>\n\n${requestLabel}.`;
+  } else if (hasNote && !hasTopic) {
+    userMessage = `<note>\n${noteContext}\n</note>\n\nApply the requested operation to the entire note above.`;
+  } else {
+    userMessage = topic;
+  }
 
   return new ReadableStream({
     async start(controller) {
@@ -136,12 +165,7 @@ export async function streamCommandAgent(command: Command, topic: string, think 
           model: "gpt-4o-mini",
           messages: [
             { role: "system", content: systemPrompt },
-            {
-              role: "user",
-              content: noteContext
-                ? `Context from my note:\n${noteContext}\n\nTask: ${topic}`
-                : topic,
-            },
+            { role: "user", content: userMessage },
           ],
           stream: true,
           max_tokens: maxTokens,
