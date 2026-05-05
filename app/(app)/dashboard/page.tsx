@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, memo, useMemo } from "react";
+import { Suspense, useState, memo, useMemo } from "react";
 import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -41,6 +41,14 @@ const DEFAULT_ACTIONS = [
 ];
 
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
   const { user } = useUser();
   const router = useRouter();
   const me = useQuery(api.users.getMe) as { role?: string; onboarded?: boolean } | null | undefined;
