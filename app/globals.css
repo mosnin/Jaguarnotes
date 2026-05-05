@@ -1,6 +1,15 @@
 @import "ui-neumorphism/dist/index.css";
 @import "tailwindcss";
 
+/* ─── Neutralize ui-neumorphism's destructive * reset ─────────────────
+   ui-neumorphism's CSS has: * { margin: 0; padding: 0; box-sizing: inherit; }
+   The box-sizing: inherit breaks Tailwind's box-sizing: border-box on
+   form elements and replaced elements that don't inherit. Restore it.
+─────────────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box !important;
+}
+
 @theme {
   /* ─── Typefaces ─────────────────────────────────────────────────────── */
   --font-sans: var(--font-geist-sans);
