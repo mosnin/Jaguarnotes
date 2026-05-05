@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { BlockNoteEditor } from "@blocknote/core";
 import { scaleIn, useMotionVariants } from "@/lib/motion";
@@ -435,12 +435,12 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
                   : "The AI is temporarily unavailable. Check your connection and retry."}
               </p>
             ) : (
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-2">
-                {streamedText}
+              <div className="text-sm leading-relaxed text-ink-2">
+                <MarkdownPreview text={streamedText} />
                 {phase === "streaming" && (
                   <span className="ml-0.5 inline-block h-3.5 w-px animate-pulse bg-ai" />
                 )}
-              </p>
+              </div>
             )}
           </div>
 
@@ -490,4 +490,51 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
       )}
     </motion.div>
   );
+}
+
+/* ─── Tiny markdown preview — bold/italic/code/strike/heading/bullet ─── */
+function MarkdownPreview({ text }: { text: string }) {
+  if (!text) return null;
+  const lines = text.split("\n");
+  return (
+    <div className="space-y-2">
+      {lines.map((line, i) => {
+        const h1 = /^#\s+(.+)/.exec(line);
+        const h2 = /^##\s+(.+)/.exec(line);
+        const h3 = /^###\s+(.+)/.exec(line);
+        const bullet = /^[-•*]\s+(.+)/.exec(line);
+        const numbered = /^(\d+)\.\s+(.+)/.exec(line);
+        const quote = /^>\s*(.+)/.exec(line);
+        if (!line.trim()) return <div key={i} className="h-2" />;
+        if (h1) return <p key={i} className="text-base font-semibold text-ink-1">{renderInline(h1[1])}</p>;
+        if (h2) return <p key={i} className="text-sm font-semibold text-ink-1">{renderInline(h2[1])}</p>;
+        if (h3) return <p key={i} className="text-sm font-medium text-ink-1">{renderInline(h3[1])}</p>;
+        if (bullet) return <p key={i} className="ml-3"><span className="text-ink-4 mr-2">•</span>{renderInline(bullet[1])}</p>;
+        if (numbered) return <p key={i} className="ml-3"><span className="text-ink-4 mr-2">{numbered[1]}.</span>{renderInline(numbered[2])}</p>;
+        if (quote) return <p key={i} className="border-l-2 border-line-2 pl-3 text-ink-3 italic">{renderInline(quote[1])}</p>;
+        return <p key={i}>{renderInline(line)}</p>;
+      })}
+    </div>
+  );
+}
+
+function renderInline(text: string): React.ReactNode[] {
+  const tokens: React.ReactNode[] = [];
+  // Match: **bold**, *italic*, _italic_, `code`, ~~strike~~, [text](url)
+  const regex = /(\*\*([^*\n]+?)\*\*)|(\*([^*\n]+?)\*)|(_([^_\n]+?)_)|(`([^`\n]+?)`)|(~~([^~\n]+?)~~)|(\[([^\]]+)\]\(([^)]+)\))/g;
+  let lastIdx = 0;
+  let key = 0;
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(text)) !== null) {
+    if (m.index > lastIdx) tokens.push(text.slice(lastIdx, m.index));
+    if (m[1]) tokens.push(<strong key={key++} className="font-semibold text-ink-1">{m[2]}</strong>);
+    else if (m[3]) tokens.push(<em key={key++}>{m[4]}</em>);
+    else if (m[5]) tokens.push(<em key={key++}>{m[6]}</em>);
+    else if (m[7]) tokens.push(<code key={key++} className="rounded bg-raised px-1 py-0.5 font-mono text-[0.85em] text-ai">{m[8]}</code>);
+    else if (m[9]) tokens.push(<s key={key++}>{m[10]}</s>);
+    else if (m[11]) tokens.push(<a key={key++} href={m[13]} target="_blank" rel="noopener" className="text-ai underline-offset-2 hover:underline">{m[12]}</a>);
+    lastIdx = m.index + m[0].length;
+  }
+  if (lastIdx < text.length) tokens.push(text.slice(lastIdx));
+  return tokens.length > 0 ? tokens : [text];
 }

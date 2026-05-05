@@ -394,11 +394,13 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       if (e.key === "z" && !e.shiftKey) {
         e.preventDefault();
-        editor.undo();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (editor as any)._tiptapEditor?.commands?.undo?.();
       }
       if (e.key === "y" || (e.key === "z" && e.shiftKey)) {
         e.preventDefault();
-        editor.redo();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (editor as any)._tiptapEditor?.commands?.redo?.();
       }
     }
     document.addEventListener("keydown", onKeyDown);
@@ -513,7 +515,8 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           {/* Undo / Redo */}
           <div className="flex items-center gap-0.5">
             <button
-              onClick={() => (editor as any).undo()}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onClick={() => (editor as any)._tiptapEditor?.commands?.undo?.()}
               className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
               aria-label="Undo"
               title="Undo (⌘Z)"
@@ -523,7 +526,8 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
               </svg>
             </button>
             <button
-              onClick={() => (editor as any).redo()}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onClick={() => (editor as any)._tiptapEditor?.commands?.redo?.()}
               className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
               aria-label="Redo"
               title="Redo (⌘Y)"
