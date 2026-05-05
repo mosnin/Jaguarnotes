@@ -29,7 +29,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-app">
+    <div className="relative h-[100dvh] w-full overflow-hidden bg-app">
       {/* Sidebar — spring-animated overlay */}
       <Sidebar />
 

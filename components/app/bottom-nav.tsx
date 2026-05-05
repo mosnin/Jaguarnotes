@@ -21,6 +21,9 @@ export function BottomNav() {
   }
 
   const isHome = pathname === "/dashboard";
+  const isNotePage = pathname?.startsWith("/notes/");
+
+  if (isNotePage) return null;
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 flex h-16 items-stretch border-t border-line-1 bg-surface md:hidden"
