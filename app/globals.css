@@ -90,28 +90,54 @@ html, body {
 
 #__next, main { width: 100%; }
 
-/* ─── Neumorphic shadow utilities ───────────────────────────────────── */
+/* ─── Neumorphic shadow utilities ─────────────────────────────────────
+   Tightened: smaller offsets and blur radii produce a more refined,
+   classy result instead of the puffed/spongy look from larger values.
+   !important ensures these win against any conflicting library rules.
+─────────────────────────────────────────────────────────────────────── */
 .neu-card {
-  box-shadow: 6px 6px 16px #C5D5E8, -6px -6px 16px #FFFFFF;
+  box-shadow:
+    4px 4px 10px #C5D5E8,
+    -4px -4px 10px #FFFFFF !important;
+  border: 1px solid rgba(197, 213, 232, 0.4) !important;
 }
 .neu-raised {
-  box-shadow: 5px 5px 12px #C5D5E8, -5px -5px 12px #FFFFFF;
+  box-shadow:
+    3px 3px 8px #C5D5E8,
+    -3px -3px 8px #FFFFFF !important;
+  border: 1px solid rgba(197, 213, 232, 0.4) !important;
 }
 .neu-sm {
-  box-shadow: 3px 3px 7px #C5D5E8, -3px -3px 7px #FFFFFF;
+  box-shadow:
+    2px 2px 5px #C5D5E8,
+    -2px -2px 5px #FFFFFF !important;
 }
 .neu-pressed {
-  box-shadow: inset 4px 4px 10px #C5D5E8, inset -4px -4px 10px #FFFFFF;
+  box-shadow:
+    inset 3px 3px 7px #C5D5E8,
+    inset -3px -3px 7px #FFFFFF !important;
 }
 .neu-btn {
-  box-shadow: 4px 4px 9px #C5D5E8, -4px -4px 9px #FFFFFF;
-  transition: box-shadow 0.15s ease, opacity 0.15s ease;
+  box-shadow:
+    3px 3px 7px #C5D5E8,
+    -3px -3px 7px #FFFFFF !important;
+  transition: box-shadow 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
+}
+.neu-btn:hover {
+  box-shadow:
+    2px 2px 5px #C5D5E8,
+    -2px -2px 5px #FFFFFF !important;
 }
 .neu-btn:active {
-  box-shadow: inset 3px 3px 7px #C5D5E8, inset -3px -3px 7px #FFFFFF;
+  box-shadow:
+    inset 2px 2px 5px #C5D5E8,
+    inset -2px -2px 5px #FFFFFF !important;
+  transform: translateY(0.5px);
 }
 .neu-inset {
-  box-shadow: inset 3px 3px 8px #C5D5E8, inset -3px -3px 8px #FFFFFF;
+  box-shadow:
+    inset 2px 2px 6px #C5D5E8,
+    inset -2px -2px 6px #FFFFFF !important;
 }
 
 /* ─── Scrollbar ─────────────────────────────────────────────────────── */

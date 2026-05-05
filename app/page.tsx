@@ -23,7 +23,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/sign-up"
-              className="neu-btn rounded-xl px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              className="neu-btn rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: "#2563EB" }}
             >
               Get started
@@ -32,7 +32,7 @@ export default function LandingPage() {
           <SignedIn>
             <Link
               href="/dashboard"
-              className="neu-btn rounded-xl px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              className="neu-btn rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: "#2563EB" }}
             >
               Open app
@@ -57,7 +57,7 @@ export default function LandingPage() {
           <SignedOut>
             <Link
               href="/sign-up"
-              className="neu-btn rounded-xl px-8 py-3.5 text-sm font-semibold text-white hover:opacity-90"
+              className="neu-btn rounded-lg px-8 py-3.5 text-sm font-semibold text-white hover:opacity-90"
               style={{ backgroundColor: "#2563EB" }}
             >
               Start for free
@@ -73,7 +73,7 @@ export default function LandingPage() {
           <SignedIn>
             <Link
               href="/dashboard"
-              className="neu-btn rounded-xl px-8 py-3.5 text-sm font-semibold text-white hover:opacity-90"
+              className="neu-btn rounded-lg px-8 py-3.5 text-sm font-semibold text-white hover:opacity-90"
               style={{ backgroundColor: "#2563EB" }}
             >
               Open workspace
@@ -156,7 +156,7 @@ export default function LandingPage() {
           <SignedOut>
             <Link
               href="/sign-up"
-              className="neu-btn rounded-xl px-8 py-4 text-sm font-semibold text-white hover:opacity-90"
+              className="neu-btn rounded-lg px-8 py-4 text-sm font-semibold text-white hover:opacity-90"
               style={{ backgroundColor: "#2563EB" }}
             >
               Start thinking better →
@@ -165,7 +165,7 @@ export default function LandingPage() {
           <SignedIn>
             <Link
               href="/dashboard"
-              className="neu-btn rounded-xl px-8 py-4 text-sm font-semibold text-white hover:opacity-90"
+              className="neu-btn rounded-lg px-8 py-4 text-sm font-semibold text-white hover:opacity-90"
               style={{ backgroundColor: "#2563EB" }}
             >
               Open workspace →
