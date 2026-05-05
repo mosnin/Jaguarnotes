@@ -1,55 +1,39 @@
-@import "ui-neumorphism/dist/index.css";
 @import "tailwindcss";
 
-/* ─── Neutralize ui-neumorphism's destructive * reset ─────────────────
-   ui-neumorphism's CSS has: * { margin: 0; padding: 0; box-sizing: inherit; }
-   The box-sizing: inherit breaks Tailwind's box-sizing: border-box on
-   form elements and replaced elements that don't inherit. Restore it.
-─────────────────────────────────────────────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box !important;
-}
+/* ─────────────────────────────────────────────────────────────────────
+   Neumorphism design system — white & light blue. Hand-rolled.
+───────────────────────────────────────────────────────────────────── */
 
 @theme {
-  /* ─── Typefaces ─────────────────────────────────────────────────────── */
+  /* ─── Typefaces ───────────────────────────────────────────────────── */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* ─── Color system ───────────────────────────────────────────────────
-     Principle: soft blue-white base (#EDF4FF) for neumorphism.
-     Shadows: #C5D5E8 dark / #FFFFFF light.
-     AI accent: rich blue (#2563EB), visible on the pale background.
-  ─────────────────────────────────────────────────────────────────────── */
+  /* ─── Color system ────────────────────────────────────────────────── */
+  --color-app:       #EDF4FF;
+  --color-surface:   #EDF4FF;
+  --color-raised:    #F4F8FF;
+  --color-hover:     #E2EEFF;
+  --color-selected:  #D4E6FF;
 
-  /* Backgrounds */
-  --color-app:       #EDF4FF;   /* base — soft blue-white neumorphic surface */
-  --color-surface:   #EDF4FF;   /* cards / panels — same base, depth via shadow */
-  --color-raised:    #F4F8FF;   /* inputs, inner raised areas */
-  --color-hover:     #E2EEFF;   /* hover state */
-  --color-selected:  #D4E6FF;   /* active / selected */
+  --color-line-1:    #D5E4F5;
+  --color-line-2:    #C2D5EB;
+  --color-line-3:    #AABFD6;
 
-  /* Borders */
-  --color-line-1:    #D5E4F5;   /* faintest — structural dividers */
-  --color-line-2:    #C2D5EB;   /* default border */
-  --color-line-3:    #AABFD6;   /* strong border, interactive edges */
+  --color-ink-1:     #1B3652;
+  --color-ink-2:     #4A6D8C;
+  --color-ink-3:     #7B9AB8;
+  --color-ink-4:     #A8C2D8;
 
-  /* Text — navy-blue ladder on light bg */
-  --color-ink-1:     #1B3652;   /* primary — deep navy */
-  --color-ink-2:     #4A6D8C;   /* secondary */
-  --color-ink-3:     #7B9AB8;   /* tertiary */
-  --color-ink-4:     #A8C2D8;   /* ghost / disabled / placeholder */
-
-  /* AI accent — rich blue, only when intelligence is present */
-  --color-ai:        #2563EB;   /* rich blue */
+  --color-ai:        #2563EB;
   --color-ai-dim:    rgba(37, 99, 235, 0.12);
   --color-ai-hint:   rgba(37, 99, 235, 0.06);
 
-  /* Semantic */
-  --color-ok:        #16A34A;   /* green */
-  --color-warn:      #D97706;   /* amber */
-  --color-error:     #DC2626;   /* red */
+  --color-ok:        #16A34A;
+  --color-warn:      #D97706;
+  --color-error:     #DC2626;
 
-  /* ─── Border radius — same Apple-calibrated scale ────────────────── */
+  /* ─── Border radius ───────────────────────────────────────────────── */
   --radius-xs:  6px;
   --radius-sm:  8px;
   --radius-md:  11px;
@@ -58,7 +42,7 @@
   --radius-2xl: 28px;
   --radius-3xl: 36px;
 
-  /* ─── Type scale ────────────────────────────────────────────────── */
+  /* ─── Type scale ──────────────────────────────────────────────────── */
   --text-display:    4.5rem;
   --text-title-1:    2.25rem;
   --text-title-2:    1.5rem;
@@ -68,27 +52,20 @@
   --text-micro:      0.6875rem;
 }
 
-/* ─── ui-neumorphism CSS variable overrides ─────────────────────────── */
+/* ─── Neumorphism palette ─────────────────────────────────────────── */
 :root {
-  --light-bg:             #EDF4FF;
-  --light-bg-dark-shadow: #C5D5E8;
-  --light-bg-light-shadow: #FFFFFF;
-  --primary:              #2563EB;
-  --primary-dark:         #1D4ED8;
-  --primary-light:        #93C5FD;
+  --neu-bg:           #EDF4FF;
+  --neu-shadow-dark:  #C5D5E8;
+  --neu-shadow-light: #FFFFFF;
 }
 
-/* ─── Base reset ─────────────────────────────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
+/* ─── Base ──────────────────────────────────────────────────────────── */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background-color: #EDF4FF;
-  color: #1B3652;
+  background-color: var(--neu-bg);
+  color: var(--color-ink-1);
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.5;
@@ -99,54 +76,50 @@ html, body {
 
 #__next, main { width: 100%; }
 
-/* ─── Neumorphic shadow utilities ─────────────────────────────────────
-   Tightened: smaller offsets and blur radii produce a more refined,
-   classy result instead of the puffed/spongy look from larger values.
-   !important ensures these win against any conflicting library rules.
-─────────────────────────────────────────────────────────────────────── */
+/* ─── Neumorphic shadow utilities ─────────────────────────────────── */
 .neu-card {
   box-shadow:
-    4px 4px 10px #C5D5E8,
-    -4px -4px 10px #FFFFFF !important;
-  border: 1px solid rgba(197, 213, 232, 0.4) !important;
+    4px 4px 10px var(--neu-shadow-dark),
+    -4px -4px 10px var(--neu-shadow-light);
+  border: 1px solid rgba(197, 213, 232, 0.4);
 }
 .neu-raised {
   box-shadow:
-    3px 3px 8px #C5D5E8,
-    -3px -3px 8px #FFFFFF !important;
-  border: 1px solid rgba(197, 213, 232, 0.4) !important;
+    3px 3px 8px var(--neu-shadow-dark),
+    -3px -3px 8px var(--neu-shadow-light);
+  border: 1px solid rgba(197, 213, 232, 0.4);
 }
 .neu-sm {
   box-shadow:
-    2px 2px 5px #C5D5E8,
-    -2px -2px 5px #FFFFFF !important;
+    2px 2px 5px var(--neu-shadow-dark),
+    -2px -2px 5px var(--neu-shadow-light);
 }
 .neu-pressed {
   box-shadow:
-    inset 3px 3px 7px #C5D5E8,
-    inset -3px -3px 7px #FFFFFF !important;
+    inset 3px 3px 7px var(--neu-shadow-dark),
+    inset -3px -3px 7px var(--neu-shadow-light);
 }
 .neu-btn {
   box-shadow:
-    3px 3px 7px #C5D5E8,
-    -3px -3px 7px #FFFFFF !important;
+    3px 3px 7px var(--neu-shadow-dark),
+    -3px -3px 7px var(--neu-shadow-light);
   transition: box-shadow 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
 }
 .neu-btn:hover {
   box-shadow:
-    2px 2px 5px #C5D5E8,
-    -2px -2px 5px #FFFFFF !important;
+    2px 2px 5px var(--neu-shadow-dark),
+    -2px -2px 5px var(--neu-shadow-light);
 }
 .neu-btn:active {
   box-shadow:
-    inset 2px 2px 5px #C5D5E8,
-    inset -2px -2px 5px #FFFFFF !important;
+    inset 2px 2px 5px var(--neu-shadow-dark),
+    inset -2px -2px 5px var(--neu-shadow-light);
   transform: translateY(0.5px);
 }
 .neu-inset {
   box-shadow:
-    inset 2px 2px 6px #C5D5E8,
-    inset -2px -2px 6px #FFFFFF !important;
+    inset 2px 2px 6px var(--neu-shadow-dark),
+    inset -2px -2px 6px var(--neu-shadow-light);
 }
 
 /* ─── Scrollbar ─────────────────────────────────────────────────────── */
@@ -188,6 +161,8 @@ kbd {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+  .animate-pulse { animation: none !important; }
+  .animate-spin  { animation: none !important; }
 }
 
 /* ─── BlockNote editor overrides (light theme) ──────────────────────── */
@@ -210,37 +185,9 @@ kbd {
 .bn-editor h2 { font-size: 1.25rem !important; font-weight: 600 !important; color: #2D4A63 !important; }
 .bn-editor h3 { font-size: 1.0625rem !important; font-weight: 600 !important; color: #3D5A74 !important; }
 
-/* ─── AI block marker ────────────────────────────────────────────────── */
+/* ─── AI block marker ───────────────────────────────────────────────── */
 [data-ai-block="true"] {
   border-left: 2px solid rgba(37, 99, 235, 0.5) !important;
   padding-left: 14px !important;
   margin-left: -16px !important;
 }
-
-/* ─── Reduced-motion: suppress specific animations ──────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .animate-pulse { animation: none !important; }
-  .animate-spin  { animation: none !important; }
-}
-
-/* ─── Override ui-neumorphism global element styles ──────────────────
-   ui-neumorphism's CSS forces font-family: Roboto on body, button,
-   input, textarea, a. These overrides restore Geist for the app while
-   keeping the library's CSS variables and class-scoped neumorphic styles.
-─────────────────────────────────────────────────────────────────────── */
-html body,
-html body button,
-html body input,
-html body textarea,
-html body select,
-html body a {
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif !important;
-}
-
-html body {
-  background-color: #EDF4FF !important;
-  color: #1B3652 !important;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-

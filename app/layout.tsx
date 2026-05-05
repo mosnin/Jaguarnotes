@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ConvexClientProvider } from "@/components/providers/convex-client-provider";
-import { NeuThemeProvider } from "@/components/providers/neumorphism-theme";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -66,9 +65,7 @@ export default function RootLayout({
           <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
         </head>
         <body className="min-h-screen w-full antialiased" style={{ backgroundColor: "#EDF4FF", color: "#1B3652" }}>
-          <NeuThemeProvider>
-            <ConvexClientProvider>{children}</ConvexClientProvider>
-          </NeuThemeProvider>
+          <ConvexClientProvider>{children}</ConvexClientProvider>
         </body>
       </html>
     </ClerkProvider>
