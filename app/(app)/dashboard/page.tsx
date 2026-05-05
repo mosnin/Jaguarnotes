@@ -135,7 +135,7 @@ export default function DashboardPage() {
             variants={staggerItem}
             {...cardHover}
             onClick={handleNewNote}
-            className="flex flex-col gap-1.5 rounded-lg border border-line-2 bg-raised p-4 text-left transition-colors hover:border-line-3 hover:bg-hover"
+            className="flex flex-col gap-1.5 rounded-xl border border-line-2 bg-surface p-4 text-left transition-all hover:border-line-3 neu-raised"
           >
             <p className="text-sm font-medium text-ink-1">New note</p>
             <p className="text-xs text-ink-3">Empty canvas, anything goes</p>
@@ -152,7 +152,7 @@ export default function DashboardPage() {
                   const id = await createNote({ title: item.title });
                   router.push(item.cmd ? `/notes/${id}?cmd=${item.cmd}` : `/notes/${id}`);
                 }}
-                className="flex flex-col gap-1.5 rounded-lg border border-line-1 bg-surface p-4 text-left transition-colors hover:border-line-2 hover:bg-raised"
+                className="flex flex-col gap-1.5 rounded-xl border border-line-1 bg-surface p-4 text-left transition-all hover:border-line-2 neu-sm"
               >
                 <p className="text-sm font-medium text-ink-1">{item.label}</p>
                 <p className="text-xs text-ink-4">{item.sub}</p>
@@ -229,7 +229,7 @@ export default function DashboardPage() {
             {notesStatus === "CanLoadMore" && (
               <button
                 onClick={() => loadMore(20)}
-                className="mt-4 w-full rounded-lg border border-line-1 py-2 text-xs text-ink-4 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-2"
+                className="mt-4 w-full rounded-lg border border-line-1 py-2 text-xs text-ink-4 transition-all hover:border-line-2 hover:bg-hover hover:text-ink-2 neu-sm"
               >
                 Load more notes
               </button>
@@ -267,7 +267,7 @@ export default function DashboardPage() {
                 value={quickTopic}
                 onChange={(e) => setQuickTopic(e.target.value)}
                 placeholder="What do you want to think through?"
-                className="w-full rounded-xl border border-line-2 bg-surface px-5 py-4 text-base text-ink-1 placeholder-ink-4 outline-none transition-colors focus:border-line-3"
+                className="w-full rounded-xl border border-line-2 bg-surface px-5 py-4 text-base text-ink-1 placeholder-ink-4 outline-none transition-all focus:border-ai/50 neu-pressed"
               />
               <p className="text-xs text-ink-4">
                 Press Enter to brainstorm —{" "}
@@ -294,7 +294,7 @@ const NoteCard = memo(function NoteCard({ note, onClick }: { note: { _id: string
       variants={staggerItem}
       {...cardHover}
       onClick={onClick}
-      className="flex flex-col gap-2 rounded-lg border border-line-1 bg-surface p-4 text-left transition-colors hover:border-line-2 hover:bg-raised"
+      className="flex flex-col gap-2 rounded-xl border border-line-1 bg-surface p-4 text-left transition-all hover:border-line-2 hover:bg-hover neu-card"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-1.5">

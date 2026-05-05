@@ -55,7 +55,8 @@ export function SearchModal({ onDismiss, triggerRef }: SearchModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-app/80 backdrop-blur-sm pt-[15vh]"
+      className="fixed inset-0 z-50 flex items-start justify-center backdrop-blur-sm pt-[15vh]"
+      style={{ backgroundColor: "rgba(237, 244, 255, 0.65)" }}
       onPointerDown={(e) => { if (e.target === e.currentTarget) onDismiss(); }}
     >
       <motion.div
@@ -63,7 +64,7 @@ export function SearchModal({ onDismiss, triggerRef }: SearchModalProps) {
         role="dialog"
         aria-modal="true"
         aria-label="Search notes"
-        className="w-full max-w-lg overflow-hidden rounded-2xl border border-line-3 bg-surface shadow-2xl shadow-black/70"
+        className="w-full max-w-lg overflow-hidden rounded-2xl border border-line-2 bg-surface neu-card"
       >
         {/* Input */}
         <div className="flex items-center gap-3 border-b border-line-1 px-4 py-3">

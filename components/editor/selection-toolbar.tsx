@@ -28,7 +28,7 @@ export function SelectionToolbar({ text, position, onCommand }: SelectionToolbar
         transform: "translateX(-50%)",
         zIndex: 50,
       }}
-      className="flex items-center gap-1 rounded-full border border-line-2 bg-surface px-3 py-1.5 shadow-lg shadow-black/50"
+      className="flex items-center gap-1 rounded-full border border-line-2 bg-surface px-3 py-1.5 neu-raised"
     >
       {COMMANDS.map((cmd, i) => (
         <span key={cmd.id} className="flex items-center gap-1">

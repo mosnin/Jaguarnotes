@@ -28,7 +28,7 @@ function ToastItem({ toast: t, }: { toast: Toast }) {
       {...motionProps}
       exit="exit"
       aria-label={LABEL[t.type]}
-      className="pointer-events-auto rounded-xl border border-line-2 bg-raised px-4 py-3 text-sm shadow-xl shadow-black/50"
+      className="pointer-events-auto rounded-xl border border-line-2 bg-raised px-4 py-3 text-sm neu-raised"
     >
       <span className={ACCENT[t.type]}>{t.message}</span>
     </motion.div>

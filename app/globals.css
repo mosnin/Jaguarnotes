@@ -6,56 +6,56 @@
   --font-mono: var(--font-geist-mono);
 
   /* ─── Color system ───────────────────────────────────────────────────
-     Principle: blue-tinted near-blacks create premium depth.
-     Indigo (#7474ff) appears ONLY when AI is active.
-     Everything else: white on near-black, one accent, no noise.
+     Principle: soft blue-white base (#EDF4FF) for neumorphism.
+     Shadows: #C5D5E8 dark / #FFFFFF light.
+     AI accent: rich blue (#2563EB), visible on the pale background.
   ─────────────────────────────────────────────────────────────────────── */
 
   /* Backgrounds */
-  --color-app:       #080810;   /* base — barely-black with a hint of indigo */
-  --color-surface:   #0d0d1a;   /* cards, sidebar */
-  --color-raised:    #121224;   /* inputs, elevated panels */
-  --color-hover:     #17172e;   /* hover state */
-  --color-selected:  #1c1c38;   /* active / selected */
+  --color-app:       #EDF4FF;   /* base — soft blue-white neumorphic surface */
+  --color-surface:   #EDF4FF;   /* cards / panels — same base, depth via shadow */
+  --color-raised:    #F4F8FF;   /* inputs, inner raised areas */
+  --color-hover:     #E2EEFF;   /* hover state */
+  --color-selected:  #D4E6FF;   /* active / selected */
 
   /* Borders */
-  --color-line-1:    #141428;   /* faintest — structural dividers */
-  --color-line-2:    #1e1e3c;   /* default border */
-  --color-line-3:    #2c2c54;   /* strong border, interactive edges */
+  --color-line-1:    #D5E4F5;   /* faintest — structural dividers */
+  --color-line-2:    #C2D5EB;   /* default border */
+  --color-line-3:    #AABFD6;   /* strong border, interactive edges */
 
-  /* Text — Apple's exact off-white ladder */
-  --color-ink-1:     #f5f5f7;   /* primary — Apple off-white */
-  --color-ink-2:     #8e8e9e;   /* secondary */
-  --color-ink-3:     #4c4c5e;   /* tertiary */
-  --color-ink-4:     #26263a;   /* ghost / disabled */
+  /* Text — navy-blue ladder on light bg */
+  --color-ink-1:     #1B3652;   /* primary — deep navy */
+  --color-ink-2:     #4A6D8C;   /* secondary */
+  --color-ink-3:     #7B9AB8;   /* tertiary */
+  --color-ink-4:     #A8C2D8;   /* ghost / disabled / placeholder */
 
-  /* AI accent — only appears when intelligence is present */
-  --color-ai:        #7474ff;   /* electric indigo-violet */
-  --color-ai-dim:    rgba(116, 116, 255, 0.16);
-  --color-ai-hint:   rgba(116, 116, 255, 0.07);
+  /* AI accent — rich blue, only when intelligence is present */
+  --color-ai:        #2563EB;   /* rich blue */
+  --color-ai-dim:    rgba(37, 99, 235, 0.12);
+  --color-ai-hint:   rgba(37, 99, 235, 0.06);
 
   /* Semantic */
-  --color-ok:        #30d158;   /* Apple green */
-  --color-warn:      #ff9f0a;   /* Apple amber */
-  --color-error:     #ff453a;   /* Apple red */
+  --color-ok:        #16A34A;   /* green */
+  --color-warn:      #D97706;   /* amber */
+  --color-error:     #DC2626;   /* red */
 
-  /* ─── Border radius — Apple-calibrated ────────────────────────────── */
-  --radius-xs:  6px;    /* chips, badges, tiny tags */
-  --radius-sm:  8px;    /* small buttons, kbd */
-  --radius-md:  11px;   /* buttons, inputs, form fields */
-  --radius-lg:  16px;   /* cards, panels */
-  --radius-xl:  20px;   /* overlays, menus */
-  --radius-2xl: 28px;   /* large floating surfaces */
-  --radius-3xl: 36px;   /* hero cards */
+  /* ─── Border radius — same Apple-calibrated scale ────────────────── */
+  --radius-xs:  6px;
+  --radius-sm:  8px;
+  --radius-md:  11px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+  --radius-2xl: 28px;
+  --radius-3xl: 36px;
 
-  /* ─── Type scale — tight, intentional ────────────────────────────── */
-  --text-display:    4.5rem;    /* hero */
-  --text-title-1:    2.25rem;   /* page titles */
-  --text-title-2:    1.5rem;    /* section titles */
-  --text-headline:   1.0625rem; /* 17px — body emphasis */
-  --text-body:       0.9375rem; /* 15px — default reading */
-  --text-caption:    0.8125rem; /* 13px — supporting */
-  --text-micro:      0.6875rem; /* 11px — labels */
+  /* ─── Type scale ────────────────────────────────────────────────── */
+  --text-display:    4.5rem;
+  --text-title-1:    2.25rem;
+  --text-title-2:    1.5rem;
+  --text-headline:   1.0625rem;
+  --text-body:       0.9375rem;
+  --text-caption:    0.8125rem;
+  --text-micro:      0.6875rem;
 }
 
 /* ─── Base reset ─────────────────────────────────────────────────────── */
@@ -67,8 +67,8 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background-color: #080810;
-  color: #f5f5f7;
+  background-color: #EDF4FF;
+  color: #1B3652;
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.5;
@@ -79,21 +79,45 @@ html, body {
 
 #__next, main { width: 100%; }
 
-/* ─── Scrollbar — invisible until hovered ───────────────────────────── */
+/* ─── Neumorphic shadow utilities ───────────────────────────────────── */
+.neu-card {
+  box-shadow: 6px 6px 16px #C5D5E8, -6px -6px 16px #FFFFFF;
+}
+.neu-raised {
+  box-shadow: 5px 5px 12px #C5D5E8, -5px -5px 12px #FFFFFF;
+}
+.neu-sm {
+  box-shadow: 3px 3px 7px #C5D5E8, -3px -3px 7px #FFFFFF;
+}
+.neu-pressed {
+  box-shadow: inset 4px 4px 10px #C5D5E8, inset -4px -4px 10px #FFFFFF;
+}
+.neu-btn {
+  box-shadow: 4px 4px 9px #C5D5E8, -4px -4px 9px #FFFFFF;
+  transition: box-shadow 0.15s ease, opacity 0.15s ease;
+}
+.neu-btn:active {
+  box-shadow: inset 3px 3px 7px #C5D5E8, inset -3px -3px 7px #FFFFFF;
+}
+.neu-inset {
+  box-shadow: inset 3px 3px 8px #C5D5E8, inset -3px -3px 8px #FFFFFF;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────── */
 ::-webkit-scrollbar         { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track   { background: transparent; }
-::-webkit-scrollbar-thumb   { background: #1e1e3c; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #2c2c54; }
+::-webkit-scrollbar-thumb   { background: #C2D5EB; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #AABFD6; }
 
 /* ─── Selection ─────────────────────────────────────────────────────── */
 ::selection {
-  background: rgba(116, 116, 255, 0.22);
-  color: #f5f5f7;
+  background: rgba(37, 99, 235, 0.18);
+  color: #1B3652;
 }
 
 /* ─── Focus ─────────────────────────────────────────────────────────── */
 :focus-visible {
-  outline: 1.5px solid rgba(116, 116, 255, 0.5);
+  outline: 1.5px solid rgba(37, 99, 235, 0.5);
   outline-offset: 2px;
 }
 
@@ -105,10 +129,11 @@ kbd {
   font-size: 11px;
   padding: 1px 5px;
   border-radius: 5px;
-  border: 1px solid #1e1e3c;
-  background: #0d0d1a;
-  color: #4c4c5e;
+  border: 1px solid #C2D5EB;
+  background: #F4F8FF;
+  color: #7B9AB8;
   line-height: 1.6;
+  box-shadow: 2px 2px 4px #C5D5E8, -2px -2px 4px #FFFFFF;
 }
 
 /* ─── Reduced-motion accessibility ─────────────────────────────────── */
@@ -119,7 +144,7 @@ kbd {
   }
 }
 
-/* ─── BlockNote editor overrides ────────────────────────────────────── */
+/* ─── BlockNote editor overrides (light theme) ──────────────────────── */
 .bn-editor {
   background: transparent !important;
   padding: 0 !important;
@@ -133,26 +158,21 @@ kbd {
 .bn-editor p, .bn-editor li {
   font-size: 15px !important;
   line-height: 1.7 !important;
-  color: #c8c8d8 !important;
+  color: #2D4A63 !important;
 }
-.bn-editor h1 { font-size: 1.75rem !important; font-weight: 700 !important; color: #f5f5f7 !important; letter-spacing: -0.02em !important; }
-.bn-editor h2 { font-size: 1.25rem !important; font-weight: 600 !important; color: #e8e8f2 !important; }
-.bn-editor h3 { font-size: 1.0625rem !important; font-weight: 600 !important; color: #d8d8ea !important; }
+.bn-editor h1 { font-size: 1.75rem !important; font-weight: 700 !important; color: #1B3652 !important; letter-spacing: -0.02em !important; }
+.bn-editor h2 { font-size: 1.25rem !important; font-weight: 600 !important; color: #2D4A63 !important; }
+.bn-editor h3 { font-size: 1.0625rem !important; font-weight: 600 !important; color: #3D5A74 !important; }
 
-/* ─── AI block marker — one clean left border, nothing else ─────────── */
+/* ─── AI block marker ────────────────────────────────────────────────── */
 [data-ai-block="true"] {
-  border-left: 2px solid rgba(116, 116, 255, 0.45) !important;
+  border-left: 2px solid rgba(37, 99, 235, 0.5) !important;
   padding-left: 14px !important;
   margin-left: -16px !important;
 }
 
 /* ─── Reduced-motion: suppress specific animations ──────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .animate-pulse {
-    animation: none !important;
-  }
-
-  .animate-spin {
-    animation: none !important;
-  }
+  .animate-pulse { animation: none !important; }
+  .animate-spin  { animation: none !important; }
 }

@@ -60,7 +60,7 @@ export function NoteLinkPicker({ notes, anchorRef, onSelect, onDismiss, onQueryC
       initial="hidden"
       animate="show"
       style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 60 }}
-      className="w-72 overflow-hidden rounded-xl border border-line-3 bg-surface shadow-2xl shadow-black/70"
+      className="w-72 overflow-hidden rounded-xl border border-line-2 bg-surface neu-card"
     >
       <div className="border-b border-line-1 px-3 py-2.5">
         <input

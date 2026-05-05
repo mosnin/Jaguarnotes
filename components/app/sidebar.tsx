@@ -32,6 +32,7 @@ export function Sidebar() {
       animate={open ? "show" : "hidden"}
       variants={slideLeft}
       className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-surface border-r border-line-1"
+      style={{ boxShadow: "4px 0 20px #C5D5E8" }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-5">
@@ -85,7 +86,7 @@ export function Sidebar() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search notes…"
-            className="w-full rounded-md bg-raised px-3 py-1.5 text-xs text-ink-2 placeholder-ink-4 outline-none transition-colors focus:bg-hover"
+            className="w-full rounded-md bg-raised px-3 py-1.5 text-xs text-ink-2 placeholder-ink-4 outline-none transition-all focus:bg-hover neu-inset"
           />
         </div>
       )}
@@ -186,7 +187,7 @@ export function Sidebar() {
       <div className="border-t border-line-1 p-4">
         <UserButton
           appearance={{
-            variables: { colorPrimary: "#7474ff" },
+            variables: { colorPrimary: "#2563EB" },
             elements: { userButtonAvatarBox: "h-7 w-7" },
           }}
         />

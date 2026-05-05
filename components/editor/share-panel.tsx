@@ -79,7 +79,7 @@ export function SharePanel({ noteId, anchorRef, onDismiss }: SharePanelProps) {
       aria-modal="true"
       aria-label="Share note"
       style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 60 }}
-      className="w-80 overflow-hidden rounded-xl border border-line-3 bg-surface shadow-2xl shadow-black/70"
+      className="w-80 overflow-hidden rounded-xl border border-line-2 bg-surface neu-card"
     >
       <div className="border-b border-line-1 px-4 py-3">
         <p className="text-sm font-medium text-ink-1">Share note</p>
@@ -95,7 +95,7 @@ export function SharePanel({ noteId, anchorRef, onDismiss }: SharePanelProps) {
           <div className="flex gap-2">
             <button
               onClick={() => handleCreate("view")}
-              className="flex-1 rounded-lg border border-line-2 px-3 py-2 text-xs text-ink-2 transition-colors hover:border-line-3 hover:bg-raised hover:text-ink-1"
+              className="flex-1 rounded-lg border border-line-2 px-3 py-2 text-xs text-ink-2 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-1"
             >
               Can view
             </button>

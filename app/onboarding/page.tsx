@@ -143,8 +143,8 @@ export default function OnboardingPage() {
                     onClick={() => selectRole(id)}
                     className={`rounded-2xl border p-5 text-left transition-all ${
                       role === id
-                        ? "border-ai/60 bg-ai/[0.06] shadow-[0_0_0_1px_rgba(116,116,255,0.3)]"
-                        : "border-line-2 bg-surface hover:border-line-1"
+                        ? "border-ai/60 bg-ai-dim shadow-[0_0_0_1px_rgba(37,99,235,0.2)]"
+                        : "border-line-2 bg-surface hover:border-line-3 neu-sm"
                     }`}
                   >
                     <p className="text-sm font-semibold text-ink-1">{label}</p>
@@ -177,8 +177,8 @@ export default function OnboardingPage() {
                       onClick={() => toggleUseCase(uc)}
                       className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition-all ${
                         checked
-                          ? "border-ai/60 bg-ai/[0.06]"
-                          : "border-line-2 bg-surface hover:border-line-1"
+                          ? "border-ai/60 bg-ai-dim"
+                          : "border-line-2 bg-surface hover:border-line-3 neu-sm"
                       }`}
                     >
                       <span
@@ -201,7 +201,8 @@ export default function OnboardingPage() {
                 {...buttonTap}
                 disabled={useCases.length === 0}
                 onClick={() => setStep(3)}
-                className="w-full rounded-xl bg-ink-1 py-3.5 text-sm font-semibold text-app transition-opacity hover:opacity-85 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="w-full rounded-xl neu-btn py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{ backgroundColor: "#2563EB" }}
               >
                 Continue →
               </motion.button>
@@ -218,12 +219,12 @@ export default function OnboardingPage() {
               transition={springStd}
             >
               <motion.div
-                className="overflow-hidden rounded-2xl border border-line-2 bg-surface shadow-2xl"
+                className="overflow-hidden rounded-2xl border border-line-2 bg-surface neu-card"
               >
                 <div className="flex items-center gap-1.5 border-b border-line-1 px-4 py-3">
-                  <div className="h-2.5 w-2.5 rounded-full bg-raised" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-raised" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-raised" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-line-2" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-line-2" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-line-2" />
                 </div>
                 <div className="px-8 py-8">
                   <p className="mb-1 text-[10px] uppercase tracking-widest text-ink-4">New note</p>
@@ -254,8 +255,8 @@ export default function OnboardingPage() {
                           transition={springStd}
                           className="rounded-xl border border-ai/20 p-4"
                           style={{
-                            borderLeft: "2px solid rgba(116,116,255,0.45)",
-                            background: "linear-gradient(90deg, rgba(116,116,255,0.04) 0%, transparent 60%)",
+                            borderLeft: "2px solid rgba(37,99,235,0.5)",
+                            background: "linear-gradient(90deg, rgba(37,99,235,0.04) 0%, transparent 60%)",
                           }}
                         >
                           <div className="mb-2 flex items-center gap-1.5">
@@ -305,7 +306,8 @@ export default function OnboardingPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ ...springStd, delay: 0.65 }}
                       onClick={finish}
-                      className="w-full rounded-xl bg-ink-1 py-3.5 text-sm font-semibold text-app transition-opacity hover:opacity-85"
+                      className="w-full rounded-xl neu-btn py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                      style={{ backgroundColor: "#2563EB" }}
                     >
                       Open my workspace →
                     </motion.button>

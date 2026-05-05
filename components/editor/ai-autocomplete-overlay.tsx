@@ -97,7 +97,7 @@ export function AIAutocompleteOverlay({
       variants={scaleIn}
       initial="hidden"
       animate="show"
-      className="w-88 max-w-sm rounded-xl border border-line-3 bg-surface shadow-2xl shadow-black/70"
+      className="w-88 max-w-sm rounded-xl border border-line-2 bg-surface neu-card"
     >
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-line-1 px-3 py-2">
@@ -105,7 +105,7 @@ export function AIAutocompleteOverlay({
           className={`h-1.5 w-1.5 rounded-full transition-colors duration-500 ${
             done
               ? "bg-ok shadow-[0_0_6px_#30d158]"
-              : "animate-pulse bg-ai shadow-[0_0_6px_#7474ff]"
+              : "animate-pulse bg-ai shadow-[0_0_6px_#2563EB]"
           }`}
         />
         <span className="text-[10px] uppercase tracking-widest text-ink-3">

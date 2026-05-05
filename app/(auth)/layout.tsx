@@ -1,25 +1,31 @@
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-[#0a0a0a]">
-      {/* Background grid */}
+    <div className="relative flex min-h-screen w-full items-center justify-center" style={{ backgroundColor: "#EDF4FF" }}>
+      {/* Background grid — very faint blue lines */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
-            "linear-gradient(#6366f1 1px, transparent 1px), linear-gradient(90deg, #6366f1 1px, transparent 1px)",
+            "linear-gradient(rgba(37,99,235,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(37,99,235,0.05) 1px, transparent 1px)",
           backgroundSize: "64px 64px",
         }}
       />
-      {/* Glow */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-[100px]" />
+      {/* Soft blue glow */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px]"
+        style={{ backgroundColor: "rgba(147, 197, 253, 0.25)" }}
+      />
 
       <div className="relative z-10 flex flex-col items-center gap-8">
         {/* Logo */}
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600">
-            <span className="text-base font-bold text-white">J</span>
+        <div className="flex items-center gap-2.5">
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-xl neu-raised"
+            style={{ backgroundColor: "#EDF4FF" }}
+          >
+            <span className="text-base font-bold" style={{ color: "#2563EB" }}>J</span>
           </div>
-          <span className="text-lg font-semibold tracking-tight text-white">Jaguarnotes</span>
+          <span className="text-lg font-semibold tracking-tight" style={{ color: "#1B3652" }}>Jaguarnotes</span>
         </div>
 
         {children}

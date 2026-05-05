@@ -398,7 +398,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
   }
 
   const aiBlockStyles = [...aiBlockIds]
-    .map((id) => `[data-id="${id}"] { border-left: 2px solid rgba(116,116,255,0.45) !important; padding-left: 14px !important; margin-left: -16px !important; }`)
+    .map((id) => `[data-id="${id}"] { border-left: 2px solid rgba(37,99,235,0.5) !important; padding-left: 14px !important; margin-left: -16px !important; }`)
     .join("");
 
   if (note === undefined) {
@@ -537,7 +537,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
                 {emoji || <span className="text-sm text-ink-4">○</span>}
               </button>
               {showEmojiPicker && (
-                <div className="absolute left-0 top-10 z-50 grid w-56 grid-cols-5 gap-1 rounded-xl border border-line-2 bg-surface p-2 shadow-2xl shadow-black/60">
+                <div className="absolute left-0 top-10 z-50 grid w-56 grid-cols-5 gap-1 rounded-xl border border-line-2 bg-surface p-2 neu-card">
                   {emoji && (
                     <button onClick={() => pickEmoji("")} className="col-span-5 mb-1 rounded-md px-2 py-1 text-left text-[10px] text-ink-4 hover:bg-raised hover:text-ink-2">
                       Remove emoji
@@ -595,11 +595,11 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           )}
 
           <div className={isEmpty ? "pointer-events-none opacity-0 h-0 overflow-hidden" : ""}>
-            <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
+            <BlockNoteView editor={editor} onChange={handleEditorChange} theme="light" />
           </div>
           {isEmpty && (
             <div className="hidden">
-              <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" />
+              <BlockNoteView editor={editor} onChange={handleEditorChange} theme="light" />
             </div>
           )}
 

@@ -11,10 +11,10 @@ export function Logo({ size = "md", wordmark = true }: LogoProps) {
 
   return (
     <div className="flex items-center gap-2.5">
-      <div className={`flex ${containerCls} shrink-0 items-center justify-center bg-gradient-to-br from-[#7474ff] to-violet-500`}>
+      <div className={`flex ${containerCls} shrink-0 items-center justify-center neu-raised`} style={{ backgroundColor: "#EDF4FF" }}>
         {/* Lightning-bolt spark — speed of thought */}
         <svg viewBox="0 0 14 16" fill="none" className={iconCls}>
-          <path d="M8 1L2 9h5.5L5 15l7-8H6.5z" fill="white" />
+          <path d="M8 1L2 9h5.5L5 15l7-8H6.5z" fill="#2563EB" />
         </svg>
       </div>
       {wordmark && (

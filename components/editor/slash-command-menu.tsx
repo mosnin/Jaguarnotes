@@ -233,7 +233,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
       ref={menuRef}
       style={style}
       {...motionProps}
-      className="w-80 overflow-hidden rounded-xl border border-line-3 bg-surface shadow-2xl shadow-black/70"
+      className="w-80 overflow-hidden rounded-xl border border-line-2 bg-surface neu-card"
     >
       {/* ── LIST ── */}
       {phase === "list" && (
@@ -399,7 +399,7 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
                   ? "bg-error shadow-[0_0_6px_theme(colors.error/60%)]"
                   : phase === "done"
                   ? "bg-ok shadow-[0_0_6px_#30d158]"
-                  : "animate-pulse bg-ai shadow-[0_0_6px_#7474ff]"
+                  : "animate-pulse bg-ai shadow-[0_0_6px_#2563EB]"
               }`}
             />
             <span

@@ -106,15 +106,15 @@ export function AnimatedDemo() {
   return (
     <div className="relative mx-auto mt-20 w-full max-w-4xl select-none">
       {/* Outer glow */}
-      <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-ai/20 via-transparent to-transparent" />
+      <div className="absolute -inset-px rounded-2xl" style={{ background: "linear-gradient(to bottom, rgba(37,99,235,0.15), transparent)" }} />
 
-      <div className="relative overflow-hidden rounded-2xl border border-line-2 bg-surface shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl border border-line-2 bg-surface neu-card">
         {/* Window chrome */}
         <div className="flex items-center gap-2 border-b border-line-1 px-4 py-3">
           <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
           <div className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
           <div className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-          <div className="ml-3 flex-1 rounded-md bg-raised px-3 py-1 text-center text-xs text-ink-4">
+          <div className="ml-3 flex-1 rounded-md bg-raised px-3 py-1 text-center text-xs text-ink-4 neu-inset">
             jaguarnotes.com/notes/research
           </div>
         </div>
@@ -143,13 +143,13 @@ export function AnimatedDemo() {
 
             {/* Autocomplete overlay */}
             {showAutocomplete && (
-              <div className="rounded-xl border border-line-3 bg-raised shadow-xl animate-in fade-in slide-in-from-bottom-1 duration-200">
+              <div className="rounded-xl border border-line-2 bg-raised neu-raised animate-in fade-in slide-in-from-bottom-1 duration-200">
                 <div className="flex items-center gap-2 border-b border-line-1 px-3 py-2">
                   <span
                     className={`h-1.5 w-1.5 rounded-full ${
                       phase === "autocomplete-done"
                         ? "bg-ok shadow-[0_0_6px_#30d158]"
-                        : "animate-pulse bg-ai shadow-[0_0_6px_#7474ff]"
+                        : "animate-pulse bg-ai shadow-[0_0_6px_#2563EB]"
                     }`}
                   />
                   <span className="text-[10px] uppercase tracking-widest text-ink-3">
@@ -183,13 +183,13 @@ export function AnimatedDemo() {
                 <div className="flex items-center gap-2 text-ink-3">
                   <span className="font-mono text-ai">{slashLabel}</span>
                 </div>
-                <div className="rounded-xl border border-ai/20 bg-raised shadow-xl">
+                <div className="rounded-xl border border-ai/20 bg-raised neu-raised">
                   <div className="flex items-center gap-2 border-b border-line-1 px-3 py-2">
                     <span
                       className={`h-1.5 w-1.5 rounded-full ${
                         phase === "command-done"
                           ? "bg-ok shadow-[0_0_6px_#30d158]"
-                          : "animate-pulse bg-ai shadow-[0_0_6px_#7474ff]"
+                          : "animate-pulse bg-ai shadow-[0_0_6px_#2563EB]"
                       }`}
                     />
                     <span className="text-[10px] uppercase tracking-widest text-ink-3">

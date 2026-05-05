@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ConvexClientProvider } from "@/components/providers/convex-client-provider";
+import { NeuThemeProvider } from "@/components/providers/neumorphism-theme";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: "#EDF4FF",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -64,8 +65,10 @@ export default function RootLayout({
           <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
           <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
         </head>
-        <body className="min-h-screen w-full bg-jaguar-black text-jaguar-text antialiased">
-          <ConvexClientProvider>{children}</ConvexClientProvider>
+        <body className="min-h-screen w-full antialiased" style={{ backgroundColor: "#EDF4FF", color: "#1B3652" }}>
+          <NeuThemeProvider>
+            <ConvexClientProvider>{children}</ConvexClientProvider>
+          </NeuThemeProvider>
         </body>
       </html>
     </ClerkProvider>
