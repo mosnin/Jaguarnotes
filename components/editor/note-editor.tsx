@@ -349,18 +349,40 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [autocomplete, slashMenu]);
 
-  // Selection toolbar
+  // Selection toolbar — works on mouse AND touch.
   useEffect(() => {
-    function onMouseUp() {
+    function showForCurrentSelection() {
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed) { setSelectionToolbar(null); return; }
       const text = sel.toString().trim();
-      if (text.length < 10) { setSelectionToolbar(null); return; }
-      const rect = sel.getRangeAt(0).getBoundingClientRect();
-      setSelectionToolbar({ text, position: { top: rect.top - 44, left: rect.left + rect.width / 2 } });
+      if (text.length < 4) { setSelectionToolbar(null); return; }
+      const range = sel.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      setSelectionToolbar({
+        text,
+        position: { top: Math.max(rect.top - 44, 12), left: rect.left + rect.width / 2 },
+      });
+    }
+    function onMouseUp() { showForCurrentSelection(); }
+    // Touch: selection is finalized after touchend; defer with requestAnimationFrame.
+    function onTouchEnd() {
+      requestAnimationFrame(showForCurrentSelection);
+    }
+    // Catch programmatic / iOS callout-driven selection changes too.
+    let selChangeTimer: ReturnType<typeof setTimeout> | undefined;
+    function onSelectionChange() {
+      clearTimeout(selChangeTimer);
+      selChangeTimer = setTimeout(showForCurrentSelection, 200);
     }
     document.addEventListener("mouseup", onMouseUp);
-    return () => document.removeEventListener("mouseup", onMouseUp);
+    document.addEventListener("touchend", onTouchEnd);
+    document.addEventListener("selectionchange", onSelectionChange);
+    return () => {
+      document.removeEventListener("mouseup", onMouseUp);
+      document.removeEventListener("touchend", onTouchEnd);
+      document.removeEventListener("selectionchange", onSelectionChange);
+      clearTimeout(selChangeTimer);
+    };
   }, []);
 
   // Undo / Redo
@@ -739,6 +761,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
         <SelectionToolbar
           text={selectionToolbar.text}
           position={selectionToolbar.position}
+          onDismiss={() => setSelectionToolbar(null)}
           onCommand={(cmd, text) => {
             setSlashMenu({ query: "", initialCommand: cmd, initialTopic: text });
             setSelectionToolbar(null);
