@@ -4,8 +4,8 @@
   "description": "AI-native notes. Think out loud, the AI writes the rest.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#EDF4FF",
+  "theme_color": "#EDF4FF",
   "orientation": "portrait-primary",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },

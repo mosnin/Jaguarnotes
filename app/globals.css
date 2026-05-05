@@ -72,6 +72,9 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* Prevent mobile horizontal sliding when content overflows briefly during transitions */
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
 }
 
 #__next, main { width: 100%; }
@@ -169,6 +172,15 @@ kbd {
 .bn-editor {
   background: transparent !important;
   padding: 0 !important;
+  color: #1B3652 !important;
+  caret-color: #2563EB;
+}
+/* Force every nested element in the editor to use a visible navy color.
+   BlockNote's content lives across many tags (p, span, div, contenteditable
+   wrappers); without this catch-all, theme="light" can leave inline content
+   with an inherited color that's invisible on the white-blue background. */
+.bn-editor *:not([data-ai-block]) {
+  color: inherit;
 }
 .bn-block-outer {
   padding-inline: 0 !important;
