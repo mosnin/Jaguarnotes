@@ -282,3 +282,22 @@ kbd {
   padding-left: 14px !important;
   margin-left: -16px !important;
 }
+
+/* ─── Border Beam animation (Magic UI) ─────────────────────────────── */
+@keyframes border-beam {
+  100% {
+    offset-distance: 100%;
+  }
+}
+.animate-border-beam {
+  animation: border-beam calc(var(--duration) * 1s) infinite linear;
+}
+
+/* ─── Typing cursor blink ────────────────────────────────────────────── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
