@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, memo, useMemo } from "react";
+import { Suspense, useState, memo, useMemo, useEffect } from "react";
 import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -64,6 +64,8 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const activeTag = searchParams.get("tag");
   const [quickTopic, setQuickTopic] = useState("");
+  const [timeOfDay, setTimeOfDay] = useState<string | null>(null);
+  useEffect(() => { setTimeOfDay(getTimeOfDay()); }, []);
 
   const roleActions = (me?.role && ROLE_ACTIONS[me.role.toLowerCase()]) ? ROLE_ACTIONS[me.role.toLowerCase()] : DEFAULT_ACTIONS;
 
@@ -122,7 +124,7 @@ function DashboardContent() {
           className="mb-10"
         >
           <h1 className="text-3xl font-bold tracking-tight text-ink-1 md:text-4xl">
-            Good {getTimeOfDay()}, {firstName}.
+            {timeOfDay ? `Good ${timeOfDay}, ${firstName}.` : `Hi, ${firstName}.`}
           </h1>
           <p className="mt-2 text-sm text-ink-4">
             {notes.length === 0
@@ -309,7 +311,7 @@ const NoteCard = memo(function NoteCard({ note, onClick }: { note: { _id: string
           {note.emoji && <span className="shrink-0 text-base leading-none">{note.emoji}</span>}
           <p className="truncate text-sm font-medium text-ink-1">{note.title || "Untitled"}</p>
         </div>
-        <span className="shrink-0 text-[10px] text-ink-4">{formatDistanceToNow(note._creationTime)}</span>
+        <span suppressHydrationWarning className="shrink-0 text-[10px] text-ink-4">{formatDistanceToNow(note._creationTime)}</span>
       </div>
       <p className="line-clamp-2 text-xs leading-relaxed text-ink-3">
         {note.preview || "No content yet"}
