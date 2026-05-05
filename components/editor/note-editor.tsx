@@ -535,11 +535,11 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
       </div>
 
       {/* Editor */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-3xl px-6 pb-24 pt-8 md:px-12 md:pb-32 md:pt-14">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="mx-auto w-full max-w-3xl px-4 pb-24 pt-6 md:px-12 md:pb-32 md:pt-14">
 
           {/* Emoji + Title row */}
-          <div className="mb-3 flex items-start gap-3">
+          <div className="mb-3 flex min-w-0 items-start gap-3">
             {/* Emoji picker */}
             <div className="relative mt-2 shrink-0">
               <button
@@ -571,7 +571,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
               placeholder="Untitled"
-              className="flex-1 cursor-text border-b border-transparent bg-transparent text-[2.75rem] font-bold leading-tight tracking-tight text-ink-1 placeholder-ink-4 outline-none transition-colors hover:border-line-1 focus:border-transparent md:text-5xl"
+              className="min-w-0 flex-1 cursor-text border-b border-transparent bg-transparent text-3xl font-bold leading-tight tracking-tight text-ink-1 placeholder-ink-4 outline-none transition-colors hover:border-line-1 focus:border-transparent md:text-5xl"
             />
           </div>
 

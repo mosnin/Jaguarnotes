@@ -186,6 +186,9 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  width: 100%;
+  overflow-x: hidden;          /* never let horizontal scroll bleed */
+  overscroll-behavior-x: none; /* kill rubber-band swipe on iOS */
   background-color: var(--bg-app);
   color: var(--text-1);
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
