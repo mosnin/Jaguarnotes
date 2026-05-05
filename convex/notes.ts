@@ -273,3 +273,24 @@ export const remove = mutation({
     for (const ver of versionRecords) await ctx.db.delete(ver._id);
   },
 });
+
+export const deleteAllForUser = mutation({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const userId = identity.subject;
+    const notes = await ctx.db
+      .query("notes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    for (const note of notes) {
+      await ctx.db.delete(note._id);
+    }
+    // Also clear the user record
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", userId))
+      .first();
+    if (user) await ctx.db.delete(user._id);
+  },
+});

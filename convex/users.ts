@@ -17,6 +17,25 @@ export const getMe = query({
   },
 });
 
+export const updatePreferences = mutation({
+  args: {
+    role: v.optional(v.string()),
+    useCases: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const identity = await requireUser(ctx);
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!existing) throw new Error("User not found");
+    await ctx.db.patch(existing._id, {
+      ...(args.role !== undefined && { role: args.role }),
+      ...(args.useCases !== undefined && { useCases: args.useCases }),
+    });
+  },
+});
+
 export const completeOnboarding = mutation({
   args: {
     role: v.string(),
