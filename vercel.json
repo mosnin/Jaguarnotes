@@ -1,6 +1,0 @@
-{
-  "buildCommand": "next build",
-  "env": {
-    "NEXT_PUBLIC_CONVEX_URL": "https://curious-retriever-30.convex.cloud"
-  }
-}
