@@ -152,7 +152,8 @@ interface DragDropWrapperProps {
 }
 
 export function DragDropWrapper({ children, onMoved }: DragDropWrapperProps) {
-  const moveNote = useMutation(api.folders.moveNote);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const moveNote = useMutation((api as any).folders.moveNote);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
 
