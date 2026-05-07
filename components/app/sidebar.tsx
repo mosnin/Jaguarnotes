@@ -24,10 +24,11 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const notes = useQuery(api.notes.list) ?? [];
-  const folders = useQuery(api.folders.list) ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const folders = (useQuery((api as any).folders.list) ?? []) as Array<{ _id: string; name: string; emoji?: string; color?: string }>;
   const createNote = useMutation(api.notes.create);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const createFolder = useMutation(api.folders.create as any);
+  const createFolder = useMutation((api as any).folders.create);
   const [search, setSearch] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [foldersOpen, setFoldersOpen] = useState(true);
@@ -90,6 +91,91 @@ export function Sidebar() {
           New note
         </button>
       </div>
+
+      {/* ── Folders section ── */}
+      <div className="px-3 pb-1">
+        {/* Folders header row */}
+        <button
+          onClick={() => setFoldersOpen((v) => !v)}
+          className="flex w-full items-center gap-1.5 rounded-lg px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-ink-4 transition-colors hover:bg-hover hover:text-ink-2"
+        >
+          <svg
+            className="h-3 w-3 shrink-0 transition-transform"
+            style={{ transform: foldersOpen ? "rotate(90deg)" : "rotate(0deg)" }}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          Folders
+          {folders.length > 0 && (
+            <span className="ml-auto shrink-0 rounded-full bg-line-1 px-1.5 py-0.5 text-[9px] font-semibold text-ink-4">
+              {folders.length}
+            </span>
+          )}
+        </button>
+
+        <AnimatePresence initial={false}>
+          {foldersOpen && (
+            <motion.div
+              key="folders-list"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 340, damping: 34, mass: 0.8 }}
+              className="overflow-hidden"
+            >
+              <div className="pt-0.5 pb-1">
+                {folders.length === 0 ? (
+                  <p className="px-3 py-1.5 text-xs text-ink-4 italic">No folders yet</p>
+                ) : (
+                  folders.map((folder) => {
+                    const isActive = pathname.startsWith(`/folders/${folder._id}`);
+                    return (
+                      <Link
+                        key={folder._id}
+                        href={`/folders/${folder._id}`}
+                        onClick={() => setOpen(false)}
+                        aria-current={isActive ? "page" : undefined}
+                        className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
+                          isActive
+                            ? "bg-ai-hint text-ai neu-xs"
+                            : "text-ink-3 hover:bg-hover hover:text-ink-1"
+                        }`}
+                      >
+                        <span
+                          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-xs leading-none"
+                          style={{ background: folder.color ?? "#EDE8FF" }}
+                        >
+                          {folder.emoji ?? "📁"}
+                        </span>
+                        <span className="truncate">{folder.name}</span>
+                      </Link>
+                    );
+                  })
+                )}
+
+                {/* New folder button */}
+                <button
+                  onClick={() => setShowNewFolder(true)}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium text-ink-4 transition-colors hover:bg-hover hover:text-ai"
+                >
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-dashed border-line-2">
+                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </span>
+                  New folder
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Divider */}
+      <div className="mx-3 mb-2 border-t border-line-1" />
 
       {/* Search */}
       {notes.length > 4 && (
@@ -226,6 +312,14 @@ export function Sidebar() {
           }}
         />
       </div>
+
+      {/* New folder modal */}
+      <NewFolderModal
+        open={showNewFolder}
+        onClose={() => setShowNewFolder(false)}
+        onSubmit={handleCreateFolder}
+        title="New folder"
+      />
     </motion.aside>
   );
 }
