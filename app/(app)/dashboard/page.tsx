@@ -71,9 +71,10 @@ export default function DashboardPage() {
     { initialNumItems: 20 }
   );
   const sharedNotes = useQuery(api.notes.listShared) ?? [];
-  const folders     = useQuery(api.folders.list) ?? [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const folderNoteCounts = (useQuery(api.folders.noteCounts as any) ?? {}) as Record<string, number>;
+  const folders     = (useQuery((api as any).folders.list) ?? []) as Array<{ _id: string; name: string }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const folderNoteCounts = (useQuery((api as any).folders.noteCounts) ?? {}) as Record<string, number>;
   const createNote  = useMutation(api.notes.create);
   const { toggle: toggleSidebar } = useSidebar();
   const searchParams = useSearchParams();
@@ -214,15 +215,19 @@ export default function DashboardPage() {
           ) : filteredByTime.length > 0 ? (
             <div className="flex gap-3 overflow-x-auto px-6 pb-3 md:px-8 scrollbar-hide"
               style={{ scrollbarWidth: "none" }}>
-              {filteredByTime.map((note, i) => (
-                <DraggableNote key={note._id} note={note}>
-                  <NoteCard
-                    note={note}
-                    colorIndex={i % CARD_COLORS.length}
-                    onClick={() => router.push(`/notes/${note._id}`)}
-                  />
-                </DraggableNote>
-              ))}
+              {filteredByTime.map((note, i) => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const n = note as any;
+                return (
+                  <DraggableNote key={n._id} note={n}>
+                    <NoteCard
+                      note={n}
+                      colorIndex={i % CARD_COLORS.length}
+                      onClick={() => router.push(`/notes/${n._id}`)}
+                    />
+                  </DraggableNote>
+                );
+              })}
               {/* New note card at end */}
               <motion.button
                 {...buttonTap}

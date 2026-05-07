@@ -1,11 +1,11 @@
 "use client";
 
-import { memo, useEffect, useState } from "react";
+import { memo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { motion, AnimatePresence } from "framer-motion";
-import { buttonTap, staggerContainer, staggerItem, scaleIn } from "@/lib/motion";
+import { motion } from "framer-motion";
+import { buttonTap, staggerContainer, staggerItem } from "@/lib/motion";
 import Link from "next/link";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -163,10 +163,21 @@ export default function FolderPage() {
   const router = useRouter();
   const folderId = params.id as Id<"folders">;
 
-  const folders = useQuery(api.folders.list) ?? [];
-  const notes = useQuery(api.folders.listNotes, { folderId }) ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const foldersRaw = useQuery((api as any).folders.list) as Array<{ _id: string; name: string; emoji?: string; color?: string }> | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const notesRaw = useQuery((api as any).folders.listNotes, { folderId }) as Array<{
+    _id: string;
+    _creationTime: number;
+    title: string;
+    preview?: string;
+    emoji?: string;
+    tags?: string[];
+    pinned?: boolean;
+  }> | undefined;
+  const folders = foldersRaw ?? [];
+  const notes = notesRaw ?? [];
   const createNote = useMutation(api.notes.create);
-  const moveNote = useMutation(api.folders.moveNote);
 
   const folder = folders.find((f) => f._id === folderId);
 
@@ -189,8 +200,8 @@ export default function FolderPage() {
   const folderName = folder?.name ?? "Folder";
   const noteCount = notes.length;
 
-  // Loading state — folder list not fetched yet
-  const isLoading = folders === undefined || notes === undefined;
+  // Loading state — queries not yet resolved
+  const isLoading = foldersRaw === undefined || notesRaw === undefined;
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
