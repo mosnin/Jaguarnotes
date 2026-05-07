@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as apiKeys from "../apiKeys.js";
 import type * as noteVersions from "../noteVersions.js";
 import type * as notes from "../notes.js";
 import type * as presence from "../presence.js";
@@ -22,6 +23,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  apiKeys: typeof apiKeys;
   noteVersions: typeof noteVersions;
   notes: typeof notes;
   presence: typeof presence;

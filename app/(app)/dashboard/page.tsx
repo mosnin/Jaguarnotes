@@ -10,6 +10,8 @@ import { formatDistanceToNow } from "@/lib/utils";
 import { staggerContainer, staggerItem, buttonTap } from "@/lib/motion";
 import { useSidebar } from "@/components/app/sidebar-context";
 import { NoteCardSkeleton } from "@/components/ui/note-card-skeleton";
+import { FolderGrid } from "@/components/folders/folder-grid";
+import { DragDropWrapper, DraggableNote, DroppableFolder } from "@/components/folders/drag-drop-wrapper";
 
 /* Pastel header colors cycling per card index */
 const CARD_COLORS = [
@@ -69,6 +71,9 @@ export default function DashboardPage() {
     { initialNumItems: 20 }
   );
   const sharedNotes = useQuery(api.notes.listShared) ?? [];
+  const folders     = useQuery(api.folders.list) ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const folderNoteCounts = (useQuery(api.folders.noteCounts as any) ?? {}) as Record<string, number>;
   const createNote  = useMutation(api.notes.create);
   const { toggle: toggleSidebar } = useSidebar();
   const searchParams = useSearchParams();
@@ -150,6 +155,23 @@ export default function DashboardPage() {
           </p>
         </motion.div>
 
+        {/* ── Folders + My Notes wrapped in single DndContext ── */}
+        <DragDropWrapper>
+        {/* ── Folders section ── */}
+        <section className="mb-10">
+          <div className="mb-4 flex items-center justify-between px-6 md:px-8">
+            <h2 className="text-base font-semibold text-ink-1">Folders</h2>
+            <span className="text-xs text-ink-4">
+              {folders.length === 0
+                ? "Drag notes here to organize"
+                : `${folders.length} folder${folders.length === 1 ? "" : "s"} · drag notes to organize`}
+            </span>
+          </div>
+          <div className="px-6 md:px-8">
+            <FolderGrid noteCounts={folderNoteCounts} />
+          </div>
+        </section>
+
         {/* ── My Notes section ── */}
         <section className="mb-10">
           <div className="mb-4 flex items-center justify-between px-6 md:px-8">
@@ -193,12 +215,13 @@ export default function DashboardPage() {
             <div className="flex gap-3 overflow-x-auto px-6 pb-3 md:px-8 scrollbar-hide"
               style={{ scrollbarWidth: "none" }}>
               {filteredByTime.map((note, i) => (
-                <NoteCard
-                  key={note._id}
-                  note={note}
-                  colorIndex={i % CARD_COLORS.length}
-                  onClick={() => router.push(`/notes/${note._id}`)}
-                />
+                <DraggableNote key={note._id} note={note}>
+                  <NoteCard
+                    note={note}
+                    colorIndex={i % CARD_COLORS.length}
+                    onClick={() => router.push(`/notes/${note._id}`)}
+                  />
+                </DraggableNote>
               ))}
               {/* New note card at end */}
               <motion.button
@@ -242,6 +265,7 @@ export default function DashboardPage() {
             </div>
           )}
         </section>
+        </DragDropWrapper>
 
         {/* ── Quick AI actions ── */}
         <section className="mb-10 px-6 md:px-8">

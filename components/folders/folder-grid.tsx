@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { buttonTap, staggerContainer, staggerItem } from "@/lib/motion";
 import { NewFolderModal } from "./new-folder-modal";
+import { DroppableFolder } from "./drag-drop-wrapper";
 import type { Id } from "@/convex/_generated/dataModel";
 
 const DEFAULT_COLOR = "#EDE8FF";
@@ -87,44 +88,46 @@ export function FolderGrid({ noteCounts = {} }: FolderGridProps) {
               variants={staggerItem}
               className="group relative shrink-0"
             >
-              <motion.button
-                {...buttonTap}
-                onClick={() => router.push(`/folders/${folder._id}`)}
-                className="relative flex h-24 w-44 shrink-0 flex-col justify-between overflow-hidden rounded-2xl p-3.5 text-left transition-all"
-                style={{
-                  background: bg,
-                  boxShadow: isActive
-                    ? `0 0 0 2px #2563EB, 4px 4px 14px rgba(27,54,82,0.18), -2px -2px 8px rgba(255,255,255,0.85)`
-                    : `3px 3px 10px rgba(27,54,82,0.12), -3px -3px 10px rgba(255,255,255,0.8)`,
-                  border: isActive ? "2px solid #2563EB" : "1px solid rgba(27,54,82,0.08)",
-                }}
-                whileHover={{
-                  y: -3,
-                  boxShadow: `0 0 0 ${isActive ? "2px #2563EB," : ""} 6px 16px rgba(27,54,82,0.16), -3px -3px 12px rgba(255,255,255,0.9)`,
-                  transition: { type: "spring", stiffness: 400, damping: 30 },
-                }}
-              >
-                {/* Emoji */}
-                <span className="text-2xl leading-none">{folder.emoji ?? "📁"}</span>
+              <DroppableFolder folder={folder}>
+                <motion.button
+                  {...buttonTap}
+                  onClick={() => router.push(`/folders/${folder._id}`)}
+                  className="relative flex h-24 w-44 shrink-0 flex-col justify-between overflow-hidden rounded-2xl p-3.5 text-left transition-all"
+                  style={{
+                    background: bg,
+                    boxShadow: isActive
+                      ? `0 0 0 2px #2563EB, 4px 4px 14px rgba(27,54,82,0.18), -2px -2px 8px rgba(255,255,255,0.85)`
+                      : `3px 3px 10px rgba(27,54,82,0.12), -3px -3px 10px rgba(255,255,255,0.8)`,
+                    border: isActive ? "2px solid #2563EB" : "1px solid rgba(27,54,82,0.08)",
+                  }}
+                  whileHover={{
+                    y: -3,
+                    boxShadow: `0 0 0 ${isActive ? "2px #2563EB," : ""} 6px 16px rgba(27,54,82,0.16), -3px -3px 12px rgba(255,255,255,0.9)`,
+                    transition: { type: "spring", stiffness: 400, damping: 30 },
+                  }}
+                >
+                  {/* Emoji */}
+                  <span className="text-2xl leading-none">{folder.emoji ?? "📁"}</span>
 
-                {/* Bottom row */}
-                <div className="flex items-end justify-between gap-1">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-ink-1">{folder.name}</p>
-                    <p className="text-[10px] text-ink-3">
-                      {count} note{count === 1 ? "" : "s"}
-                    </p>
-                  </div>
-                  {isActive && (
-                    <div
-                      className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white"
-                      style={{ background: "#2563EB" }}
-                    >
-                      Open
+                  {/* Bottom row */}
+                  <div className="flex items-end justify-between gap-1">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-bold text-ink-1">{folder.name}</p>
+                      <p className="text-[10px] text-ink-3">
+                        {count} note{count === 1 ? "" : "s"}
+                      </p>
                     </div>
-                  )}
-                </div>
-              </motion.button>
+                    {isActive && (
+                      <div
+                        className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white"
+                        style={{ background: "#2563EB" }}
+                      >
+                        Open
+                      </div>
+                    )}
+                  </div>
+                </motion.button>
+              </DroppableFolder>
 
               {/* Context menu: edit + remove */}
               <div className="pointer-events-none absolute right-1.5 top-1.5 flex gap-1 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">

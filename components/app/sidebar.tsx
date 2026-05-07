@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { slideLeft } from "@/lib/motion";
 import { Logo } from "@/components/ui/logo";
 import { useSidebar } from "./sidebar-context";
@@ -17,19 +17,31 @@ import {
   Settings01Icon,
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
+import { NewFolderModal } from "@/components/folders/new-folder-modal";
 
 export function Sidebar() {
   const { open, setOpen } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const notes = useQuery(api.notes.list) ?? [];
+  const folders = useQuery(api.folders.list) ?? [];
   const createNote = useMutation(api.notes.create);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const createFolder = useMutation(api.folders.create as any);
   const [search, setSearch] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [foldersOpen, setFoldersOpen] = useState(true);
+  const [showNewFolder, setShowNewFolder] = useState(false);
 
   async function handleNewNote() {
     const id = await createNote({ title: "Untitled" });
     router.push(`/notes/${id}`);
+    setOpen(false);
+  }
+
+  async function handleCreateFolder(data: { name: string; emoji: string; color: string }) {
+    const id = await createFolder(data);
+    router.push(`/folders/${id}`);
     setOpen(false);
   }
 
