@@ -27,10 +27,15 @@ interface FolderGridProps {
 export function FolderGrid({ noteCounts = {} }: FolderGridProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const folders = useQuery(api.folders.list) ?? [];
-  const createFolder = useMutation(api.folders.create);
-  const renameFolder = useMutation(api.folders.rename);
-  const removeFolder = useMutation(api.folders.remove);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const foldersRaw = useQuery((api as any).folders.list) as Folder[] | undefined;
+  const folders: Folder[] = foldersRaw ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const createFolder = useMutation((api as any).folders.create);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const renameFolder = useMutation((api as any).folders.rename);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const removeFolder = useMutation((api as any).folders.remove);
 
   const [showCreate, setShowCreate] = useState(false);
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
