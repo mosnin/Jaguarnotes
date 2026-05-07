@@ -7,19 +7,26 @@ import { scaleIn, useMotionVariants } from "@/lib/motion";
 
 const ACCENT: Record<Toast["type"], string> = {
   success: "text-ok",
-  error: "text-error",
-  copy: "text-ai",
-  info: "text-ink-2",
+  error:   "text-error",
+  copy:    "text-ai",
+  info:    "text-ink-2",
+};
+
+const BORDER_COLOR: Record<Toast["type"], string> = {
+  success: "#16A34A",
+  error:   "#DC2626",
+  copy:    "#2563EB",
+  info:    "#7B9AB8",
 };
 
 const LABEL: Record<Toast["type"], string> = {
   success: "Success notification",
-  error: "Error notification",
-  copy: "Copy notification",
-  info: "Info notification",
+  error:   "Error notification",
+  copy:    "Copy notification",
+  info:    "Info notification",
 };
 
-function ToastItem({ toast: t, }: { toast: Toast }) {
+function ToastItem({ toast: t }: { toast: Toast }) {
   const motionProps = useMotionVariants(scaleIn);
   return (
     <motion.div
@@ -28,9 +35,12 @@ function ToastItem({ toast: t, }: { toast: Toast }) {
       {...motionProps}
       exit="exit"
       aria-label={LABEL[t.type]}
-      className="pointer-events-auto rounded-xl border border-line-2 bg-raised px-4 py-3 text-sm neu-raised"
+      className="pointer-events-auto flex overflow-hidden rounded-xl border border-line-2 bg-raised text-sm neu-raised"
+      style={{ borderLeftColor: BORDER_COLOR[t.type], borderLeftWidth: 3 }}
     >
-      <span className={ACCENT[t.type]}>{t.message}</span>
+      <div className="px-4 py-3">
+        <span className={ACCENT[t.type]}>{t.message}</span>
+      </div>
     </motion.div>
   );
 }
@@ -56,7 +66,7 @@ export function ToastHost() {
       role="status"
       aria-live="polite"
       aria-atomic="false"
-      className="pointer-events-none fixed bottom-20 right-4 z-[60] flex flex-col items-end gap-2 md:bottom-6"
+      className="pointer-events-none fixed bottom-24 right-4 z-[60] flex flex-col items-end gap-2 md:bottom-6"
     >
       <AnimatePresence mode="popLayout">
         {toasts.map((t) => (

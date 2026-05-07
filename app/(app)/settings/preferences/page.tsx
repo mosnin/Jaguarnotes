@@ -57,18 +57,19 @@ export default function PreferencesPage() {
 
       {/* Role */}
       <div className="rounded-2xl bg-surface p-6 neu-card">
-        <h2 className="mb-1 text-sm font-semibold text-ink-2">Your role</h2>
-        <p className="mb-4 text-xs text-ink-4">Determines which AI quick actions appear on your dashboard.</p>
+        <h2 className="mb-1 text-sm font-bold text-ink-1">Your role</h2>
+        <p className="mb-4 text-xs text-ink-3">Determines which AI quick actions appear on your dashboard.</p>
         <div className="flex flex-wrap gap-2">
           {ROLES.map((r) => (
             <button
               key={r}
               onClick={() => setRole(r)}
-              className={`rounded-full border px-3 py-1.5 text-sm capitalize transition-all ${
+              className="rounded-full border px-4 py-1.5 text-sm font-medium capitalize transition-all"
+              style={
                 role === r
-                  ? "border-ai/40 bg-ai-dim text-ai neu-pressed"
-                  : "border-line-2 text-ink-3 hover:border-line-3 hover:text-ink-2 neu-sm"
-              }`}
+                  ? { borderColor: "#2563EB", background: "#2563EB", color: "white", boxShadow: "0 2px 8px rgba(37,99,235,0.3)" }
+                  : { borderColor: "#C2D5EB", color: "#4A6D8C", background: "transparent" }
+              }
             >
               {r}
             </button>
@@ -78,8 +79,8 @@ export default function PreferencesPage() {
 
       {/* Use cases */}
       <div className="rounded-2xl bg-surface p-6 neu-card">
-        <h2 className="mb-1 text-sm font-semibold text-ink-2">What do you use notes for?</h2>
-        <p className="mb-4 text-xs text-ink-4">Select all that apply. Used to personalize AI suggestions.</p>
+        <h2 className="mb-1 text-sm font-bold text-ink-1">What do you use notes for?</h2>
+        <p className="mb-4 text-xs text-ink-3">Select all that apply. Used to personalize AI suggestions.</p>
         <div className="flex flex-wrap gap-2">
           {USE_CASES.map((uc) => {
             const active = useCases.includes(uc);
@@ -91,12 +92,18 @@ export default function PreferencesPage() {
                     active ? prev.filter((x) => x !== uc) : [...prev, uc]
                   )
                 }
-                className={`rounded-full border px-3 py-1.5 text-sm transition-all ${
+                className="flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all"
+                style={
                   active
-                    ? "border-ai/40 bg-ai-dim text-ai neu-pressed"
-                    : "border-line-2 text-ink-3 hover:border-line-3 hover:text-ink-2 neu-sm"
-                }`}
+                    ? { borderColor: "#2563EB", background: "#2563EB", color: "white", boxShadow: "0 2px 8px rgba(37,99,235,0.25)" }
+                    : { borderColor: "#C2D5EB", color: "#4A6D8C", background: "transparent" }
+                }
               >
+                {active && (
+                  <svg className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                )}
                 {uc}
               </button>
             );
@@ -109,11 +116,12 @@ export default function PreferencesPage() {
         {...buttonTap}
         onClick={handleSave}
         disabled={saving}
-        className="flex items-center gap-2 rounded-xl border border-ai/30 bg-ai-dim px-5 py-2.5 text-sm font-medium text-ai transition-all hover:bg-ai-dim/80 disabled:opacity-50 neu-btn"
+        className="flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white transition-all disabled:opacity-50 neu-btn"
+        style={{ backgroundColor: "#2563EB" }}
       >
         {saving ? (
           <>
-            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-ai border-t-transparent" />
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
             Saving…
           </>
         ) : (

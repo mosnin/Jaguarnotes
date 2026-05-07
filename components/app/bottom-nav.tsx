@@ -41,7 +41,7 @@ export function BottomNav() {
       aria-label="Main navigation"
     >
       <TabButton onClick={() => router.push("/dashboard")} active={isHome} label="Home">
-        <HugeiconsIcon icon={Home01Icon} size={22} strokeWidth={isHome ? 2 : 1.5} />
+        <HugeiconsIcon icon={Home01Icon} size={22} strokeWidth={1.5} />
       </TabButton>
 
       <TabButton onClick={toggleSidebar} active={false} label="Notes">
@@ -52,12 +52,14 @@ export function BottomNav() {
       <button
         onClick={handleNew}
         aria-label="New note"
-        className="relative flex flex-1 flex-col items-center justify-center gap-1 min-h-[44px] transition-colors text-white"
+        className="relative flex flex-1 flex-col items-center justify-center gap-1 min-h-[44px] transition-all active:scale-95"
       >
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl neu-btn" style={{ backgroundColor: "#2563EB" }}>
+        <span
+          className="flex h-10 w-10 items-center justify-center rounded-2xl neu-btn transition-all"
+          style={{ backgroundColor: "#2563EB" }}
+        >
           <HugeiconsIcon icon={Add01Icon} size={20} strokeWidth={2} color="white" />
         </span>
-        <span className="text-[10px] text-ink-4">New</span>
       </button>
 
       <TabButton onClick={handleAI} active={false} label="AI">
@@ -65,7 +67,7 @@ export function BottomNav() {
       </TabButton>
 
       <TabButton onClick={() => router.push("/settings")} active={isSettings} label="Settings">
-        <HugeiconsIcon icon={Settings01Icon} size={22} strokeWidth={isSettings ? 2 : 1.5} />
+        <HugeiconsIcon icon={Settings01Icon} size={22} strokeWidth={1.5} />
       </TabButton>
     </nav>
   );

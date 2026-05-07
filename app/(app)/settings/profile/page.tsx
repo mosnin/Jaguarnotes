@@ -72,9 +72,9 @@ export default function ProfileSettingsPage() {
 
 function Field({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-line-1 pb-3 last:border-0 last:pb-0">
-      <span className="shrink-0 text-xs text-ink-4">{label}</span>
-      <span className={`truncate text-sm text-ink-2 ${mono ? "font-mono text-xs" : ""}`}>{value}</span>
+    <div className="flex items-start justify-between gap-4 border-b border-line-1 pb-3 last:border-0 last:pb-0">
+      <span className="shrink-0 text-xs font-semibold text-ink-2">{label}</span>
+      <span className={`truncate text-sm text-ink-3 ${mono ? "font-mono text-xs" : ""}`}>{value}</span>
     </div>
   );
 }

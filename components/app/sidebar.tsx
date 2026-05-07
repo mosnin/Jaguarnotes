@@ -46,10 +46,10 @@ export function Sidebar() {
         <Logo size="sm" />
         <button
           onClick={() => setOpen(false)}
-          className="rounded-md p-1.5 text-ink-4 transition-colors hover:text-ink-2"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-hover hover:text-ink-1"
           aria-label="Close sidebar"
         >
-          <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={1.5} />
+          <HugeiconsIcon icon={Cancel01Icon} size={18} strokeWidth={1.5} />
         </button>
       </div>
 
@@ -60,7 +60,7 @@ export function Sidebar() {
           label="Dashboard"
           active={pathname === "/dashboard"}
           onClick={() => setOpen(false)}
-          icon={<HugeiconsIcon icon={Home01Icon} size={14} strokeWidth={1.5} />}
+          icon={<HugeiconsIcon icon={Home01Icon} size={16} strokeWidth={1.5} />}
         />
       </div>
 
@@ -71,10 +71,10 @@ export function Sidebar() {
       <div className="px-3 pb-2">
         <button
           onClick={handleNewNote}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-ink-3 transition-colors hover:bg-hover hover:text-ink-1 neu-sm"
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink-3 transition-colors hover:bg-hover hover:text-ink-1 neu-xs"
           aria-label="Create new note"
         >
-          <HugeiconsIcon icon={Add01Icon} size={14} strokeWidth={1.5} className="shrink-0" />
+          <HugeiconsIcon icon={Add01Icon} size={16} strokeWidth={1.5} className="shrink-0 text-ai" />
           New note
         </button>
       </div>
@@ -87,7 +87,7 @@ export function Sidebar() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search notes…"
             aria-label="Search notes"
-            className="w-full rounded-md bg-raised px-3 py-1.5 text-xs text-ink-2 placeholder-ink-4 outline-none transition-all focus:bg-hover neu-inset"
+            className="w-full rounded-lg bg-raised px-3 py-2 text-xs text-ink-2 placeholder-ink-4 outline-none transition-all focus:bg-hover neu-inset"
           />
         </div>
       )}
@@ -103,10 +103,10 @@ export function Sidebar() {
                 key={tag}
                 onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
                 aria-pressed={selectedTag === tag}
-                className={`rounded-full border px-2 py-0.5 text-[10px] transition-colors ${
+                className={`rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors ${
                   selectedTag === tag
-                    ? "border-ai/40 bg-ai-dim text-ai"
-                    : "border-line-1 text-ink-4 hover:border-line-2 hover:text-ink-3"
+                    ? "border-ai/40 bg-ai-hint text-ai"
+                    : "border-line-2 text-ink-3 hover:border-line-3 hover:text-ink-2"
                 }`}
               >
                 {tag}
@@ -119,7 +119,7 @@ export function Sidebar() {
       {/* Notes list — hierarchical tree */}
       <div className="flex-1 overflow-y-auto px-3 pt-2" role="list" aria-label="Notes">
         {notes.length > 0 && (
-          <p className="mb-1 px-3 text-[10px] uppercase tracking-widest text-ink-4">
+          <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-widest text-ink-4">
             {search || selectedTag ? "Results" : "Recent"}
           </p>
         )}
@@ -144,41 +144,50 @@ export function Sidebar() {
 
           return rootNotes.map((note) => {
             const kids = childMap.get(note._id) ?? [];
+            const isActive = pathname === `/notes/${note._id}`;
             return (
               <div key={note._id} role="listitem">
                 <Link
                   href={`/notes/${note._id}`}
                   onClick={() => setOpen(false)}
-                  aria-current={pathname === `/notes/${note._id}` ? "page" : undefined}
-                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
-                    pathname === `/notes/${note._id}`
-                      ? "bg-raised text-ink-1"
-                      : "text-ink-4 hover:bg-hover hover:text-ink-2"
+                  aria-current={isActive ? "page" : undefined}
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                    isActive
+                      ? "bg-ai-hint text-ai neu-xs"
+                      : "text-ink-3 hover:bg-hover hover:text-ink-1"
                   }`}
                 >
-                  {note.emoji && <span className="shrink-0 text-sm">{note.emoji}</span>}
+                  {note.emoji && <span className="shrink-0 text-sm leading-none">{note.emoji}</span>}
                   <span className="truncate">{note.title || "Untitled"}</span>
                   {kids.length > 0 && (
-                    <span className="ml-auto shrink-0 text-[9px] text-ink-4">{kids.length}</span>
+                    <span className="ml-auto shrink-0 rounded-full bg-line-1 px-1.5 py-0.5 text-[9px] font-semibold text-ink-4">{kids.length}</span>
                   )}
                 </Link>
-                {kids.map((child) => (
-                  <Link
-                    key={child._id}
-                    href={`/notes/${child._id}`}
-                    onClick={() => setOpen(false)}
-                    aria-current={pathname === `/notes/${child._id}` ? "page" : undefined}
-                    className={`ml-4 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition-colors ${
-                      pathname === `/notes/${child._id}`
-                        ? "bg-raised text-ink-1"
-                        : "text-ink-4 hover:bg-hover hover:text-ink-2"
-                    }`}
-                  >
-                    <span className="select-none text-ink-4">└</span>
-                    {child.emoji && <span className="shrink-0">{child.emoji}</span>}
-                    <span className="truncate">{child.title || "Untitled"}</span>
-                  </Link>
-                ))}
+                {kids.map((child) => {
+                  const isChildActive = pathname === `/notes/${child._id}`;
+                  return (
+                    <Link
+                      key={child._id}
+                      href={`/notes/${child._id}`}
+                      onClick={() => setOpen(false)}
+                      aria-current={isChildActive ? "page" : undefined}
+                      className={`ml-4 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                        isChildActive
+                          ? "bg-ai-hint text-ai neu-xs"
+                          : "text-ink-4 hover:bg-hover hover:text-ink-2"
+                      }`}
+                    >
+                      {/* Connector line indicator */}
+                      <span className="shrink-0" aria-hidden="true">
+                        <svg width="10" height="14" viewBox="0 0 10 14" fill="none">
+                          <path d="M1 0 L1 7 L9 7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.35" />
+                        </svg>
+                      </span>
+                      {child.emoji && <span className="shrink-0">{child.emoji}</span>}
+                      <span className="truncate">{child.title || "Untitled"}</span>
+                    </Link>
+                  );
+                })}
               </div>
             );
           });
@@ -192,7 +201,7 @@ export function Sidebar() {
           label="Settings"
           active={pathname.startsWith("/settings")}
           onClick={() => setOpen(false)}
-          icon={<HugeiconsIcon icon={Settings01Icon} size={14} strokeWidth={1.5} />}
+          icon={<HugeiconsIcon icon={Settings01Icon} size={16} strokeWidth={1.5} />}
         />
       </div>
 
@@ -227,13 +236,13 @@ function NavItem({
       href={href}
       onClick={onClick}
       aria-current={active ? "page" : undefined}
-      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all ${
+      className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
         active
-          ? "bg-raised text-ink-1 neu-sm"
-          : "text-ink-4 hover:bg-hover hover:text-ink-2"
+          ? "bg-ai-hint text-ai neu-xs"
+          : "text-ink-3 hover:bg-hover hover:text-ink-1"
       }`}
     >
-      <span className={active ? "text-ai" : ""}>{icon}</span>
+      <span className={active ? "text-ai" : "text-ink-4"}>{icon}</span>
       {label}
     </Link>
   );

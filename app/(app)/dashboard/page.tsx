@@ -160,11 +160,12 @@ export default function DashboardPage() {
                 <button
                   key={f}
                   onClick={() => setTimeFilter(f)}
-                  className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${
                     timeFilter === f
-                      ? "bg-[#EDF4FF] text-ink-1 neu-raised"
+                      ? "text-white neu-btn"
                       : "text-ink-4 hover:text-ink-2"
                   }`}
+                  style={timeFilter === f ? { backgroundColor: "#2563EB" } : {}}
                 >
                   {f === "today" ? "Today" : f === "week" ? "This Week" : "This Month"}
                 </button>
@@ -174,9 +175,19 @@ export default function DashboardPage() {
 
           {notesStatus === "LoadingFirstPage" ? (
             <div className="flex gap-3 overflow-x-auto px-6 pb-3 md:px-8">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-52 w-44 shrink-0 rounded-2xl bg-line-1 animate-pulse" />
-              ))}
+              {Array.from({ length: 4 }).map((_, i) => {
+                const color = CARD_COLORS[i % CARD_COLORS.length];
+                return (
+                  <div key={i} className="h-52 w-44 shrink-0 overflow-hidden rounded-2xl neu-card" style={{ background: "#EDF4FF" }}>
+                    <div className="h-14 w-full animate-pulse" style={{ background: color.bg }} />
+                    <div className="space-y-2 p-3.5">
+                      <div className="h-3 w-24 animate-pulse rounded-full" style={{ background: color.bg }} />
+                      <div className="h-2.5 w-full animate-pulse rounded-full" style={{ background: color.bg, opacity: 0.6 }} />
+                      <div className="h-2.5 w-3/4 animate-pulse rounded-full" style={{ background: color.bg, opacity: 0.4 }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : filteredByTime.length > 0 ? (
             <div className="flex gap-3 overflow-x-auto px-6 pb-3 md:px-8 scrollbar-hide"
@@ -289,11 +300,12 @@ export default function DashboardPage() {
                   <button
                     key={f}
                     onClick={() => setTagFilter(f)}
-                    className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                    className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${
                       tagFilter === f
-                        ? "bg-[#EDF4FF] text-ink-1 neu-raised"
+                        ? "text-white neu-btn"
                         : "text-ink-4 hover:text-ink-2"
                     }`}
+                    style={tagFilter === f ? { backgroundColor: "#2563EB" } : {}}
                   >
                     {f === "all" ? "All" : "Recent"}
                   </button>
@@ -344,9 +356,10 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, type: "spring", stiffness: 280, damping: 32 }}
-            className="max-w-lg px-6 py-4 md:px-8"
+            className="px-6 py-2 md:px-8"
           >
-            <form onSubmit={handleQuickStart} className="flex flex-col gap-3">
+            {/* Quick-start input */}
+            <form onSubmit={handleQuickStart} className="mb-6 flex max-w-lg flex-col gap-2">
               <input
                 value={quickTopic}
                 onChange={(e) => setQuickTopic(e.target.value)}
@@ -358,13 +371,30 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={handleNewNote}
-                  className="text-ink-3 transition-colors hover:text-ink-1"
+                  className="text-ink-3 underline underline-offset-2 transition-colors hover:text-ink-1"
                 >
                   or create a blank note
                 </button>
-                .
               </p>
             </form>
+
+            {/* Hint cards */}
+            <div className="grid max-w-lg gap-3 sm:grid-cols-3">
+              {[
+                { icon: "⚡", label: "Type / for AI commands", sub: "Table, diagram, outline" },
+                { icon: "⌨️", label: "Press Tab to autocomplete", sub: "AI finishes your thought" },
+                { icon: "🔗", label: "Link notes together", sub: "Build your second brain" },
+              ].map((hint) => (
+                <div
+                  key={hint.label}
+                  className="flex flex-col gap-1.5 rounded-xl border border-line-1 bg-surface p-4 neu-xs"
+                >
+                  <span className="text-xl leading-none">{hint.icon}</span>
+                  <p className="text-xs font-semibold text-ink-2">{hint.label}</p>
+                  <p className="text-[10px] text-ink-4">{hint.sub}</p>
+                </div>
+              ))}
+            </div>
           </motion.div>
         )}
       </div>
@@ -391,7 +421,9 @@ const NoteCard = memo(function NoteCard({
     <motion.button
       variants={staggerItem}
       onClick={onClick}
-      className="relative flex h-52 w-44 shrink-0 flex-col overflow-hidden rounded-2xl text-left transition-all hover:-translate-y-0.5 neu-card"
+      whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 30 } }}
+      whileTap={{ scale: 0.98 }}
+      className="relative flex h-52 w-44 shrink-0 flex-col overflow-hidden rounded-2xl text-left transition-shadow neu-card"
       style={{ background: "#EDF4FF" }}
     >
       {/* Colored header band */}
@@ -401,19 +433,21 @@ const NoteCard = memo(function NoteCard({
       >
         <div className="flex items-center gap-1.5">
           {note.emoji && <span className="shrink-0 text-sm leading-none">{note.emoji}</span>}
-          <p className="truncate text-[13px] font-semibold text-ink-1">{note.title || "Untitled"}</p>
+          <p className="truncate text-sm font-bold text-ink-1">{note.title || "Untitled"}</p>
         </div>
-        <p className="text-[10px] text-ink-3">{new Date(note._creationTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+        <p className="mt-0.5 text-[10px] font-medium" style={{ color: color.dot, opacity: 0.8 }}>
+          {new Date(note._creationTime).toLocaleDateString([], { month: "short", day: "numeric" })}
+        </p>
       </div>
 
       {/* Preview lines */}
       <div className="flex flex-1 flex-col gap-1.5 px-3.5 py-2.5">
         {previewLines.length > 0 ? (
-          previewLines.map((line, i) => (
-            <p key={i} className="truncate text-[11px] leading-relaxed text-ink-3">{line}</p>
+          previewLines.slice(0, 3).map((line, i) => (
+            <p key={i} className="truncate text-xs leading-relaxed text-ink-3">{line}</p>
           ))
         ) : (
-          <p className="text-[11px] text-ink-4 italic">No content yet</p>
+          <p className="text-xs text-ink-4 italic">No content yet</p>
         )}
       </div>
 
@@ -450,26 +484,27 @@ function TagFolder({
   const abbr  = tag.slice(0, 2).toUpperCase();
 
   return (
-    <button onClick={onClick} className="flex flex-col items-center gap-2 transition-all hover:-translate-y-0.5">
-      {/* Folder icon */}
+    <button
+      onClick={onClick}
+      className="flex flex-col items-center gap-2 transition-all"
+      style={{ transform: active ? "translateY(-2px)" : undefined }}
+    >
+      {/* Folder tile */}
       <div
-        className="relative flex h-14 w-14 items-center justify-center rounded-2xl text-white text-sm font-bold transition-all"
+        className="flex h-14 w-14 items-center justify-center rounded-2xl text-xs font-bold transition-all"
         style={{
-          background: `linear-gradient(135deg, ${color.dot}dd, ${color.dot})`,
+          backgroundColor: color.bg,
+          border: active ? `2px solid ${color.dot}` : `1px solid ${color.border}`,
+          color: color.dot,
           boxShadow: active
-            ? `0 4px 12px ${color.dot}55`
-            : `2px 2px 6px ${color.dot}33, -1px -1px 4px #FFFFFF`,
+            ? `0 0 0 3px ${color.dot}22, 2px 2px 8px ${color.dot}30`
+            : `2px 2px 6px var(--neu-shadow-dark), -2px -2px 6px var(--neu-shadow-light)`,
         }}
       >
-        {/* Folder tab nub */}
-        <div
-          className="absolute -top-1.5 left-2.5 h-2 w-6 rounded-t-md"
-          style={{ background: color.dot }}
-        />
-        <span className="relative z-10 text-xs font-bold tracking-wide text-white">{abbr}</span>
+        <span className="text-sm">{abbr}</span>
       </div>
       <div className="text-center">
-        <p className="max-w-[72px] truncate text-xs font-medium text-ink-2">{tag}</p>
+        <p className="max-w-[72px] truncate text-xs font-semibold text-ink-2">{tag}</p>
         <p className="text-[10px] text-ink-4">{count} note{count === 1 ? "" : "s"}</p>
       </div>
     </button>

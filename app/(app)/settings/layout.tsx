@@ -44,63 +44,77 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Top bar */}
-      <div className="flex h-10 shrink-0 items-center gap-3 px-6 md:px-8">
+      <div className="flex h-10 shrink-0 items-center gap-3 border-b border-line-1 px-6 md:px-8">
         <motion.button
           {...buttonTap}
           onClick={toggle}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 hover:bg-raised hover:text-ink-2"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-ink-3 hover:bg-raised hover:text-ink-1"
           aria-label="Toggle sidebar"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </motion.button>
-        <span className="text-sm font-medium text-ink-2">Settings</span>
+        <span className="text-sm font-semibold text-ink-1">Settings</span>
       </div>
 
       <div className="flex flex-1 gap-0 overflow-hidden">
-        {/* Left settings nav */}
-        <nav className="hidden w-52 shrink-0 flex-col gap-1 border-r border-line-1 px-3 py-4 md:flex">
+        {/* Desktop left nav */}
+        <nav className="hidden w-56 shrink-0 flex-col gap-1 border-r border-line-1 px-3 py-5 md:flex">
           {NAV.map((item) => {
             const active = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-all ${
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                   active
-                    ? "bg-raised text-ink-1 neu-sm"
-                    : "text-ink-3 hover:bg-hover hover:text-ink-2"
+                    ? "bg-ai-hint text-ai neu-xs"
+                    : "text-ink-2 hover:bg-hover hover:text-ink-1"
                 }`}
               >
-                <span className={active ? "text-ai" : "text-ink-4"}>{item.icon}</span>
+                <span className={active ? "text-ai" : "text-ink-3"}>{item.icon}</span>
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        {/* Mobile tab bar */}
-        <nav className="flex shrink-0 gap-0 border-b border-line-1 px-4 md:hidden w-full absolute left-0 top-10 bg-surface z-10">
-          {NAV.map((item) => {
-            const active = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex flex-1 flex-col items-center gap-0.5 px-2 py-3 text-[10px] transition-colors ${
-                  active ? "text-ai border-b-2 border-ai" : "text-ink-4"
-                }`}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Mobile tab bar — fixed height, part of flex flow */}
+        <div className="flex h-full w-full flex-col overflow-hidden md:hidden">
+          <nav className="flex shrink-0 border-b border-line-1 px-2">
+            {NAV.map((item) => {
+              const active = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`relative flex flex-1 flex-col items-center gap-1 px-2 py-3 text-[10px] font-semibold transition-colors ${
+                    active ? "text-ai" : "text-ink-2 hover:text-ink-1"
+                  }`}
+                >
+                  <span className={active ? "text-ai" : "text-ink-3"}>{item.icon}</span>
+                  {item.label}
+                  {/* Active indicator pill */}
+                  {active && (
+                    <span
+                      className="absolute bottom-0 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full"
+                      style={{ backgroundColor: "#2563EB" }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 pt-16 md:px-10 md:pt-6">
+          {/* Mobile content */}
+          <div className="flex-1 overflow-y-auto px-5 py-6">
+            {children}
+          </div>
+        </div>
+
+        {/* Desktop content */}
+        <div className="hidden flex-1 overflow-y-auto px-8 py-8 md:block">
           {children}
         </div>
       </div>

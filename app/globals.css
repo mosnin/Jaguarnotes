@@ -52,11 +52,21 @@
   --text-micro:      0.6875rem;
 }
 
-/* ─── Neumorphism palette ─────────────────────────────────────────── */
+/* ─── Neumorphism palette & design tokens ────────────────────────── */
 :root {
   --neu-bg:           #EDF4FF;
   --neu-shadow-dark:  #C5D5E8;
   --neu-shadow-light: #FFFFFF;
+
+  /* Transition duration tokens */
+  --duration-fast:     120ms;
+  --duration-standard: 200ms;
+  --duration-slow:     320ms;
+
+  /* Overlay opacity tokens */
+  --overlay-sm:  rgba(0, 0, 0, 0.08);
+  --overlay-md:  rgba(0, 0, 0, 0.20);
+  --overlay-lg:  rgba(0, 0, 0, 0.40);
 }
 
 /* ─── Base ──────────────────────────────────────────────────────────── */
@@ -80,11 +90,15 @@ html, body {
 #__next, main { width: 100%; }
 
 /* ─── Neumorphic shadow utilities ─────────────────────────────────── */
-.neu-card {
+.neu-xs {
   box-shadow:
-    4px 4px 10px var(--neu-shadow-dark),
-    -4px -4px 10px var(--neu-shadow-light);
-  border: 1px solid rgba(197, 213, 232, 0.4);
+    1px 1px 3px var(--neu-shadow-dark),
+    -1px -1px 3px var(--neu-shadow-light);
+}
+.neu-sm {
+  box-shadow:
+    2px 2px 5px var(--neu-shadow-dark),
+    -2px -2px 5px var(--neu-shadow-light);
 }
 .neu-raised {
   box-shadow:
@@ -92,21 +106,42 @@ html, body {
     -3px -3px 8px var(--neu-shadow-light);
   border: 1px solid rgba(197, 213, 232, 0.4);
 }
-.neu-sm {
+.neu-card {
   box-shadow:
-    2px 2px 5px var(--neu-shadow-dark),
-    -2px -2px 5px var(--neu-shadow-light);
+    4px 4px 12px var(--neu-shadow-dark),
+    -4px -4px 12px var(--neu-shadow-light);
+  border: 1px solid rgba(197, 213, 232, 0.5);
+}
+.neu-lg {
+  box-shadow:
+    6px 6px 18px var(--neu-shadow-dark),
+    -6px -6px 18px var(--neu-shadow-light);
+  border: 1px solid rgba(197, 213, 232, 0.5);
+}
+.neu-xl {
+  box-shadow:
+    8px 8px 24px var(--neu-shadow-dark),
+    -8px -8px 24px var(--neu-shadow-light);
+  border: 1px solid rgba(197, 213, 232, 0.6);
 }
 .neu-pressed {
   box-shadow:
     inset 3px 3px 7px var(--neu-shadow-dark),
     inset -3px -3px 7px var(--neu-shadow-light);
 }
+.neu-inset {
+  box-shadow:
+    inset 2px 2px 6px var(--neu-shadow-dark),
+    inset -2px -2px 6px var(--neu-shadow-light);
+}
 .neu-btn {
   box-shadow:
-    3px 3px 7px var(--neu-shadow-dark),
-    -3px -3px 7px var(--neu-shadow-light);
-  transition: box-shadow 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
+    3px 3px 8px var(--neu-shadow-dark),
+    -3px -3px 8px var(--neu-shadow-light);
+  transition:
+    box-shadow var(--duration-fast) ease,
+    opacity var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
 }
 .neu-btn:hover {
   box-shadow:
@@ -117,12 +152,14 @@ html, body {
   box-shadow:
     inset 2px 2px 5px var(--neu-shadow-dark),
     inset -2px -2px 5px var(--neu-shadow-light);
-  transform: translateY(0.5px);
+  transform: scale(0.97) translateY(0.5px);
 }
-.neu-inset {
+.neu-glow {
   box-shadow:
-    inset 2px 2px 6px var(--neu-shadow-dark),
-    inset -2px -2px 6px var(--neu-shadow-light);
+    0 0 0 1px rgba(37, 99, 235, 0.2),
+    0 4px 16px rgba(37, 99, 235, 0.16),
+    4px 4px 12px var(--neu-shadow-dark),
+    -4px -4px 12px var(--neu-shadow-light);
 }
 
 /* ─── Scrollbar ─────────────────────────────────────────────────────── */
@@ -139,8 +176,9 @@ html, body {
 
 /* ─── Focus ─────────────────────────────────────────────────────────── */
 :focus-visible {
-  outline: 1.5px solid rgba(37, 99, 235, 0.5);
+  outline: 2px solid #2563EB;
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
 /* ─── Keyboard hint style ───────────────────────────────────────────── */
@@ -281,6 +319,39 @@ kbd {
   border-left: 2px solid rgba(37, 99, 235, 0.5) !important;
   padding-left: 14px !important;
   margin-left: -16px !important;
+}
+
+/* ─── Smooth details/accordion ──────────────────────────────────────── */
+details summary { list-style: none; }
+details summary::-webkit-details-marker { display: none; }
+details .accordion-body {
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-standard) ease;
+}
+details[open] .accordion-body {
+  grid-template-rows: 1fr;
+}
+.accordion-body > * { min-height: 0; }
+
+/* ─── Gradient text utility ─────────────────────────────────────────── */
+.text-gradient-blue {
+  background: linear-gradient(135deg, #2563EB 0%, #60A5FA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Shimmer loading effect ────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, #D5E4F5 25%, #EDF4FF 50%, #D5E4F5 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
 }
 
 /* ─── Border Beam animation (Magic UI) ─────────────────────────────── */
