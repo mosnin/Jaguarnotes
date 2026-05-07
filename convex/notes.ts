@@ -142,7 +142,11 @@ export const listShared = query({
 });
 
 export const create = mutation({
-  args: { title: v.string(), parentId: v.optional(v.id("notes")) },
+  args: {
+    title: v.string(),
+    parentId: v.optional(v.id("notes")),
+    folderId: v.optional(v.id("folders")),
+  },
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx);
     return ctx.db.insert("notes", {
@@ -154,6 +158,7 @@ export const create = mutation({
       updatedAt: Date.now(),
       version: 0,
       ...(args.parentId ? { parentId: args.parentId } : {}),
+      ...(args.folderId ? { folderId: args.folderId } : {}),
     });
   },
 });
@@ -171,6 +176,8 @@ export const update = mutation({
     linkedNoteIds: v.optional(v.array(v.id("notes"))),
     backlinkIds: v.optional(v.array(v.id("notes"))),
     parentId: v.optional(v.id("notes")),
+    coverColor: v.optional(v.union(v.string(), v.null())),
+    status: v.optional(v.union(v.literal("draft"), v.literal("active"), v.literal("archived"))),
   },
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx);
@@ -292,5 +299,120 @@ export const deleteAllForUser = mutation({
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", userId))
       .first();
     if (user) await ctx.db.delete(user._id);
+  },
+});
+
+// ---------------------------------------------------------------------------
+// MCP-specific queries and mutations
+// These are authenticated by userId passed from the MCP server after API key
+// validation — they intentionally bypass Clerk session auth.
+// ---------------------------------------------------------------------------
+
+export const listForMcp = query({
+  args: { userId: v.string(), limit: v.number() },
+  handler: async (ctx, args) => {
+    return ctx.db
+      .query("notes")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(args.limit);
+  },
+});
+
+export const getForMcp = query({
+  args: { id: v.string(), userId: v.string() },
+  handler: async (ctx, args) => {
+    const note = await ctx.db.get(args.id as any);
+    if (!note || note.userId !== args.userId) return null;
+    return note;
+  },
+});
+
+export const createForMcp = mutation({
+  args: {
+    userId: v.string(),
+    title: v.string(),
+    content: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    emoji: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    return ctx.db.insert("notes", {
+      userId: args.userId,
+      title: args.title,
+      content: args.content
+        ? JSON.stringify([
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: args.content, styles: {} }],
+            },
+          ])
+        : undefined,
+      preview: args.content ? args.content.slice(0, 150) : undefined,
+      tags: args.tags,
+      emoji: args.emoji,
+      updatedAt: Date.now(),
+      version: 0,
+    });
+  },
+});
+
+export const updateForMcp = mutation({
+  args: {
+    id: v.string(),
+    userId: v.string(),
+    title: v.optional(v.string()),
+    content: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const note = await ctx.db.get(args.id as any);
+    if (!note || note.userId !== args.userId) throw new Error("Not found");
+    const patch: Record<string, unknown> = {
+      updatedAt: Date.now(),
+      version: (note.version ?? 0) + 1,
+    };
+    if (args.title !== undefined) patch.title = args.title;
+    if (args.content !== undefined) {
+      patch.content = JSON.stringify([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: args.content, styles: {} }],
+        },
+      ]);
+      patch.preview = args.content.slice(0, 150);
+    }
+    if (args.tags !== undefined) patch.tags = args.tags;
+    await ctx.db.patch(args.id as any, patch);
+  },
+});
+
+export const searchForMcp = query({
+  args: { query: v.string(), userId: v.string() },
+  handler: async (ctx, args) => {
+    if (!args.query.trim()) return [];
+    const results = await ctx.db
+      .query("notes")
+      .withSearchIndex("search_notes", (q) =>
+        q.search("title", args.query).eq("userId", args.userId)
+      )
+      .take(20);
+    return results.map((n) => ({
+      id: n._id,
+      title: n.title,
+      preview: n.preview ?? "",
+      tags: n.tags ?? [],
+      emoji: n.emoji ?? "",
+      updatedAt: n.updatedAt ? new Date(n.updatedAt).toISOString() : null,
+    }));
+  },
+});
+
+export const deleteForMcp = mutation({
+  args: { id: v.string(), userId: v.string() },
+  handler: async (ctx, args) => {
+    const note = await ctx.db.get(args.id as any);
+    if (!note || note.userId !== args.userId) throw new Error("Not found");
+    await ctx.db.delete(args.id as any);
   },
 });
