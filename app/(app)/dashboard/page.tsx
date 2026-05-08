@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "@/lib/utils";
-import { staggerContainer, staggerItem, buttonTap } from "@/lib/motion";
+import { staggerContainer, staggerItem, buttonTap, springSnap } from "@/lib/motion";
 import { useSidebar } from "@/components/app/sidebar-context";
 import { NoteCardSkeleton } from "@/components/ui/note-card-skeleton";
 import { FolderGrid } from "@/components/folders/folder-grid";
@@ -98,7 +98,7 @@ export default function DashboardPage() {
 
   const tagFrequency = useMemo(() => {
     const freq = new Map<string, number>();
-    notes.forEach((n) => (n.tags ?? []).forEach((t) => freq.set(t, (freq.get(t) ?? 0) + 1)));
+    notes.forEach((n) => (n.tags ?? []).forEach((t: string) => freq.set(t, (freq.get(t) ?? 0) + 1)));
     return freq;
   }, [notes]);
 
@@ -146,8 +146,13 @@ export default function DashboardPage() {
           transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.9 }}
           className="mb-8 px-6 md:px-8"
         >
-          <h1 className="text-2xl font-bold tracking-tight text-ink-1 md:text-3xl">
-            {timeOfDay ? `Good ${timeOfDay}, ${firstName}.` : `Hi, ${firstName}.`}
+          <h1 className="text-2xl font-bold tracking-tight text-ink-1 md:text-3xl flex items-center gap-2">
+            {timeOfDay
+              ? `${timeOfDay === "morning" ? "Good morning" : timeOfDay === "afternoon" ? "Good afternoon" : "Good evening"}, ${firstName}.`
+              : `Hey, ${firstName}.`}
+            <span role="img" aria-label={timeOfDay === "morning" ? "sun" : timeOfDay === "evening" ? "moon" : "wave"}>
+              {timeOfDay === "morning" ? "☀️" : timeOfDay === "evening" ? "🌙" : "👋"}
+            </span>
           </h1>
           <p className="mt-1 text-sm text-ink-4">
             {notes.length === 0
@@ -178,22 +183,37 @@ export default function DashboardPage() {
           <div className="mb-4 flex items-center justify-between px-6 md:px-8">
             <h2 className="text-base font-semibold text-ink-1">My Notes</h2>
             {/* Time filter pill tabs */}
-            <div className="flex items-center gap-0 rounded-full p-0.5 neu-pressed" style={{ background: "#EDF4FF" }}>
+            <div className="flex items-center gap-1 rounded-full p-1 neu-pressed" style={{ background: "#EDF4FF" }}>
               {(["today", "week", "month"] as TimeFilter[]).map((f) => (
                 <button
                   key={f}
                   onClick={() => setTimeFilter(f)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${
+                  className={`rounded-full px-4 py-1.5 text-xs transition-all ${
                     timeFilter === f
-                      ? "text-white neu-btn"
-                      : "text-ink-4 hover:text-ink-2"
+                      ? "font-semibold text-white"
+                      : "font-medium text-ink-3 hover:text-ink-2"
                   }`}
-                  style={timeFilter === f ? { backgroundColor: "#2563EB" } : {}}
+                  style={
+                    timeFilter === f
+                      ? {
+                          backgroundColor: "#2563EB",
+                          boxShadow: "2px 2px 5px #C5D5E8, -2px -2px 5px #FFFFFF, 0 0 0 1px rgba(37,99,235,0.2)",
+                        }
+                      : {}
+                  }
                 >
                   {f === "today" ? "Today" : f === "week" ? "This Week" : "This Month"}
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Recent section header */}
+          <div className="flex items-center gap-2 mb-2 px-6 md:px-8">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-4">
+              {filteredByTime.length > 0 ? "Recent" : "Results"}
+            </p>
+            <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, #D5E4F5, transparent)' }} />
           </div>
 
           {notesStatus === "LoadingFirstPage" ? (
@@ -228,16 +248,15 @@ export default function DashboardPage() {
                   </DraggableNote>
                 );
               })}
-              {/* New note card at end */}
+              {/* New note card at end of carousel */}
               <motion.button
-                {...buttonTap}
+                whileHover={{ y: -3, transition: springSnap }}
+                whileTap={{ scale: 0.96, transition: springSnap }}
                 onClick={handleNewNote}
-                className="flex h-52 w-44 shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-line-2 text-ink-4 transition-all hover:border-ai/40 hover:text-ai"
+                className="flex-shrink-0 h-52 w-40 rounded-xl border-2 border-dashed border-line-2 hover:border-ai/40 flex flex-col items-center justify-center gap-2 text-ink-4 hover:text-ai transition-colors cursor-pointer"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-full border border-line-2 hover:border-ai/40">
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-                  </svg>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full" style={{ border: '1.5px dashed #C2D5EB' }}>
+                  <span className="text-ai text-lg leading-none font-light">+</span>
                 </div>
                 <span className="text-xs">New note</span>
               </motion.button>
@@ -281,16 +300,17 @@ export default function DashboardPage() {
               variants={staggerItem}
               {...buttonTap}
               onClick={handleNewNote}
-              className="col-span-2 flex items-center gap-3 rounded-xl border border-line-1 bg-surface px-4 py-3 text-left transition-all hover:border-line-2 neu-raised sm:col-span-1"
+              className="col-span-2 flex items-center gap-3 rounded-xl px-5 py-2.5 text-left neu-btn sm:col-span-1"
+              style={{ backgroundColor: "#2563EB" }}
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ background: "#DCF0FF" }}>
-                <svg className="h-4 w-4 text-ai" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,0.15)" }}>
+                <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 4v16m8-8H4" />
                 </svg>
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-ink-1">New note</p>
-                <p className="truncate text-xs text-ink-4">Empty canvas</p>
+                <p className="text-sm font-semibold text-white">+ New note</p>
+                <p className="truncate text-xs" style={{ color: "rgba(255,255,255,0.7)" }}>Empty canvas</p>
               </div>
             </motion.button>
 
@@ -342,17 +362,24 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="flex gap-4 overflow-x-auto px-6 pb-3 md:px-8" style={{ scrollbarWidth: "none" }}>
-              {clusters.map(([tag, count], i) => (
-                <TagFolder
-                  key={tag}
-                  tag={tag}
-                  count={count}
-                  colorIndex={i % CARD_COLORS.length}
-                  active={activeTag === tag}
-                  onClick={() => router.push(activeTag === tag ? "/dashboard" : `/dashboard?tag=${encodeURIComponent(tag)}`)}
-                />
-              ))}
+            <div className="relative">
+              <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#EDF4FF] to-transparent z-10" />
+              <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 z-10" style={{ background: "linear-gradient(to left, #EDF4FF, transparent)" }} />
+              <div
+                className="flex gap-1.5 overflow-x-auto scrollbar-hide px-6 pb-3 md:px-8"
+                style={{ scrollbarWidth: "none" }}
+              >
+                {clusters.map(([tag, count], i) => (
+                  <TagFolder
+                    key={tag}
+                    tag={tag}
+                    count={count}
+                    colorIndex={i % CARD_COLORS.length}
+                    active={activeTag === tag}
+                    onClick={() => router.push(activeTag === tag ? "/dashboard" : `/dashboard?tag=${encodeURIComponent(tag)}`)}
+                  />
+                ))}
+              </div>
             </div>
           </section>
         )}
@@ -387,7 +414,31 @@ export default function DashboardPage() {
             transition={{ delay: 0.15, type: "spring", stiffness: 280, damping: 32 }}
             className="px-6 py-2 md:px-8"
           >
+            {/* Centered empty state hero */}
+            <div className="mb-8 flex flex-col items-center text-center max-w-sm mx-auto py-6">
+              <span className="mb-4 text-5xl leading-none" role="img" aria-label="writing">✍️</span>
+              <p className="text-base font-bold text-ink-1 mb-1">No notes yet</p>
+              <p className="text-sm text-ink-3 mb-6">Create your first note to get started</p>
+              <motion.button
+                whileTap={{ scale: 0.96, transition: springSnap }}
+                whileHover={{ scale: 1.02, transition: springSnap }}
+                onClick={handleNewNote}
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white neu-btn"
+                style={{ backgroundColor: "#2563EB" }}
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 4v16m8-8H4" />
+                </svg>
+                + Create your first note
+              </motion.button>
+            </div>
+
             {/* Quick-start input */}
+            <div className="mb-3">
+              <p className="text-xs text-ink-4 mb-4">
+                Or type a topic below and let the AI do the heavy lifting.
+              </p>
+            </div>
             <form onSubmit={handleQuickStart} className="mb-6 flex max-w-lg flex-col gap-2">
               <input
                 value={quickTopic}
@@ -437,7 +488,8 @@ const NoteCard = memo(function NoteCard({
   colorIndex,
   onClick,
 }: {
-  note: { _id: string; _creationTime: number; title: string; preview?: string; emoji?: string; tags?: string[]; pinned?: boolean };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  note: { _id: string; _creationTime: number; title: string; preview?: string; emoji?: string; tags?: string[]; pinned?: boolean; wordCount?: number; [key: string]: any };
   colorIndex: number;
   onClick: () => void;
 }) {
@@ -450,11 +502,20 @@ const NoteCard = memo(function NoteCard({
     <motion.button
       variants={staggerItem}
       onClick={onClick}
-      whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 30 } }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={{
+        y: -3,
+        boxShadow: "6px 8px 20px #C5D5E8, -6px -4px 16px #FFFFFF",
+        transition: springSnap,
+      }}
+      whileTap={{ scale: 0.98, transition: springSnap }}
       className="relative flex h-52 w-44 shrink-0 flex-col overflow-hidden rounded-2xl text-left transition-shadow neu-card"
       style={{ background: "#EDF4FF" }}
     >
+      {/* Pin indicator */}
+      {note.pinned && (
+        <span className="absolute top-2 right-2 text-[10px]" role="img" aria-label="pinned">📌</span>
+      )}
+
       {/* Colored header band */}
       <div
         className="flex shrink-0 flex-col gap-0.5 px-3.5 py-3"
@@ -462,11 +523,16 @@ const NoteCard = memo(function NoteCard({
       >
         <div className="flex items-center gap-1.5">
           {note.emoji && <span className="shrink-0 text-sm leading-none">{note.emoji}</span>}
-          <p className="truncate text-sm font-bold text-ink-1">{note.title || "Untitled"}</p>
+          <p className="truncate text-sm font-bold leading-snug text-ink-1">{note.title || "Untitled"}</p>
         </div>
-        <p className="mt-0.5 text-[10px] font-medium" style={{ color: color.dot, opacity: 0.8 }}>
-          {new Date(note._creationTime).toLocaleDateString([], { month: "short", day: "numeric" })}
-        </p>
+        <div className="mt-0.5 flex items-center gap-1.5">
+          <p className="text-[10px] font-medium" style={{ color: color.dot, opacity: 0.8 }}>
+            {new Date(note._creationTime).toLocaleDateString([], { month: "short", day: "numeric" })}
+          </p>
+          {note.wordCount != null && note.wordCount > 0 && (
+            <span className="text-[9px] text-ink-4">{note.wordCount.toLocaleString()} w</span>
+          )}
+        </div>
       </div>
 
       {/* Preview lines */}
@@ -476,12 +542,12 @@ const NoteCard = memo(function NoteCard({
             <p key={i} className="truncate text-xs leading-relaxed text-ink-3">{line}</p>
           ))
         ) : (
-          <p className="text-xs text-ink-4 italic">No content yet</p>
+          <p className="text-xs italic text-ink-4">No content yet</p>
         )}
       </div>
 
-      {/* Edit button */}
-      <div className="flex justify-end px-3 pb-3">
+      {/* Footer row — word count (if not in header) + edit icon */}
+      <div className="flex items-center justify-end px-3 pb-3">
         <div
           className="flex h-6 w-6 items-center justify-center rounded-full"
           style={{ background: color.dot }}

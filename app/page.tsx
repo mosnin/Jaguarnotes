@@ -3,6 +3,7 @@ import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { Logo } from "@/components/ui/logo";
 import { BorderBeam } from "@/components/ui/border-beam";
 import { TypingAnimation } from "@/components/ui/typing-animation";
+import { FaqAccordion } from "@/components/landing/faq-accordion";
 
 export default function LandingPage() {
   return (
@@ -44,19 +45,24 @@ export default function LandingPage() {
         {/* ══════════════════════════════════════════════════
             HERO
         ══════════════════════════════════════════════════ */}
-        <section className="flex w-full max-w-5xl flex-col items-center pt-16 text-center md:pt-24">
+        <section className="flex w-full max-w-5xl flex-col items-center pt-16 text-center md:pt-24 py-20 md:py-28">
 
-          {/* Badge — blue tinted with blue border */}
+          {/* Badge — polished with arrow at end */}
           <div
-            className="mb-6 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold neu-xs"
+            className="mb-6 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-bold neu-xs"
             style={{
               borderColor: "rgba(37,99,235,0.3)",
               color: "#2563EB",
               backgroundColor: "rgba(37,99,235,0.06)",
             }}
           >
-            <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: "#16A34A" }} />
+            {/* Ping-pulse animated green dot */}
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ok opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: "#16A34A" }} />
+            </span>
             AI-native · 14 commands · GPT-4o mini
+            <span className="ml-0.5">→</span>
           </div>
 
           {/* Headline */}
@@ -64,7 +70,18 @@ export default function LandingPage() {
             className="mx-auto max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl"
             style={{ color: "#1B3652", letterSpacing: "-0.02em" }}
           >
-            Your thinking,{" "}
+            Your{" "}
+            <span
+              style={{
+                background: "linear-gradient(135deg, #2563EB, #7C3AED)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              AI-native
+            </span>{" "}
+            workspace,{" "}
             <br className="hidden sm:block" />
             <TypingAnimation
               words={["amplified.", "structured.", "accelerated.", "unleashed.", "elevated."]}
@@ -72,7 +89,11 @@ export default function LandingPage() {
             />
           </h1>
 
-          <p className="mt-6 max-w-xl text-base leading-relaxed md:text-lg" style={{ color: "#4A6D8C" }}>
+          {/* Sub-headline — wider, better line-height */}
+          <p
+            className="mt-6 max-w-2xl text-base leading-loose md:text-lg"
+            style={{ color: "#4A6D8C" }}
+          >
             Type a thought. Hit{" "}
             <kbd className="mx-0.5 rounded-md px-1.5 py-0.5 text-xs neu-xs" style={{ background: "#F4F8FF", border: "1px solid #C2D5EB", color: "#2563EB", fontWeight: 600 }}>/</kbd>
             {" "}and choose from 14 AI commands.
@@ -82,28 +103,57 @@ export default function LandingPage() {
           {/* CTAs */}
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
             <SignedOut>
+              {/* Primary CTA — arrow slides right on hover */}
               <Link
                 href="/sign-up"
-                className="neu-btn rounded-xl px-8 py-3.5 text-sm font-semibold text-white active:scale-95 transition-all"
+                className="group neu-btn rounded-xl px-8 py-3.5 text-sm font-semibold text-white active:scale-95 transition-all inline-flex items-center gap-2"
                 style={{ backgroundColor: "#2563EB" }}
               >
-                Start for free →
+                Start for free
+                <svg
+                  className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8h10M9 4l4 4-4 4" />
+                </svg>
               </Link>
+              {/* Ghost / secondary CTA */}
               <Link
                 href="/sign-in"
-                className="rounded-xl border px-8 py-3.5 text-sm font-medium transition-all hover:border-ai/50 hover:text-ink-1 neu-sm active:scale-95"
-                style={{ borderColor: "#C2D5EB", color: "#4A6D8C" }}
+                className="group rounded-xl border border-line-2 px-8 py-3.5 text-sm font-medium transition-all hover:border-line-3 hover:text-ink-1 neu-sm active:scale-95 inline-flex items-center gap-2"
+                style={{ color: "#4A6D8C" }}
               >
                 Sign in
+                <svg
+                  className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8h10M9 4l4 4-4 4" />
+                </svg>
               </Link>
             </SignedOut>
             <SignedIn>
               <Link
                 href="/dashboard"
-                className="neu-btn rounded-xl px-8 py-3.5 text-sm font-semibold text-white active:scale-95"
+                className="group neu-btn rounded-xl px-8 py-3.5 text-sm font-semibold text-white active:scale-95 transition-all inline-flex items-center gap-2"
                 style={{ backgroundColor: "#2563EB" }}
               >
-                Open workspace →
+                Open workspace
+                <svg
+                  className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8h10M9 4l4 4-4 4" />
+                </svg>
               </Link>
             </SignedIn>
           </div>
@@ -113,11 +163,25 @@ export default function LandingPage() {
             Free account · No credit card · Instant access
           </p>
 
-          {/* ── Product card with BorderBeam ── */}
+          {/* ── Product card with BorderBeam + shimmer top edge ── */}
           <div
             className="relative mt-14 w-full overflow-hidden rounded-3xl neu-lg"
             style={{ borderColor: "#D5E4F5" }}
           >
+            {/* Animated shimmer on top edge */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: "2px",
+                background: "linear-gradient(90deg, transparent, rgba(37,99,235,0.4), transparent)",
+                animation: "shimmer 2.5s ease-in-out infinite",
+                zIndex: 10,
+              }}
+            />
+
             {/* Subtle grid pattern fill */}
             <div
               className="flex h-[320px] w-full items-center justify-center md:h-[460px]"
@@ -143,17 +207,62 @@ export default function LandingPage() {
                 <rect width="100%" height="100%" fill="url(#grid)" />
               </svg>
 
-              <div className="relative z-10 text-center">
+              {/* Animated note / AI demo content */}
+              <div className="relative z-10 mx-auto w-full max-w-sm px-6">
+                {/* Window chrome strip */}
                 <div
-                  className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl neu-raised"
-                  style={{ background: "#EDF4FF" }}
+                  className="rounded-t-xl border border-b-0 px-4 py-2.5 flex items-center gap-2"
+                  style={{ background: "#F4F8FF", borderColor: "#D5E4F5" }}
                 >
-                  <svg className="h-8 w-8" fill="none" stroke="#2563EB" viewBox="0 0 24 24" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                  </svg>
+                  <span className="h-2 w-2 rounded-full" style={{ background: "#ff5f57" }} />
+                  <span className="h-2 w-2 rounded-full" style={{ background: "#febc2e" }} />
+                  <span className="h-2 w-2 rounded-full" style={{ background: "#28c840" }} />
+                  <span className="ml-2 text-[10px] font-medium" style={{ color: "#A8C2D8" }}>
+                    Strategy Notes
+                  </span>
                 </div>
-                <p className="text-sm font-semibold" style={{ color: "#4A6D8C" }}>Product screenshot coming soon</p>
-                <p className="mt-1 text-xs" style={{ color: "#A8C2D8" }}>Images will be placed here</p>
+                {/* Note body */}
+                <div
+                  className="rounded-b-xl border px-5 py-4 space-y-3"
+                  style={{ background: "#F4F8FF", borderColor: "#D5E4F5" }}
+                >
+                  {/* Line 1 — static heading */}
+                  <p className="text-sm font-bold" style={{ color: "#1B3652" }}>
+                    AI agent harness
+                  </p>
+                  {/* Line 2 — AI-generated text block */}
+                  <p className="text-xs leading-relaxed" style={{ color: "#4A6D8C" }}>
+                    A runtime that orchestrates one or more AI agents — routing tasks, managing tool access, and streaming results back into the application surface.
+                  </p>
+                  {/* Line 3 — slash command hint + blinking cursor */}
+                  <div
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-2"
+                    style={{ background: "rgba(37,99,235,0.06)", border: "1px solid rgba(37,99,235,0.15)" }}
+                  >
+                    <span className="font-mono text-xs font-semibold" style={{ color: "#2563EB" }}>
+                      /table
+                    </span>
+                    <span className="text-xs" style={{ color: "#7B9AB8" }}>use cases →</span>
+                    {/* Blinking cursor */}
+                    <span
+                      className="ml-auto inline-block h-3 w-px"
+                      style={{
+                        background: "#2563EB",
+                        animation: "pulse 1s cubic-bezier(0.4,0,0.6,1) infinite",
+                      }}
+                    />
+                  </div>
+                  {/* AI status badge */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "#2563EB" }} />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full" style={{ background: "#2563EB" }} />
+                    </span>
+                    <span className="text-[10px] uppercase tracking-widest" style={{ color: "#7B9AB8" }}>
+                      AI generating
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -165,7 +274,7 @@ export default function LandingPage() {
             <BorderBeam size={320} duration={10} colorFrom="#93C5FD" colorTo="#2563EB" borderWidth={1.5} />
           </div>
 
-          {/* Feature chips — visually distinct from badge */}
+          {/* Feature chips — with neumorphic box-shadow */}
           <div className="mt-5 flex flex-wrap justify-center gap-2">
             {[
               { label: "14 AI commands", icon: "⚡", color: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.3)", text: "#D97706" },
@@ -175,8 +284,13 @@ export default function LandingPage() {
             ].map((f) => (
               <div
                 key={f.label}
-                className="flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium"
-                style={{ borderColor: f.border, backgroundColor: f.color, color: f.text }}
+                className="flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-150 hover:scale-[1.02]"
+                style={{
+                  borderColor: f.border,
+                  backgroundColor: f.color,
+                  color: f.text,
+                  boxShadow: "1px 1px 3px #C5D5E8, -1px -1px 3px #FFFFFF",
+                }}
               >
                 <span>{f.icon}</span>
                 <span>{f.label}</span>
@@ -185,10 +299,13 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Section divider: hero → stats */}
+        <div className="mx-auto max-w-2xl px-6" style={{ height: "1px", background: "linear-gradient(90deg, transparent, #C5D5E8, transparent)" }} />
+
         {/* ══════════════════════════════════════════════════
             STATS BAND
         ══════════════════════════════════════════════════ */}
-        <section className="mx-auto mt-24 w-full max-w-3xl">
+        <section className="mx-auto w-full max-w-3xl py-20 md:py-28">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {[
               { value: "14", label: "AI commands" },
@@ -199,7 +316,14 @@ export default function LandingPage() {
               <div key={s.label} className="flex flex-col items-center rounded-2xl p-5 text-center neu-card bg-surface">
                 <span
                   className="text-4xl font-extrabold md:text-5xl"
-                  style={{ color: "#2563EB", letterSpacing: "-0.02em" }}
+                  style={{
+                    background: "linear-gradient(135deg, #2563EB, #7C3AED)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    letterSpacing: "-0.02em",
+                    fontFeatureSettings: '"tnum"',
+                  }}
                 >
                   {s.value}
                 </span>
@@ -209,10 +333,13 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Section divider: stats → command strip */}
+        <div className="mx-auto max-w-2xl px-6" style={{ height: "1px", background: "linear-gradient(90deg, transparent, #C5D5E8, transparent)" }} />
+
         {/* ══════════════════════════════════════════════════
             COMMAND STRIP
         ══════════════════════════════════════════════════ */}
-        <section className="mx-auto mt-20 w-full max-w-3xl">
+        <section className="mx-auto w-full max-w-3xl py-20 md:py-28">
           <p className="mb-4 text-center text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#A8C2D8" }}>
             14 AI commands
           </p>
@@ -249,10 +376,13 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Section divider: command strip → how it works */}
+        <div className="mx-auto max-w-2xl px-6" style={{ height: "1px", background: "linear-gradient(90deg, transparent, #C5D5E8, transparent)" }} />
+
         {/* ══════════════════════════════════════════════════
             HOW IT WORKS
         ══════════════════════════════════════════════════ */}
-        <section className="mx-auto mt-32 w-full max-w-3xl">
+        <section className="mx-auto w-full max-w-3xl py-20 md:py-28">
           <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#A8C2D8" }}>How it works</p>
           <h2 className="mb-12 text-center text-3xl font-extrabold" style={{ color: "#1B3652", letterSpacing: "-0.02em" }}>
             Three keystrokes to brilliant
@@ -277,10 +407,13 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Section divider: how it works → features */}
+        <div className="mx-auto max-w-2xl px-6" style={{ height: "1px", background: "linear-gradient(90deg, transparent, #C5D5E8, transparent)" }} />
+
         {/* ══════════════════════════════════════════════════
             FEATURE BREAKDOWN
         ══════════════════════════════════════════════════ */}
-        <section className="mx-auto mt-32 w-full max-w-3xl">
+        <section className="mx-auto w-full max-w-3xl py-20 md:py-28">
           <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#A8C2D8" }}>Features</p>
           <h2 className="mb-12 text-center text-3xl font-extrabold" style={{ color: "#1B3652", letterSpacing: "-0.02em" }}>
             Everything you need to think better
@@ -294,7 +427,10 @@ export default function LandingPage() {
               { title: "Note Linking",     desc: "Link notes together. Backlinks appear automatically. Build a second brain without the overhead.", icon: "🔗" },
               { title: "Tags & Hierarchy", desc: "Organise with tags, nest notes inside notes, or let the AI do it for you with /outline.", icon: "🗂️" },
             ].map((f) => (
-              <div key={f.title} className="flex gap-4 rounded-2xl p-5 bg-surface neu-raised border border-line-1 transition-all hover:neu-card">
+              <div
+                key={f.title}
+                className="flex gap-4 rounded-2xl p-5 bg-surface neu-raised border border-line-1 transition-all duration-150 hover:scale-[1.02] hover:shadow-md hover:border-[#C5D5E8] hover:neu-card"
+              >
                 <span className="mt-0.5 text-2xl leading-none">{f.icon}</span>
                 <div>
                   <p className="mb-1.5 text-sm font-bold" style={{ color: "#1B3652" }}>{f.title}</p>
@@ -305,10 +441,13 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Section divider: features → testimonials */}
+        <div className="mx-auto max-w-2xl px-6" style={{ height: "1px", background: "linear-gradient(90deg, transparent, #C5D5E8, transparent)" }} />
+
         {/* ══════════════════════════════════════════════════
             SOCIAL PROOF
         ══════════════════════════════════════════════════ */}
-        <section className="mx-auto mt-32 w-full max-w-3xl">
+        <section className="mx-auto w-full max-w-3xl py-20 md:py-28">
           <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#A8C2D8" }}>Early users</p>
           <h2 className="mb-10 text-center text-3xl font-extrabold" style={{ color: "#1B3652", letterSpacing: "-0.02em" }}>
             What people are saying
@@ -319,7 +458,10 @@ export default function LandingPage() {
               { quote: "The /research command alone is worth it. It's like having a research assistant who never sleeps.", name: "Daniel T.", role: "Researcher", initials: "DT", color: "#DCF0FF", text: "#2563EB" },
               { quote: "Tab autocomplete is uncanny. It knows what I'm trying to say before I do.", name: "Priya S.", role: "Writer", initials: "PS", color: "#E3F5E1", text: "#16A34A" },
             ].map((t) => (
-              <div key={t.name} className="flex flex-col gap-4 rounded-2xl p-5 bg-surface neu-card">
+              <div
+                key={t.name}
+                className="neu-card flex flex-col gap-4 rounded-2xl p-5 bg-surface transition-colors duration-200 hover:shadow-md"
+              >
                 {/* Stars */}
                 <div className="flex gap-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -330,9 +472,9 @@ export default function LandingPage() {
                 </div>
                 <p className="text-sm leading-relaxed" style={{ color: "#2D4A63" }}>&ldquo;{t.quote}&rdquo;</p>
                 <div className="mt-auto flex items-center gap-3">
-                  {/* Avatar with initials */}
+                  {/* Avatar with initials — slightly larger */}
                   <div
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold"
                     style={{ background: t.color, color: t.text }}
                   >
                     {t.initials}
@@ -353,53 +495,48 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Section divider: testimonials → FAQ */}
+        <div className="mx-auto max-w-2xl px-6" style={{ height: "1px", background: "linear-gradient(90deg, transparent, #C5D5E8, transparent)" }} />
+
         {/* ══════════════════════════════════════════════════
             FAQ
         ══════════════════════════════════════════════════ */}
-        <section className="mx-auto mt-32 w-full max-w-2xl">
+        <section className="mx-auto w-full max-w-2xl py-20 md:py-28">
           <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#A8C2D8" }}>FAQ</p>
           <h2 className="mb-10 text-center text-3xl font-extrabold" style={{ color: "#1B3652", letterSpacing: "-0.02em" }}>
             Common questions
           </h2>
-          <div className="space-y-2">
-            {[
-              { q: "Is it really free?",             a: "Yes. Create an account and start using all 14 AI commands immediately, no credit card required." },
-              { q: "Which AI model powers it?",      a: "GPT-4o mini — fast, accurate, and optimized for structured generation tasks like tables, outlines, and diagrams." },
-              { q: "Is my data private?",            a: "Notes are stored securely in Convex and tied to your account. We do not train on your content." },
-              { q: "Can I use it offline?",          a: "The editor is accessible offline, but AI commands and real-time sync require a connection." },
-              { q: "Does it work on mobile?",        a: "Yes. The app is fully responsive with a dedicated mobile bottom nav and touch-friendly editor." },
-            ].map((faq) => (
-              <details key={faq.q} className="group rounded-2xl border border-line-1 bg-surface neu-sm overflow-hidden">
-                <summary
-                  className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-semibold select-none"
-                  style={{ color: "#1B3652" }}
-                >
-                  {faq.q}
-                  <svg
-                    className="ml-4 h-4 w-4 shrink-0 transition-transform duration-200 group-open:rotate-180"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    style={{ color: "#7B9AB8" }}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </summary>
-                <p className="px-5 pb-5 text-sm leading-relaxed" style={{ color: "#4A6D8C" }}>{faq.a}</p>
-              </details>
-            ))}
-          </div>
+          <FaqAccordion />
         </section>
+
+        {/* Section divider: FAQ → CTA */}
+        <div className="mx-auto max-w-2xl px-6" style={{ height: "1px", background: "linear-gradient(90deg, transparent, #C5D5E8, transparent)" }} />
 
         {/* ══════════════════════════════════════════════════
             FINAL CTA
         ══════════════════════════════════════════════════ */}
-        <section className="mt-32 flex w-full max-w-2xl flex-col items-center text-center">
+        <section className="mt-8 flex w-full max-w-2xl flex-col items-center text-center py-20 md:py-28">
           <div
-            className="relative w-full overflow-hidden rounded-3xl px-10 py-14 text-center neu-lg bg-surface"
+            className="relative w-full overflow-hidden rounded-3xl neu-lg bg-surface p-12 text-center"
           >
             {/* Subtle blue gradient spot */}
             <div
               className="pointer-events-none absolute inset-0 opacity-40"
               style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(37,99,235,0.10) 0%, transparent 70%)" }}
+            />
+            {/* Blue glow blob behind CTA */}
+            <div
+              style={{
+                position: "absolute",
+                width: "400px",
+                height: "300px",
+                background: "radial-gradient(circle, rgba(37,99,235,0.08), transparent)",
+                borderRadius: "50%",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                pointerEvents: "none",
+              }}
             />
             <h2 className="relative text-3xl font-extrabold" style={{ color: "#1B3652", letterSpacing: "-0.02em" }}>
               Start thinking better today
@@ -411,19 +548,37 @@ export default function LandingPage() {
               <SignedOut>
                 <Link
                   href="/sign-up"
-                  className="neu-btn inline-block rounded-xl px-10 py-4 text-sm font-semibold text-white active:scale-95 transition-all"
+                  className="group neu-btn inline-flex items-center gap-2 rounded-xl px-10 py-4 text-sm font-semibold text-white active:scale-95 transition-all"
                   style={{ backgroundColor: "#2563EB" }}
                 >
-                  Create free account →
+                  Create free account
+                  <svg
+                    className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8h10M9 4l4 4-4 4" />
+                  </svg>
                 </Link>
               </SignedOut>
               <SignedIn>
                 <Link
                   href="/dashboard"
-                  className="neu-btn inline-block rounded-xl px-10 py-4 text-sm font-semibold text-white active:scale-95 transition-all"
+                  className="group neu-btn inline-flex items-center gap-2 rounded-xl px-10 py-4 text-sm font-semibold text-white active:scale-95 transition-all"
                   style={{ backgroundColor: "#2563EB" }}
                 >
-                  Open workspace →
+                  Open workspace
+                  <svg
+                    className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8h10M9 4l4 4-4 4" />
+                  </svg>
                 </Link>
               </SignedIn>
             </div>
@@ -432,7 +587,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── FOOTER ── */}
-        <footer className="mt-20 w-full max-w-3xl border-t border-line-1 pt-10">
+        <footer className="w-full max-w-5xl border-t border-line-1 py-8">
           <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
             <Logo size="sm" />
             <div className="flex items-center gap-6 text-xs font-medium" style={{ color: "#7B9AB8" }}>
@@ -441,8 +596,17 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-6 flex flex-col items-center justify-between gap-2 text-xs sm:flex-row" style={{ color: "#A8C2D8" }}>
-            <p>© {new Date().getFullYear()} Jaguarnotes. All rights reserved.</p>
-            <p>
+            <span>© {new Date().getFullYear()} Jaguarnotes. All rights reserved.</span>
+            <div className="flex gap-6">
+              {["Features", "Sign in", "Privacy"].map((label) => (
+                <Link key={label} href="#" className="text-xs transition-colors hover:text-ink-1" style={{ color: "#7B9AB8" }}>
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div className="mt-4 flex flex-col items-center justify-center gap-1 text-xs sm:flex-row">
+            <p style={{ color: "#A8C2D8" }}>
               Built on{" "}
               <span style={{ color: "#7B9AB8" }}>GPT-4o mini</span>
               {" · "}
@@ -451,8 +615,19 @@ export default function LandingPage() {
               <span style={{ color: "#7B9AB8" }}>Next.js</span>
             </p>
           </div>
+          <div className="mt-4 text-center">
+            <p className="text-xs text-ink-4">© 2025 Jaguarnotes. Built for thinkers.</p>
+          </div>
         </footer>
       </main>
+
+      {/* Shimmer keyframe — injected globally via style tag */}
+      <style>{`
+        @keyframes shimmer {
+          0%   { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+      `}</style>
     </div>
   );
 }

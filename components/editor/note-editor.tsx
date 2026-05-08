@@ -9,6 +9,7 @@ import { BlockNoteView } from "@blocknote/mantine";
 import { PartialBlock } from "@blocknote/core";
 import "@blocknote/mantine/style.css";
 import { motion, AnimatePresence } from "framer-motion";
+import { buttonTap } from "@/lib/motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -340,14 +341,6 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     await updateNote({ id: noteId as Id<"notes">, status });
   }
 
-  // Status dot color class
-  const statusDotClass =
-    noteStatus === "draft"
-      ? "bg-ink-4"
-      : noteStatus === "archived"
-      ? "bg-warn"
-      : "bg-ok";
-
   // Unsaved-changes guard — warn if tab is closed while a save is in flight
   useEffect(() => {
     function handleBeforeUnload(e: BeforeUnloadEvent) {
@@ -534,16 +527,17 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
 
       {/* Top bar — hidden in focus mode */}
       {!focusMode && (
-        <div className="flex h-12 shrink-0 items-center gap-1 border-b border-line-1 px-4 pt-[env(safe-area-inset-top)]">
-          <button
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-line-1 bg-surface px-4 pt-[env(safe-area-inset-top)]">
+          <motion.button
+            {...buttonTap}
             onClick={toggleSidebar}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-hover hover:text-ink-1"
             aria-label="Toggle sidebar"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-          </button>
+          </motion.button>
 
           {/* Breadcrumb — visible when this is a child note */}
           {parentNote && (
@@ -562,7 +556,15 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
           <div className="ml-2 flex items-center gap-1.5">
             {/* Status color dot */}
             <span
-              className={`h-1.5 w-1.5 shrink-0 rounded-full ${statusDotClass} opacity-70`}
+              className={`h-2 w-2 shrink-0 rounded-full ${noteStatus === "active" ? "animate-pulse" : ""}`}
+              style={{
+                backgroundColor:
+                  noteStatus === "active"
+                    ? "#16A34A"
+                    : noteStatus === "archived"
+                    ? "#D97706"
+                    : "#A8C2D8",
+              }}
               title={noteStatus ?? "active"}
             />
             <AnimatePresence mode="wait">
@@ -573,8 +575,10 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="h-1.5 w-1.5 rounded-full bg-ink-1/20 animate-pulse"
-                />
+                  className="text-[10px] text-ink-4 animate-pulse"
+                >
+                  Saving…
+                </motion.span>
               )}
               {saveStatus === "saved" && (
                 <motion.span
@@ -583,7 +587,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="text-[10px] text-ink-4"
+                  className="text-[10px] text-ok opacity-60"
                 >
                   Saved
                 </motion.span>
@@ -603,63 +607,71 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
 
             {/* Undo / Redo */}
             <div className="flex items-center gap-0.5">
-              <button
+              <motion.button
+                {...buttonTap}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 onClick={() => (editor as any)._tiptapEditor?.commands?.undo?.()}
-                className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-hover hover:text-ink-1"
                 aria-label="Undo"
                 title="Undo (⌘Z)"
               >
                 <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 14L4 9l5-5M4 9h10.5a6.5 6.5 0 0 1 0 13H11" />
                 </svg>
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                {...buttonTap}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 onClick={() => (editor as any)._tiptapEditor?.commands?.redo?.()}
-                className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-hover hover:text-ink-1"
                 aria-label="Redo"
                 title="Redo (⌘Y)"
               >
                 <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 14l5-5-5-5m5 5H9.5a6.5 6.5 0 0 0 0 13H13" />
                 </svg>
-              </button>
+              </motion.button>
             </div>
 
             {/* Focus mode button */}
-            <button
+            <motion.button
+              {...buttonTap}
               onClick={() => setFocusMode(true)}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-hover hover:text-ink-1"
               aria-label="Enter focus mode"
               title="Focus mode"
             >
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
               </svg>
-            </button>
+            </motion.button>
 
             {/* AI trigger — prominent blue pill */}
-            <button
+            <motion.button
+              {...buttonTap}
               onClick={() => setSlashMenu({ query: "" })}
-              className="rounded-full px-3 py-1 text-xs font-semibold text-white bg-[#2563EB] neu-btn flex items-center gap-1.5 min-h-[44px] md:min-h-[28px]"
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ai transition-all"
+              style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.18)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(37,99,235,0.13)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(37,99,235,0.08)"; }}
               aria-label="AI commands"
             >
               <span>⚡</span>
               <span>AI</span>
-            </button>
+            </motion.button>
 
             {/* Properties button */}
-            <button
+            <motion.button
+              {...buttonTap}
               onClick={() => setShowProperties((v) => !v)}
-              className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${showProperties ? "bg-raised text-ink-1" : "text-ink-4 hover:bg-raised hover:text-ink-2"}`}
+              className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${showProperties ? "text-ai bg-ai-hint neu-xs" : "text-ink-3 hover:bg-hover"}`}
               aria-label="Toggle properties panel"
               title="Properties"
             >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.25 6.75h7.5M8.25 12h7.5m-7.5 5.25h7.5M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
               </svg>
-            </button>
+            </motion.button>
 
             {/* Overflow menu */}
             <button
@@ -679,10 +691,10 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
         {/* Editor scroll area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
           <div
-            className={`mx-auto w-full px-4 pb-24 md:px-12 md:pb-32 ${
+            className={`mx-auto w-full pb-24 md:pb-32 ${
               focusMode
-                ? "max-w-2xl pt-16"
-                : "max-w-3xl pt-0"
+                ? "max-w-2xl px-6 pt-16 md:px-8"
+                : "max-w-3xl px-4 pt-0 md:px-12"
             }`}
           >
             {/* Cover */}
@@ -721,7 +733,8 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
                 value={title}
                 onChange={(e) => handleTitleChange(e.target.value)}
                 placeholder="Untitled"
-                className="min-w-0 flex-1 cursor-text border-b border-transparent bg-transparent text-3xl font-bold leading-tight tracking-tight text-ink-1 placeholder-ink-4 outline-none transition-colors hover:border-line-1 focus:border-transparent md:text-5xl"
+                className="w-full bg-transparent text-2xl font-extrabold text-ink-1 placeholder-ink-4 outline-none leading-tight tracking-tight"
+                style={{ letterSpacing: "-0.02em" }}
               />
             </div>
 

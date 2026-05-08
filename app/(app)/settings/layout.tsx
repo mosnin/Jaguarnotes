@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/components/app/sidebar-context";
 import { motion } from "framer-motion";
-import { buttonTap } from "@/lib/motion";
+import { buttonTap, springSnap } from "@/lib/motion";
 
 const NAV = [
   {
@@ -64,25 +64,37 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </motion.button>
-        <span className="text-sm font-semibold text-ink-1">Settings</span>
+        <span className="text-sm font-bold text-ink-1 tracking-tight">Settings</span>
       </div>
 
       <div className="flex flex-1 gap-0 overflow-hidden">
         {/* Desktop left nav */}
-        <nav className="hidden w-56 shrink-0 flex-col gap-1 border-r border-line-1 px-3 py-5 md:flex">
+        <nav
+          className="hidden w-56 shrink-0 flex-col gap-1 border-r border-line-1 px-3 py-5 md:flex"
+          style={{ borderRight: "1px solid", borderImage: "linear-gradient(to bottom, #D5E4F5, #EDF4FF) 1" }}
+        >
           {NAV.map((item) => {
             const active = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
-                  active
-                    ? "bg-ai-hint text-ai neu-xs"
-                    : "text-ink-2 hover:bg-hover hover:text-ink-1"
-                }`}
+                className="relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all"
+                style={active ? {
+                  background: "rgba(37,99,235,0.07)",
+                  color: "#2563EB",
+                  boxShadow: "1px 1px 3px #C5D5E8, -1px -1px 3px #FFFFFF"
+                } : { color: "#4A6D8C" }}
               >
-                <span className={active ? "text-ai" : "text-ink-3"}>{item.icon}</span>
+                {active && (
+                  <motion.span
+                    layoutId="settings-nav-indicator"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full"
+                    style={{ backgroundColor: "#2563EB" }}
+                    transition={springSnap}
+                  />
+                )}
+                <span style={active ? { color: "#2563EB" } : { color: "#7B9AB8" }}>{item.icon}</span>
                 {item.label}
               </Link>
             );
@@ -98,17 +110,19 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`relative flex flex-1 flex-col items-center gap-1 px-2 py-3 text-[10px] font-semibold transition-colors ${
-                    active ? "text-ai" : "text-ink-2 hover:text-ink-1"
+                  className={`relative flex flex-1 flex-col items-center gap-1 px-2 py-3 text-[10px] transition-colors ${
+                    active ? "text-ai font-semibold" : "text-ink-3 hover:text-ink-1"
                   }`}
                 >
                   <span className={active ? "text-ai" : "text-ink-3"}>{item.icon}</span>
                   {item.label}
                   {/* Active indicator pill */}
                   {active && (
-                    <span
-                      className="absolute bottom-0 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full"
+                    <motion.span
+                      layoutId="settings-mobile-indicator"
+                      className="absolute bottom-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full"
                       style={{ backgroundColor: "#2563EB" }}
+                      transition={springSnap}
                     />
                   )}
                 </Link>

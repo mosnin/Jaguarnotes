@@ -147,6 +147,7 @@ html, body {
   box-shadow:
     2px 2px 5px var(--neu-shadow-dark),
     -2px -2px 5px var(--neu-shadow-light);
+  transform: translateY(-1px);
 }
 .neu-btn:active {
   box-shadow:
@@ -348,10 +349,14 @@ details[open] .accordion-body {
   0%   { background-position: -400px 0; }
   100% { background-position: 400px 0; }
 }
+@keyframes shimmer-sweep {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
 .animate-shimmer {
-  background: linear-gradient(90deg, #D5E4F5 25%, #EDF4FF 50%, #D5E4F5 75%);
-  background-size: 800px 100%;
-  animation: shimmer 1.6s ease-in-out infinite;
+  background: linear-gradient(120deg, transparent 25%, rgba(255,255,255,0.6) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer-sweep 1.8s linear infinite;
 }
 
 /* ─── Border Beam animation (Magic UI) ─────────────────────────────── */
@@ -371,4 +376,163 @@ details[open] .accordion-body {
 }
 .animate-blink {
   animation: blink 1s step-end infinite;
+}
+
+/* ─── Float animation ───────────────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+.animate-float { animation: float 3.5s ease-in-out infinite; }
+
+/* ─── Pulse ring animation (live dots) ─────────────────────────────── */
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2); opacity: 0; }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 1.6s ease-out infinite;
+}
+
+/* ─── Gradient hue-rotate for glow effects ──────────────────────────── */
+@keyframes gradient-shift {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50%       { filter: hue-rotate(20deg); }
+}
+
+/* ─── Gradient text — blue ──────────────────────────────────────────── */
+.gradient-text-blue {
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Glass surface ─────────────────────────────────────────────────── */
+.glass {
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+}
+
+/* ─── Chip / badge ──────────────────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 99px;
+  border: 1px solid #C2D5EB;
+  background: #F4F8FF;
+  color: #4A6D8C;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  line-height: 1.5;
+  transition: all var(--duration-fast) ease;
+}
+.chip:hover {
+  border-color: #AABFD6;
+  color: #1B3652;
+}
+.chip-active {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.3);
+  color: #2563EB;
+}
+
+/* ─── Hover lift ────────────────────────────────────────────────────── */
+.hover-lift {
+  transition: transform var(--duration-standard) ease, box-shadow var(--duration-standard) ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 6px 8px 20px var(--neu-shadow-dark), -6px -4px 16px var(--neu-shadow-light);
+}
+
+/* ─── Scrollbar hide ────────────────────────────────────────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Divider with fade ─────────────────────────────────────────────── */
+.divider-fade {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C5D5E8 30%, #C5D5E8 70%, transparent);
+  border: none;
+}
+
+/* ─── Text balance ──────────────────────────────────────────────────── */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* ─── Neumorphic focus ring ─────────────────────────────────────────── */
+.neu-focus {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
+  box-shadow:
+    0 0 0 4px rgba(37, 99, 235, 0.12),
+    2px 2px 5px #C5D5E8,
+    -2px -2px 5px #FFFFFF;
+}
+
+/* ─── Additional keyframes ──────────────────────────────────────────── */
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.7; }
+}
+@keyframes shine {
+  0% { transform: translateX(-100%) skewX(-12deg); }
+  100% { transform: translateX(200%) skewX(-12deg); }
+}
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Additional animated utilities ────────────────────────────────── */
+.animate-pulse-scale { animation: pulse-scale 2s ease-in-out infinite; }
+.animate-shine { animation: shine 1.5s ease-in-out; }
+.animate-fade-in-up { animation: fade-in-up 0.4s ease-out forwards; }
+.animate-spin-slow { animation: spin-slow 8s linear infinite; }
+
+/* ─── Subtle dot grid background pattern ───────────────────────────── */
+.bg-dot-grid {
+  background-image: radial-gradient(circle, rgba(37, 99, 235, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ─── Inset shine on neumorphic buttons — improves perceived depth ─── */
+.neu-shine {
+  position: relative;
+  overflow: hidden;
+}
+.neu-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, transparent 50%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ─── Blue focus ring — tighter and more elegant ────────────────────── */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #EDF4FF, 0 0 0 4px rgba(37, 99, 235, 0.5);
+}
+
+/* ─── Section divider gradient ──────────────────────────────────────── */
+.divider-gradient {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C5D5E8 30%, #C5D5E8 70%, transparent);
 }

@@ -310,117 +310,190 @@ export function SlashCommandMenu({ query, editor, onInserted, onDismiss, initial
     zIndex: 50,
   };
 
+  // Category badge styles
+  const CATEGORY_ICON_STYLE: Record<string, React.CSSProperties> = {
+    Format:   { backgroundColor: "rgba(107,114,128,0.12)", color: "#6B7280" },
+    Generate: { backgroundColor: "rgba(37,99,235,0.1)",   color: "#2563EB" },
+    Think:    { backgroundColor: "rgba(124,58,237,0.1)",  color: "#7C3AED" },
+  };
+
   return (
     <motion.div
       ref={menuRef}
       style={style}
       {...motionProps}
-      className="w-80 overflow-hidden rounded-xl border border-line-2 bg-surface neu-card"
+      className="w-64 rounded-2xl border border-line-2 bg-surface overflow-hidden neu-lg"
     >
       {/* ── LIST ── */}
       {phase === "list" && (
-        <div
-          role="listbox"
-          aria-label="AI commands"
-          aria-activedescendant={selectedIndex >= 0 && flatListCommands.length > 0 ? `cmd-option-${selectedIndex}` : undefined}
-          className="max-h-[440px] overflow-y-auto py-1"
-        >
-          {filtered.length === 0 && (
-            <p className="px-3 py-4 text-xs text-ink-4">No commands match &ldquo;{query}&rdquo;</p>
-          )}
-
-          {/* Format — direct, no input. Shown first because it's the most-frequent affordance. */}
-          {formatVisible.length > 0 && (
-            <div role="group" aria-label="Format">
-              <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Format</p>
-              {formatVisible.map((cmd, i) => (
-                <button
-                  key={cmd.id}
-                  id={`cmd-option-${i}`}
-                  role="option"
-                  aria-selected={selectedIndex === i}
-                  onClick={() => selectCommand(cmd.id)}
-                  className={`flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised${selectedIndex === i ? " bg-raised" : ""}`}
-                >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ink-2">
-                    {cmd.icon}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium text-ink-1">{cmd.label}</p>
-                    <p className="text-xs text-ink-3">{cmd.desc}</p>
-                  </div>
-                </button>
-              ))}
+        <>
+          {/* Search input */}
+          {query !== undefined && (
+            <div className="border-b border-line-1">
+              <input
+                readOnly
+                value={query}
+                className="w-full border-b border-line-1 bg-transparent px-4 py-2.5 text-sm text-ink-1 placeholder-ink-4 outline-none"
+                placeholder="Search commands..."
+                aria-label="Filter commands"
+              />
             </div>
           )}
 
-          {/* Generate — AI-driven content creation */}
-          {generateVisible.length > 0 && (
-            <div role="group" aria-label="Generate">
-              <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Generate with AI</p>
-              {generateVisible.map((cmd, i) => {
-                const flatIndex = formatVisible.length + i;
-                return (
+          <div
+            role="listbox"
+            aria-label="AI commands"
+            aria-activedescendant={selectedIndex >= 0 && flatListCommands.length > 0 ? `cmd-option-${selectedIndex}` : undefined}
+            style={{ maxHeight: "min(400px, 70vh)", overflowY: "auto" }}
+          >
+            {filtered.length === 0 && (
+              <p className="px-3 py-4 text-xs text-ink-4">No commands match &ldquo;{query}&rdquo;</p>
+            )}
+
+            {/* Format — direct, no input. Shown first because it's the most-frequent affordance. */}
+            {formatVisible.length > 0 && (
+              <div role="group" aria-label="Format">
+                <div className="px-3 pt-3 pb-1">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-ink-4">Format</span>
+                </div>
+                {formatVisible.map((cmd, i) => {
+                  const isSelected = selectedIndex === i;
+                  return (
+                    <button
+                      key={cmd.id}
+                      id={`cmd-option-${i}`}
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => selectCommand(cmd.id)}
+                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-all ${
+                        isSelected ? "bg-ai-hint" : "hover:bg-raised"
+                      }`}
+                      style={isSelected ? { borderLeft: "2px solid #2563EB" } : { borderLeft: "2px solid transparent" }}
+                    >
+                      <span
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs"
+                        style={CATEGORY_ICON_STYLE["Format"]}
+                      >
+                        {cmd.icon}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-semibold text-ink-1">{cmd.label}</span>
+                        {cmd.desc && <span className="ml-2 text-[10px] text-ink-4">{cmd.desc}</span>}
+                      </div>
+                      {isSelected && (
+                        <kbd className="shrink-0 rounded border border-line-2 bg-raised px-1 text-[9px] font-mono text-ink-4">↵</kbd>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Generate — AI-driven content creation */}
+            {generateVisible.length > 0 && (
+              <div role="group" aria-label="Generate">
+                <div className="px-3 pt-3 pb-1">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-ink-4">Generate</span>
+                </div>
+                {generateVisible.map((cmd, i) => {
+                  const flatIndex = formatVisible.length + i;
+                  const isSelected = selectedIndex === flatIndex;
+                  return (
+                    <button
+                      key={cmd.id}
+                      id={`cmd-option-${flatIndex}`}
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => selectCommand(cmd.id)}
+                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-all ${
+                        isSelected ? "bg-ai-hint" : "hover:bg-raised"
+                      }`}
+                      style={isSelected ? { borderLeft: "2px solid #2563EB" } : { borderLeft: "2px solid transparent" }}
+                    >
+                      <span
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs"
+                        style={CATEGORY_ICON_STYLE["Generate"]}
+                      >
+                        {cmd.icon}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-semibold text-ink-1">{cmd.label}</span>
+                        {cmd.desc && <span className="ml-2 text-[10px] text-ink-4">{cmd.desc}</span>}
+                      </div>
+                      {isSelected && (
+                        <kbd className="shrink-0 rounded border border-line-2 bg-raised px-1 text-[9px] font-mono text-ink-4">↵</kbd>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Think — featured 3 by default, expand to all 8 */}
+            {thinkVisible.length > 0 && (
+              <div role="group" aria-label="Think">
+                <div className="px-3 pt-3 pb-1">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-ink-4">Transform</span>
+                </div>
+                {thinkVisible.map((cmd, i) => {
+                  const flatIndex = formatVisible.length + generateVisible.length + i;
+                  const isSelected = selectedIndex === flatIndex;
+                  return (
+                    <button
+                      key={cmd.id}
+                      id={`cmd-option-${flatIndex}`}
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => selectCommand(cmd.id)}
+                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-all ${
+                        isSelected ? "bg-ai-hint" : "hover:bg-raised"
+                      }`}
+                      style={isSelected ? { borderLeft: "2px solid #2563EB" } : { borderLeft: "2px solid transparent" }}
+                    >
+                      <span
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs"
+                        style={CATEGORY_ICON_STYLE["Think"]}
+                      >
+                        {cmd.icon}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-semibold text-ink-1">{cmd.label}</span>
+                        {cmd.desc && <span className="ml-2 text-[10px] text-ink-4">{cmd.desc}</span>}
+                      </div>
+                      {isSelected && (
+                        <kbd className="shrink-0 rounded border border-line-2 bg-raised px-1 text-[9px] font-mono text-ink-4">↵</kbd>
+                      )}
+                    </button>
+                  );
+                })}
+                {thinkHiddenCount > 0 && (
                   <button
-                    key={cmd.id}
-                    id={`cmd-option-${flatIndex}`}
-                    role="option"
-                    aria-selected={selectedIndex === flatIndex}
-                    onClick={() => selectCommand(cmd.id)}
-                    className={`flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised${selectedIndex === flatIndex ? " bg-raised" : ""}`}
+                    onClick={() => setShowAllThink(true)}
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-raised"
+                    style={{ borderLeft: "2px solid transparent" }}
                   >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
-                      {cmd.icon}
+                    <span
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs"
+                      style={CATEGORY_ICON_STYLE["Think"]}
+                    >
+                      +{thinkHiddenCount}
                     </span>
-                    <div>
-                      <p className="text-sm font-medium text-ink-1">{cmd.label}</p>
-                      <p className="text-xs text-ink-3">{cmd.desc}</p>
-                    </div>
+                    <p className="text-xs text-ink-4">More thinking tools</p>
                   </button>
-                );
-              })}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </div>
 
-          {/* Think — featured 3 by default, expand to all 8 */}
-          {thinkVisible.length > 0 && (
-            <div role="group" aria-label="Think">
-              <p className="px-3 pb-1 pt-2.5 text-[10px] uppercase tracking-widest text-ink-4">Transform with AI</p>
-              {thinkVisible.map((cmd, i) => {
-                const flatIndex = formatVisible.length + generateVisible.length + i;
-                return (
-                  <button
-                    key={cmd.id}
-                    id={`cmd-option-${flatIndex}`}
-                    role="option"
-                    aria-selected={selectedIndex === flatIndex}
-                    onClick={() => selectCommand(cmd.id)}
-                    className={`flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised${selectedIndex === flatIndex ? " bg-raised" : ""}`}
-                  >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-sm text-ai">
-                      {cmd.icon}
-                    </span>
-                    <div>
-                      <p className="text-sm font-medium text-ink-1">{cmd.label}</p>
-                      <p className="text-xs text-ink-3">{cmd.desc}</p>
-                    </div>
-                  </button>
-                );
-              })}
-              {thinkHiddenCount > 0 && (
-                <button
-                  onClick={() => setShowAllThink(true)}
-                  className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-raised"
-                >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-raised text-xs text-ink-4">
-                    +{thinkHiddenCount}
-                  </span>
-                  <p className="text-sm text-ink-4">More thinking tools</p>
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+          {/* Footer hint */}
+          <div className="border-t border-line-1 px-3 py-2 flex items-center gap-2">
+            <kbd className="rounded border border-line-2 bg-raised px-1.5 py-0.5 text-[9px] font-mono text-ink-4 neu-xs">↑↓</kbd>
+            <span className="text-[10px] text-ink-4">navigate</span>
+            <span className="mx-1 text-ink-4">·</span>
+            <kbd className="rounded border border-line-2 bg-raised px-1.5 py-0.5 text-[9px] font-mono text-ink-4 neu-xs">Esc</kbd>
+            <span className="text-[10px] text-ink-4">close</span>
+          </div>
+        </>
       )}
 
       {/* ── INPUT ── */}

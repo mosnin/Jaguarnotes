@@ -42,18 +42,31 @@ export default function AccountPage() {
 
   return (
     <div className="max-w-xl space-y-6">
+      {/* Page header */}
       <div>
         <h1 className="text-xl font-bold text-ink-1">Account</h1>
         <p className="mt-1 text-sm text-ink-3">Manage your session and account data.</p>
       </div>
 
-      {/* Sign out */}
+      {/* Session / sign-out card */}
       <div className="rounded-2xl bg-surface p-6 neu-card">
-        <h2 className="mb-1 text-sm font-bold text-ink-1">Session</h2>
-        <p className="mb-5 text-xs text-ink-3">
-          Signed in as{" "}
-          <span className="font-semibold text-ink-2">{user?.primaryEmailAddress?.emailAddress}</span>
-        </p>
+        <h2 className="mb-4 text-sm font-bold text-ink-1">Session</h2>
+
+        {/* User info */}
+        <div className="mb-5 flex items-center gap-3">
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold text-white"
+            style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
+          >
+            {user?.primaryEmailAddress?.emailAddress?.charAt(0).toUpperCase() ?? "U"}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-ink-1">{user?.fullName ?? "Account"}</p>
+            <p className="text-xs text-ink-3">{user?.primaryEmailAddress?.emailAddress}</p>
+          </div>
+        </div>
+
+        {/* Sign-out button */}
         <motion.button
           {...buttonTap}
           onClick={handleSignOut}
@@ -66,8 +79,11 @@ export default function AccountPage() {
         </motion.button>
       </div>
 
-      {/* Danger zone */}
-      <div className="rounded-2xl border-2 bg-surface p-6 transition-all" style={{ borderColor: "rgba(220,38,38,0.5)" }}>
+      {/* Danger zone card */}
+      <div
+        className="rounded-2xl bg-surface p-6 neu-card"
+        style={{ borderLeft: "3px solid rgba(220,38,38,0.6)" }}
+      >
         <div className="mb-4 flex items-center gap-2">
           <svg className="h-4 w-4 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
@@ -127,7 +143,12 @@ export default function AccountPage() {
               <button
                 onClick={handleDeleteData}
                 disabled={!confirmMatch || deleting}
-                className="flex items-center gap-2 rounded-xl bg-error px-4 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                style={
+                  confirmMatch
+                    ? { background: "#DC2626", boxShadow: "2px 2px 6px rgba(220,38,38,0.3), -1px -1px 4px rgba(255,255,255,0.8)" }
+                    : { background: "#DC2626" }
+                }
               >
                 {deleting ? (
                   <>

@@ -47,23 +47,6 @@ interface NotePropertiesPanelProps {
   onStatusChange: (status: NoteStatus) => void;
 }
 
-/* ─── Tag color palette ─────────────────────────────────────────────── */
-
-const TAG_COLORS = [
-  "bg-[#EDE8FF] text-[#6B46C1] border-[#D4C5FF]",
-  "bg-[#DCF0FF] text-[#1D6FA4] border-[#B8DEFF]",
-  "bg-[#E3F5E1] text-[#2F7D32] border-[#C8EFC4]",
-  "bg-[#FFE4F0] text-[#BE185D] border-[#FFD0E4]",
-  "bg-[#FFF5DC] text-[#92400E] border-[#FFE8B0]",
-  "bg-[#FFE8DF] text-[#C2410C] border-[#FFC9B0]",
-  "bg-[#E0F4F4] text-[#0F766E] border-[#C2ECEC]",
-  "bg-[#F4F8FF] text-[#4A6D8C] border-[#D5E4F5]",
-];
-
-function tagColor(index: number) {
-  return TAG_COLORS[index % TAG_COLORS.length];
-}
-
 /* ─── Section wrapper ──────────────────────────────────────────────── */
 
 function Section({
@@ -81,13 +64,11 @@ function Section({
     <div className="border-b border-line-1 last:border-0">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-4 py-3 text-left"
+        className="flex w-full items-center justify-between px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-ink-3 hover:text-ink-2 transition-colors"
       >
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-ink-4">
-          {title}
-        </span>
+        <span>{title}</span>
         <svg
-          className={`h-3.5 w-3.5 text-ink-4 transition-transform duration-200 ${open ? "" : "-rotate-90"}`}
+          className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -95,55 +76,12 @@ function Section({
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeWidth={1.75}
+            strokeWidth={2}
             d="M19 9l-7 7-7-7"
           />
         </svg>
       </button>
-      {open && <div className="px-4 pb-4">{children}</div>}
-    </div>
-  );
-}
-
-/* ─── Status toggle ─────────────────────────────────────────────────── */
-
-const STATUS_OPTIONS: {
-  value: NoteStatus;
-  label: string;
-  dotClass: string;
-}[] = [
-  { value: "draft", label: "Draft", dotClass: "bg-ink-4" },
-  { value: "active", label: "Active", dotClass: "bg-ok" },
-  { value: "archived", label: "Archived", dotClass: "bg-warn" },
-];
-
-function StatusToggle({
-  status,
-  onChange,
-}: {
-  status: NoteStatus | undefined;
-  onChange: (s: NoteStatus) => void;
-}) {
-  const current = status ?? "active";
-
-  return (
-    <div className="flex rounded-lg border border-line-1 bg-app overflow-hidden neu-inset">
-      {STATUS_OPTIONS.map((opt) => (
-        <button
-          key={opt.value}
-          onClick={() => onChange(opt.value)}
-          className={`flex flex-1 items-center justify-center gap-1.5 py-1.5 text-[10px] font-medium transition-all ${
-            current === opt.value
-              ? "bg-surface text-ink-1 neu-xs"
-              : "text-ink-4 hover:text-ink-2"
-          }`}
-        >
-          <span
-            className={`h-1.5 w-1.5 rounded-full ${opt.dotClass} shrink-0`}
-          />
-          {opt.label}
-        </button>
-      ))}
+      {open && <div>{children}</div>}
     </div>
   );
 }
@@ -172,6 +110,8 @@ export function NotePropertiesPanel({
   const readingLabel =
     readingTimeMin < 2 ? "~1 min" : `~${readingTimeMin} min`;
 
+  const noteStatus = status ?? "active";
+
   function formatDate(ts: number | undefined) {
     if (!ts) return "—";
     return new Intl.DateTimeFormat("en-US", {
@@ -191,219 +131,232 @@ export function NotePropertiesPanel({
     setTagInput("");
   }
 
+  const createdDate = formatDate(createdAt);
+  const modifiedDate = formatDate(updatedAt);
+
   return (
     <motion.aside
       initial={{ x: 260, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 260, opacity: 0 }}
       transition={springStd}
-      className="hidden md:flex w-[260px] shrink-0 flex-col overflow-y-auto border-l border-line-1 bg-surface"
+      className="hidden md:flex w-64 shrink-0 flex-col overflow-y-auto border-l border-line-1 bg-surface"
       aria-label="Note properties"
     >
       {/* Panel header */}
-      <div className="flex items-center justify-between border-b border-line-1 px-4 py-3">
-        <span className="text-xs font-semibold text-ink-2">Properties</span>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-line-1">
+        <span className="text-sm font-bold text-ink-1">Properties</span>
       </div>
 
       {/* ── Info section ──────────────────────────────────────────────── */}
       <Section title="Info">
-        <dl className="grid grid-cols-2 gap-x-2 gap-y-2.5">
-          <div>
-            <dt className="mb-0.5 text-[9px] uppercase tracking-wide text-ink-4">
-              Created
-            </dt>
-            <dd className="text-[11px] text-ink-3">{formatDate(createdAt)}</dd>
-          </div>
-          <div>
-            <dt className="mb-0.5 text-[9px] uppercase tracking-wide text-ink-4">
-              Modified
-            </dt>
-            <dd className="text-[11px] text-ink-3">{formatDate(updatedAt)}</dd>
-          </div>
-          <div>
-            <dt className="mb-0.5 text-[9px] uppercase tracking-wide text-ink-4">
-              Words
-            </dt>
-            <dd className="text-[11px] font-medium tabular-nums text-ink-2">
+        <div className="px-4 py-2 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-ink-4">Words</span>
+            <span className="text-[10px] font-semibold text-ink-2">
               {wordCount > 0 ? wordCount.toLocaleString() : "—"}
-            </dd>
+            </span>
           </div>
-          <div>
-            <dt className="mb-0.5 text-[9px] uppercase tracking-wide text-ink-4">
-              Read time
-            </dt>
-            <dd className="text-[11px] text-ink-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-ink-4">Read time</span>
+            <span className="text-[10px] font-semibold text-ink-2">
               {wordCount > 0 ? readingLabel : "—"}
-            </dd>
+            </span>
           </div>
-        </dl>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-ink-4">Created</span>
+            <span className="text-[10px] font-semibold text-ink-2">{createdDate}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-ink-4">Modified</span>
+            <span className="text-[10px] font-semibold text-ink-2">{modifiedDate}</span>
+          </div>
+        </div>
       </Section>
 
       {/* ── Status section ────────────────────────────────────────────── */}
       <Section title="Status">
-        <StatusToggle status={status} onChange={onStatusChange} />
+        <div className="mx-4 mb-3 flex rounded-lg p-0.5 neu-inset">
+          {(["draft", "active", "archived"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => onStatusChange(s)}
+              className={`flex-1 rounded-md py-1.5 text-[10px] font-semibold capitalize transition-all ${
+                noteStatus === s ? "text-white" : "text-ink-3 hover:text-ink-2"
+              }`}
+              style={
+                noteStatus === s
+                  ? {
+                      backgroundColor: "#2563EB",
+                      boxShadow: "1px 1px 3px rgba(37,99,235,0.3)",
+                    }
+                  : {}
+              }
+            >
+              {s}
+            </button>
+          ))}
+        </div>
       </Section>
 
       {/* ── Tags section ──────────────────────────────────────────────── */}
       <Section title="Tags">
-        {tags.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-1.5">
-            {tags.map((tag, i) => (
-              <span
-                key={tag}
-                className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${tagColor(i)}`}
-              >
-                {tag}
-                <button
-                  onClick={() => onRemoveTag(tag)}
-                  className="ml-0.5 opacity-60 transition-opacity hover:opacity-100"
-                  aria-label={`Remove tag ${tag}`}
+        <div className="px-4 pb-3">
+          {tags.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 rounded-full border border-line-2 bg-raised px-2 py-0.5 text-[10px] font-medium text-ink-2 neu-xs"
                 >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-        <input
-          value={tagInput}
-          onChange={(e) => setTagInput(e.target.value.replace(",", ""))}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === ",") {
-              e.preventDefault();
-              handleAddTag();
-            }
-            if (e.key === "Backspace" && !tagInput && tags.length > 0) {
-              onRemoveTag(tags[tags.length - 1]);
-            }
-          }}
-          onBlur={handleAddTag}
-          placeholder="Add tag…"
-          className="w-full rounded-md border border-line-1 bg-app px-2.5 py-1.5 text-[11px] text-ink-3 placeholder-ink-4 outline-none transition-colors focus:border-line-2 focus:bg-surface neu-inset"
-        />
+                  {tag}
+                  <button
+                    onClick={() => onRemoveTag(tag)}
+                    className="h-3 w-3 text-ink-4 hover:text-error transition-colors leading-none"
+                    aria-label={`Remove tag ${tag}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <input
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value.replace(",", ""))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === ",") {
+                e.preventDefault();
+                handleAddTag();
+              }
+              if (e.key === "Backspace" && !tagInput && tags.length > 0) {
+                onRemoveTag(tags[tags.length - 1]);
+              }
+            }}
+            onBlur={handleAddTag}
+            placeholder="Add tag…"
+            className="rounded-lg border border-dashed border-line-2 px-2 py-1 text-[11px] text-ink-2 bg-transparent outline-none focus:border-ai/40 w-full mt-1.5 placeholder-ink-4"
+          />
+        </div>
       </Section>
 
       {/* ── Connections section ───────────────────────────────────────── */}
       <Section title="Connections" defaultOpen={false}>
-        {linkedNotes.length > 0 && (
-          <div className="mb-3">
-            <p className="mb-1.5 text-[9px] uppercase tracking-wide text-ink-4">
-              Links to
-            </p>
-            <div className="flex flex-col gap-1">
-              {linkedNotes.map((note) => (
-                <Link
-                  key={note._id}
-                  href={`/notes/${note._id}`}
-                  className="flex items-center gap-1.5 truncate rounded-md px-2 py-1.5 text-[11px] text-ink-3 transition-colors hover:bg-hover hover:text-ink-1"
-                >
-                  {note.emoji && (
-                    <span className="shrink-0 text-xs">{note.emoji}</span>
-                  )}
-                  <span className="truncate">{note.title || "Untitled"}</span>
-                  <span className="ml-auto shrink-0 text-[9px] text-ink-4">
-                    →
-                  </span>
-                </Link>
-              ))}
+        <div className="pb-3">
+          {linkedNotes.length > 0 && (
+            <div className="mb-3">
+              <p className="px-4 mb-1.5 text-[9px] uppercase tracking-wide text-ink-4">
+                Links to
+              </p>
+              <div className="flex flex-col gap-0.5 px-2">
+                {linkedNotes.map((link) => (
+                  <Link
+                    key={link._id}
+                    href={`/notes/${link._id}`}
+                    className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium text-ink-2 hover:bg-hover hover:text-ink-1 transition-colors"
+                  >
+                    <span className="text-sm">{link.emoji ?? "📝"}</span>
+                    <span className="truncate">{link.title || "Untitled"}</span>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {backlinks.length > 0 && (
-          <div className="mb-3">
-            <p className="mb-1.5 text-[9px] uppercase tracking-wide text-ink-4">
-              Linked from
-            </p>
-            <div className="flex flex-col gap-1">
-              {backlinks.map((note) => (
-                <Link
-                  key={note._id}
-                  href={`/notes/${note._id}`}
-                  className="flex items-center gap-1.5 truncate rounded-md px-2 py-1.5 text-[11px] text-ink-3 transition-colors hover:bg-hover hover:text-ink-1"
-                >
-                  {note.emoji && (
-                    <span className="shrink-0 text-xs">{note.emoji}</span>
-                  )}
-                  <span className="truncate">{note.title || "Untitled"}</span>
-                  <span className="ml-auto shrink-0 text-[9px] text-ink-4">
-                    ←
-                  </span>
-                </Link>
-              ))}
+          {backlinks.length > 0 && (
+            <div className="mb-3">
+              <p className="px-4 mb-1.5 text-[9px] uppercase tracking-wide text-ink-4">
+                Linked from
+              </p>
+              <div className="flex flex-col gap-0.5 px-2">
+                {backlinks.map((link) => (
+                  <Link
+                    key={link._id}
+                    href={`/notes/${link._id}`}
+                    className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium text-ink-2 hover:bg-hover hover:text-ink-1 transition-colors"
+                  >
+                    <span className="text-sm">{link.emoji ?? "📝"}</span>
+                    <span className="truncate">{link.title || "Untitled"}</span>
+                  </Link>
+                ))}
+              </div>
             </div>
+          )}
+
+          {linkedNotes.length === 0 && backlinks.length === 0 && (
+            <p className="px-4 mb-2 text-[11px] text-ink-4">No connections yet.</p>
+          )}
+
+          <div className="px-4">
+            <button
+              onClick={onLinkNote}
+              className="flex w-full items-center gap-1.5 rounded-md border border-line-1 px-2.5 py-1.5 text-[10px] text-ink-4 transition-colors hover:border-line-2 hover:bg-hover hover:text-ink-2 neu-xs"
+            >
+              <svg
+                className="h-3 w-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
+                />
+              </svg>
+              Link note
+            </button>
           </div>
-        )}
-
-        {linkedNotes.length === 0 && backlinks.length === 0 && (
-          <p className="mb-2 text-[11px] text-ink-4">No connections yet.</p>
-        )}
-
-        <button
-          onClick={onLinkNote}
-          className="flex w-full items-center gap-1.5 rounded-md border border-line-1 px-2.5 py-1.5 text-[10px] text-ink-4 transition-colors hover:border-line-2 hover:bg-hover hover:text-ink-2 neu-xs"
-        >
-          <svg
-            className="h-3 w-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
-            />
-          </svg>
-          Link note
-        </button>
+        </div>
       </Section>
 
       {/* ── Sub-notes section ─────────────────────────────────────────── */}
       <Section title="Sub-notes" defaultOpen={false}>
-        {childNotes.length > 0 && (
-          <div className="mb-2 flex flex-col gap-1">
-            {childNotes.map((child) => (
-              <Link
-                key={child._id}
-                href={`/notes/${child._id}`}
-                className="flex items-center gap-1.5 truncate rounded-md px-2 py-1.5 text-[11px] text-ink-3 transition-colors hover:bg-hover hover:text-ink-1"
+        <div className="pb-3">
+          {childNotes.length > 0 && (
+            <div className="mb-2 flex flex-col gap-0.5 px-2">
+              {childNotes.map((child) => (
+                <Link
+                  key={child._id}
+                  href={`/notes/${child._id}`}
+                  className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium text-ink-2 hover:bg-hover hover:text-ink-1 transition-colors"
+                >
+                  <span className="text-sm">{child.emoji ?? "📝"}</span>
+                  <span className="truncate">{child.title || "Untitled"}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {childNotes.length === 0 && (
+            <p className="px-4 mb-2 text-[11px] text-ink-4">No sub-notes yet.</p>
+          )}
+
+          {canAddSubNote && (
+            <div className="px-4">
+              <button
+                onClick={onNewSubNote}
+                className="flex w-full items-center gap-1.5 rounded-md border border-line-1 px-2.5 py-1.5 text-[10px] text-ink-4 transition-colors hover:border-line-2 hover:bg-hover hover:text-ink-2 neu-xs"
               >
-                {child.emoji && (
-                  <span className="shrink-0 text-xs">{child.emoji}</span>
-                )}
-                <span className="truncate">{child.title || "Untitled"}</span>
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {childNotes.length === 0 && (
-          <p className="mb-2 text-[11px] text-ink-4">No sub-notes yet.</p>
-        )}
-
-        {canAddSubNote && (
-          <button
-            onClick={onNewSubNote}
-            className="flex w-full items-center gap-1.5 rounded-md border border-line-1 px-2.5 py-1.5 text-[10px] text-ink-4 transition-colors hover:border-line-2 hover:bg-hover hover:text-ink-2 neu-xs"
-          >
-            <svg
-              className="h-3 w-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            New sub-note
-          </button>
-        )}
+                <svg
+                  className="h-3 w-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                New sub-note
+              </button>
+            </div>
+          )}
+        </div>
       </Section>
     </motion.aside>
   );

@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { BlockNoteEditor } from "@blocknote/core";
-import { scaleIn } from "@/lib/motion";
 
 interface AIAutocompleteOverlayProps {
   context: string;
@@ -76,7 +75,7 @@ export function AIAutocompleteOverlay({
   // Keyboard: Enter to insert, Escape to dismiss
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Enter" && done) { e.preventDefault(); onInsert(text); }
+      if ((e.key === "Tab" || e.key === "Enter") && done) { e.preventDefault(); onInsert(text); }
       if (e.key === "Escape") onDismiss();
     }
     document.addEventListener("keydown", onKeyDown);
@@ -94,9 +93,10 @@ export function AIAutocompleteOverlay({
     <motion.div
       ref={overlayRef}
       style={style}
-      variants={scaleIn}
-      initial="hidden"
-      animate="show"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
       className="w-88 max-w-sm rounded-xl border border-line-2 bg-surface neu-card"
     >
       {/* Header */}
@@ -119,7 +119,10 @@ export function AIAutocompleteOverlay({
         {error ? (
           <p className="text-xs text-error">Something went wrong. Try again.</p>
         ) : (
-          <p className="text-sm leading-relaxed text-ink-2">
+          <p
+            className="text-sm leading-relaxed italic"
+            style={{ color: "rgba(37,99,235,0.45)" }}
+          >
             {text}
             {!done && (
               <span className="ml-0.5 inline-block h-3.5 w-px animate-pulse bg-ai" />
@@ -136,7 +139,10 @@ export function AIAutocompleteOverlay({
             className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-ai-dim px-3 py-2 text-xs font-medium text-ai transition-colors hover:bg-ai-dim/80"
           >
             Insert
-            <kbd className="rounded border border-ai/20 bg-ai-hint px-1 py-0.5 text-[9px] font-mono">↵</kbd>
+            <span className="ml-2 inline-flex items-center gap-1 rounded-md border border-line-2 bg-raised px-1.5 py-0.5 text-[9px] font-mono text-ink-4 neu-xs align-middle">
+              Tab
+            </span>
+            <span className="ml-1 text-[9px] text-ink-4">Esc to dismiss</span>
           </button>
           <button
             onClick={onDismiss}

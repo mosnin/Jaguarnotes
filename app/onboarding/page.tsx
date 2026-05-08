@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation } from "convex/react";
@@ -29,6 +29,8 @@ const USE_CASES = [
   "Planning and strategy",
   "Learning new concepts",
 ];
+
+const totalSteps = 3;
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -100,25 +102,49 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-app px-4">
+    <div className="relative min-h-screen w-full bg-app flex items-center justify-center px-4">
       {/* Ambient glow */}
       <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ai/[0.06] blur-[120px]" />
 
-      <div className="relative z-10 w-full max-w-xl">
+      <div className="relative z-10 w-full max-w-lg mx-auto">
         {/* Logo */}
         <div className="mb-8 flex justify-center">
           <Logo size="lg" />
         </div>
 
-        {/* Step dots */}
-        <div className="mb-10 flex justify-center gap-2">
-          {[1, 2, 3].map((s) => (
-            <div
-              key={s}
-              className={`h-1.5 w-1.5 rounded-full transition-all duration-300 ${
-                s === step ? "bg-ai w-4" : "bg-raised"
-              }`}
-            />
+        {/* Step progress indicator */}
+        <div className="flex items-center gap-2 mb-8">
+          {[1, 2, 3].map((s, i) => (
+            <React.Fragment key={s}>
+              <div
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
+                  step > s ? "text-white" : step === s ? "text-white" : "text-ink-4"
+                }`}
+                style={{
+                  background: step >= s ? "#2563EB" : "#EDF4FF",
+                  boxShadow:
+                    step >= s
+                      ? "2px 2px 5px #C5D5E8, -2px -2px 5px #FFFFFF, 0 0 0 1px rgba(37,99,235,0.2)"
+                      : "2px 2px 5px #C5D5E8, -2px -2px 5px #FFFFFF",
+                }}
+              >
+                {step > s ? (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                ) : (
+                  s
+                )}
+              </div>
+              {i < 2 && (
+                <div
+                  className="h-0.5 flex-1 rounded-full transition-all"
+                  style={{
+                    background: step > s ? "#2563EB" : "#D5E4F5",
+                  }}
+                />
+              )}
+            </React.Fragment>
           ))}
         </div>
 
@@ -127,30 +153,50 @@ export default function OnboardingPage() {
           {step === 1 && (
             <motion.div
               key="step1"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={springStd}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="rounded-2xl p-6 neu-sm"
+              style={{
+                background: "linear-gradient(135deg, rgba(37,99,235,0.06), rgba(124,58,237,0.04))",
+              }}
             >
               <h1 className="mb-8 text-center text-2xl font-bold text-ink-1">
                 What best describes you?
               </h1>
               <div className="grid grid-cols-2 gap-3">
-                {ROLES.map(({ id, label, caption }) => (
-                  <motion.button
-                    key={id}
-                    {...buttonTap}
-                    onClick={() => selectRole(id)}
-                    className={`rounded-2xl border p-5 text-left transition-all ${
-                      role === id
-                        ? "border-ai/60 bg-ai-dim shadow-[0_0_0_1px_rgba(37,99,235,0.2)]"
-                        : "border-line-2 bg-surface hover:border-line-3 neu-sm"
-                    }`}
-                  >
-                    <p className="text-sm font-semibold text-ink-1">{label}</p>
-                    <p className="mt-1 text-xs text-ink-4">{caption}</p>
-                  </motion.button>
-                ))}
+                {ROLES.map(({ id, label, caption }) => {
+                  const selected = role === id;
+                  return (
+                    <motion.button
+                      key={id}
+                      {...buttonTap}
+                      onClick={() => selectRole(id)}
+                      className="relative neu-card rounded-xl border p-5 text-left transition-all duration-150"
+                      style={{
+                        boxShadow: selected
+                          ? "0 0 0 2px #2563EB, 2px 2px 8px #C5D5E8, -2px -2px 8px #FFFFFF"
+                          : "2px 2px 5px #C5D5E8, -2px -2px 5px #FFFFFF",
+                        borderColor: selected ? "rgba(37,99,235,0.4)" : "transparent",
+                        background: selected ? "rgba(37,99,235,0.04)" : undefined,
+                      }}
+                    >
+                      {selected && (
+                        <span
+                          className="absolute right-3 top-3 flex h-4 w-4 items-center justify-center rounded-full"
+                          style={{ backgroundColor: "#2563EB" }}
+                        >
+                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                            <path d="M20 6L9 17l-5-5" />
+                          </svg>
+                        </span>
+                      )}
+                      <p className="text-sm font-semibold text-ink-1">{label}</p>
+                      <p className="mt-1 text-xs text-ink-4">{caption}</p>
+                    </motion.button>
+                  );
+                })}
               </div>
             </motion.div>
           )}
@@ -159,10 +205,10 @@ export default function OnboardingPage() {
           {step === 2 && (
             <motion.div
               key="step2"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={springStd}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
             >
               <h1 className="mb-8 text-center text-2xl font-bold text-ink-1">
                 What will you use it for?
@@ -175,16 +221,25 @@ export default function OnboardingPage() {
                       key={uc}
                       {...buttonTap}
                       onClick={() => toggleUseCase(uc)}
-                      className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition-all ${
+                      className="flex items-center gap-2.5 rounded-xl border px-4 py-3.5 text-left transition-all duration-150 neu-sm"
+                      style={
                         checked
-                          ? "border-ai/60 bg-ai-dim"
-                          : "border-line-2 bg-surface hover:border-line-3 neu-sm"
-                      }`}
+                          ? {
+                              backgroundColor: "rgba(37,99,235,0.08)",
+                              borderColor: "rgba(37,99,235,0.35)",
+                              color: "#2563EB",
+                              boxShadow: "2px 2px 5px #C5D5E8, -2px -2px 5px #FFFFFF",
+                            }
+                          : {}
+                      }
                     >
                       <span
-                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all ${
-                          checked ? "border-ai bg-ai" : "border-line-1 bg-transparent"
-                        }`}
+                        className="flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all"
+                        style={
+                          checked
+                            ? { backgroundColor: "#2563EB", borderColor: "#2563EB" }
+                            : { borderColor: "#C5D5E8", backgroundColor: "transparent" }
+                        }
                       >
                         {checked && (
                           <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
@@ -192,20 +247,32 @@ export default function OnboardingPage() {
                           </svg>
                         )}
                       </span>
-                      <span className="text-sm text-ink-2">{uc}</span>
+                      <span className="text-sm font-medium" style={checked ? { color: "#2563EB" } : { color: undefined }}>
+                        {uc}
+                      </span>
                     </motion.button>
                   );
                 })}
               </div>
-              <motion.button
-                {...buttonTap}
-                disabled={useCases.length === 0}
-                onClick={() => setStep(3)}
-                className="w-full rounded-xl neu-btn py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed"
-                style={{ backgroundColor: "#2563EB" }}
-              >
-                Continue →
-              </motion.button>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setStep(1)}
+                  className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-ink-3 transition-colors hover:text-ink-1"
+                >
+                  <span>←</span>
+                  <span>Back</span>
+                </button>
+                <motion.button
+                  {...buttonTap}
+                  disabled={useCases.length === 0}
+                  onClick={() => setStep(3)}
+                  className="flex-1 rounded-xl neu-btn px-6 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: "#2563EB", color: "white" }}
+                >
+                  Continue →
+                </motion.button>
+              </div>
             </motion.div>
           )}
 
@@ -213,10 +280,10 @@ export default function OnboardingPage() {
           {step === 3 && (
             <motion.div
               key="step3"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={springStd}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
             >
               <motion.div
                 className="overflow-hidden rounded-2xl border border-line-2 bg-surface neu-card"
@@ -306,8 +373,8 @@ export default function OnboardingPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ ...springStd, delay: 0.65 }}
                       onClick={finish}
-                      className="w-full rounded-xl neu-btn py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                      style={{ backgroundColor: "#2563EB" }}
+                      className="w-full rounded-xl neu-btn px-6 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
+                      style={{ backgroundColor: "#2563EB", color: "white" }}
                     >
                       Open my workspace →
                     </motion.button>
@@ -316,7 +383,14 @@ export default function OnboardingPage() {
               </AnimatePresence>
 
               {demoPhase !== "resolving" && demoPhase !== "done" && (
-                <div className="mt-6 flex justify-center">
+                <div className="mt-6 flex items-center justify-between">
+                  <button
+                    onClick={() => setStep(2)}
+                    className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-ink-3 transition-colors hover:text-ink-1"
+                  >
+                    <span>←</span>
+                    <span>Back</span>
+                  </button>
                   <button
                     onClick={finish}
                     className="text-xs text-ink-4 transition-colors hover:text-ink-3"

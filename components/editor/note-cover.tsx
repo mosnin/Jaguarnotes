@@ -45,6 +45,26 @@ const COVER_OPTIONS: { label: string; value: string; preview: string }[] = [
     value: "linear-gradient(135deg, #E0F4F4 0%, #C2ECEC 100%)",
     preview: "from-[#E0F4F4] to-[#C2ECEC]",
   },
+  {
+    label: "Midnight",
+    value: "linear-gradient(135deg, #DBEAFE 0%, #C7D2FE 50%, #DDD6FE 100%)",
+    preview: "from-blue-100 to-purple-200",
+  },
+  {
+    label: "Dusk",
+    value: "linear-gradient(135deg, #FCE7F3 0%, #E9D5FF 50%, #BFDBFE 100%)",
+    preview: "from-pink-100 to-blue-200",
+  },
+  {
+    label: "Forest",
+    value: "linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 50%, #6EE7B7 100%)",
+    preview: "from-green-100 to-emerald-300",
+  },
+  {
+    label: "Coral",
+    value: "linear-gradient(135deg, #FEF3C7 0%, #FECACA 50%, #FCA5A5 100%)",
+    preview: "from-amber-100 to-red-300",
+  },
 ];
 
 interface NoteCoverProps {
@@ -84,50 +104,97 @@ export function NoteCover({ coverColor, onCoverChange }: NoteCoverProps) {
     >
       {/* Cover area */}
       <div
-        className="relative w-full overflow-hidden transition-all duration-300"
+        className={`relative w-full overflow-hidden${coverColor ? " h-32 md:h-40" : " h-6"}`}
         style={{
-          height: coverColor ? "80px" : "24px",
           background: coverColor ?? "transparent",
           borderRadius: coverColor ? "0 0 12px 12px" : undefined,
+          transition: "height 0.3s ease",
         }}
       >
-        {/* Action buttons — visible on hover or when cover exists */}
         <AnimatePresence>
-          {(isHovered || showPicker) && (
-            <motion.div
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 2 }}
-              transition={springSnap}
-              className="absolute bottom-2 left-3 flex items-center gap-1.5"
-            >
-              {coverColor ? (
-                <>
-                  <button
-                    onClick={() => setShowPicker((v) => !v)}
-                    className="rounded-md border border-line-2 bg-surface/90 px-2.5 py-1 text-[10px] font-medium text-ink-3 backdrop-blur-sm transition-colors hover:bg-raised hover:text-ink-1 neu-xs"
-                  >
-                    Change
-                  </button>
-                  <button
-                    onClick={() => {
-                      onCoverChange(undefined);
-                      setShowPicker(false);
-                    }}
-                    className="rounded-md border border-line-2 bg-surface/90 px-2.5 py-1 text-[10px] font-medium text-ink-4 backdrop-blur-sm transition-colors hover:bg-raised hover:text-ink-2 neu-xs"
-                  >
-                    Remove
-                  </button>
-                </>
-              ) : (
+          {coverColor ? (
+            /* Hover overlay with Change / Remove buttons */
+            isHovered || showPicker ? (
+              <motion.div
+                key="cover-overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={springSnap}
+                className="absolute inset-0 flex items-center justify-center gap-3"
+                style={{
+                  background: "rgba(27,54,82,0.25)",
+                  backdropFilter: "blur(2px)",
+                }}
+              >
                 <button
-                  onClick={() => setShowPicker((v) => !v)}
-                  className="rounded-md border border-line-2 bg-surface/90 px-2.5 py-1 text-[10px] font-medium text-ink-4 backdrop-blur-sm transition-colors hover:bg-raised hover:text-ink-2 neu-xs"
+                  onClick={() => setShowPicker(true)}
+                  className="flex items-center gap-1.5 rounded-lg bg-white/80 px-3 py-1.5 text-xs font-semibold text-ink-1 hover:bg-white transition-colors"
                 >
-                  + Add cover
+                  <svg
+                    className="h-3.5 w-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
+                  </svg>
+                  Change
                 </button>
-              )}
-            </motion.div>
+                <button
+                  onClick={() => {
+                    onCoverChange(undefined);
+                    setShowPicker(false);
+                  }}
+                  className="flex items-center gap-1.5 rounded-lg bg-white/80 px-3 py-1.5 text-xs font-semibold text-ink-2 hover:bg-white transition-colors"
+                >
+                  <svg
+                    className="h-3.5 w-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                  Remove
+                </button>
+              </motion.div>
+            ) : null
+          ) : (
+            /* "Add cover" trigger — shown when no cover is set and area is hovered */
+            <motion.button
+              key="add-cover"
+              whileHover={{ opacity: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isHovered ? 1 : 0 }}
+              onClick={() => setShowPicker(true)}
+              className="absolute top-2 left-4 flex items-center gap-1.5 rounded-lg bg-white/70 px-2.5 py-1 text-xs font-medium text-ink-2 backdrop-blur-sm hover:bg-white/90 transition-colors"
+            >
+              <svg
+                className="h-3.5 w-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              Add cover
+            </motion.button>
           )}
         </AnimatePresence>
       </div>
@@ -141,47 +208,37 @@ export function NoteCover({ coverColor, onCoverChange }: NoteCoverProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: -3 }}
             transition={springStd}
-            className="absolute left-0 top-full z-50 mt-1 rounded-xl border border-line-2 bg-surface p-3 neu-card"
-            style={{ minWidth: "260px" }}
+            className="absolute left-0 top-full z-50 mt-1 bg-surface neu-lg rounded-2xl p-4"
+            style={{ minWidth: "280px" }}
           >
-            <p className="mb-2 text-[10px] uppercase tracking-widest text-ink-4">Cover color</p>
+            <p className="mb-3 text-[10px] uppercase tracking-widest text-ink-4">
+              Cover color
+            </p>
+            {/* 4-column × 3-row grid for 12 options */}
             <div className="grid grid-cols-4 gap-2">
               {COVER_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => {
-                    onCoverChange(opt.value);
-                    setShowPicker(false);
-                  }}
-                  title={opt.label}
-                  className="group relative h-10 w-full overflow-hidden rounded-lg border-2 transition-all hover:scale-105"
-                  style={{
-                    background: opt.value,
-                    borderColor:
-                      coverColor === opt.value
-                        ? "rgb(37,99,235)"
-                        : "transparent",
-                  }}
-                >
-                  {coverColor === opt.value && (
-                    <span className="absolute inset-0 flex items-center justify-center">
-                      <svg
-                        className="h-3.5 w-3.5 text-[#2563EB] drop-shadow"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2.5}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    </span>
-                  )}
-                  <span className="sr-only">{opt.label}</span>
-                </button>
+                <div key={opt.value} className="flex flex-col items-center">
+                  <button
+                    onClick={() => {
+                      onCoverChange(opt.value);
+                      setShowPicker(false);
+                    }}
+                    title={opt.label}
+                    className="h-12 w-full rounded-xl cursor-pointer transition-all hover:scale-105"
+                    style={{
+                      background: opt.value,
+                      boxShadow:
+                        coverColor === opt.value
+                          ? "0 0 0 2px #EDF4FF, 0 0 0 4px #2563EB"
+                          : undefined,
+                    }}
+                  >
+                    <span className="sr-only">{opt.label}</span>
+                  </button>
+                  <span className="text-[9px] text-ink-3 text-center mt-1">
+                    {opt.label}
+                  </span>
+                </div>
               ))}
             </div>
           </motion.div>

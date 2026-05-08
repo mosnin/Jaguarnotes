@@ -51,7 +51,8 @@ export function Sidebar() {
       initial={false}
       animate={open ? "show" : "hidden"}
       variants={slideLeft}
-      className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-surface border-r border-line-1"
+      className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-surface"
+      style={{ boxShadow: "4px 0 20px #C5D5E8" }}
       aria-label="Sidebar navigation"
     >
       {/* Header */}
@@ -84,11 +85,14 @@ export function Sidebar() {
       <div className="px-3 pb-2">
         <button
           onClick={handleNewNote}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink-3 transition-colors hover:bg-hover hover:text-ink-1 neu-xs"
+          className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all"
+          style={{ background: "rgba(37,99,235,0.07)", color: "#2563EB" }}
+          onMouseEnter={e => e.currentTarget.style.background = "rgba(37,99,235,0.11)"}
+          onMouseLeave={e => e.currentTarget.style.background = "rgba(37,99,235,0.07)"}
           aria-label="Create new note"
         >
           <HugeiconsIcon icon={Add01Icon} size={16} strokeWidth={1.5} className="shrink-0 text-ai" />
-          New note
+          <span className="text-ai font-semibold">New note</span>
         </button>
       </div>
 
@@ -97,7 +101,7 @@ export function Sidebar() {
         {/* Folders header row */}
         <button
           onClick={() => setFoldersOpen((v) => !v)}
-          className="flex w-full items-center gap-1.5 rounded-lg px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-ink-4 transition-colors hover:bg-hover hover:text-ink-2"
+          className="flex w-full items-center gap-1.5 rounded-lg px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] text-ink-4 transition-colors hover:bg-hover hover:text-ink-2"
         >
           <svg
             className="h-3 w-3 shrink-0 transition-transform"
@@ -138,14 +142,19 @@ export function Sidebar() {
                         href={`/folders/${folder._id}`}
                         onClick={() => setOpen(false)}
                         aria-current={isActive ? "page" : undefined}
-                        className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
+                        className={`flex items-center gap-2 rounded-lg py-1.5 text-xs font-medium transition-all ${
                           isActive
-                            ? "bg-ai-hint text-ai neu-xs"
+                            ? "neu-xs"
                             : "text-ink-3 hover:bg-hover hover:text-ink-1"
                         }`}
+                        style={
+                          isActive
+                            ? { background: "rgba(37,99,235,0.07)", color: "#2563EB", borderLeft: `3px solid ${folder.color ?? '#C2D5EB'}`, paddingLeft: '10px', paddingRight: '12px' }
+                            : { borderLeft: '3px solid transparent', paddingLeft: '10px', paddingRight: '12px' }
+                        }
                       >
                         <span
-                          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-xs leading-none"
+                          className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] leading-none"
                           style={{ background: folder.color ?? "#EDE8FF" }}
                         >
                           {folder.emoji ?? "📁"}
@@ -180,13 +189,18 @@ export function Sidebar() {
       {/* Search */}
       {notes.length > 4 && (
         <div className="px-3 pb-2">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search notes…"
-            aria-label="Search notes"
-            className="w-full rounded-lg bg-raised px-3 py-2 text-xs text-ink-2 placeholder-ink-4 outline-none transition-all focus:bg-hover neu-inset"
-          />
+          <div className="relative">
+            <svg className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search notes…"
+              aria-label="Search notes"
+              className="w-full rounded-lg bg-raised pl-8 pr-3 py-2 text-xs text-ink-2 placeholder-ink-4 outline-none transition-all focus:bg-hover neu-inset"
+            />
+          </div>
         </div>
       )}
 
@@ -201,11 +215,16 @@ export function Sidebar() {
                 key={tag}
                 onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
                 aria-pressed={selectedTag === tag}
-                className={`rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                className={
                   selectedTag === tag
-                    ? "border-ai/40 bg-ai-hint text-ai"
-                    : "border-line-2 text-ink-3 hover:border-line-3 hover:text-ink-2"
-                }`}
+                    ? "rounded-full px-2.5 py-0.5 text-[10px] font-semibold text-ai transition-all"
+                    : "rounded-full border border-line-2 bg-raised px-2.5 py-0.5 text-[10px] font-medium text-ink-3 transition-all hover:border-line-3 hover:text-ink-2 neu-xs"
+                }
+                style={
+                  selectedTag === tag
+                    ? { background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.25)" }
+                    : undefined
+                }
               >
                 {tag}
               </button>
@@ -217,9 +236,12 @@ export function Sidebar() {
       {/* Notes list — hierarchical tree */}
       <div className="flex-1 overflow-y-auto px-3 pt-2" role="list" aria-label="Notes">
         {notes.length > 0 && (
-          <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-widest text-ink-4">
-            {search || selectedTag ? "Results" : "Recent"}
-          </p>
+          <div className="mb-1.5 flex items-center gap-2 px-3">
+            <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-ink-4">
+              {search || selectedTag ? "Results" : "Recent"}
+            </span>
+            <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, #D5E4F5, transparent)' }} />
+          </div>
         )}
         {(() => {
           const childMap = new Map<string, typeof notes>();
@@ -249,13 +271,13 @@ export function Sidebar() {
                   href={`/notes/${note._id}`}
                   onClick={() => setOpen(false)}
                   aria-current={isActive ? "page" : undefined}
-                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
                     isActive
                       ? "bg-ai-hint text-ai neu-xs"
                       : "text-ink-3 hover:bg-hover hover:text-ink-1"
                   }`}
                 >
-                  {note.emoji && <span className="shrink-0 text-sm leading-none">{note.emoji}</span>}
+                  <span className="shrink-0 text-sm leading-none">{note.emoji ?? "📝"}</span>
                   <span className="truncate">{note.title || "Untitled"}</span>
                   {kids.length > 0 && (
                     <span className="ml-auto shrink-0 rounded-full bg-line-1 px-1.5 py-0.5 text-[9px] font-semibold text-ink-4">{kids.length}</span>
@@ -304,7 +326,7 @@ export function Sidebar() {
       </div>
 
       {/* Account */}
-      <div className="border-t border-line-1 p-4">
+      <div className="border-t border-line-1 p-4" style={{ background: "linear-gradient(to bottom, #EDF4FF, #F4F8FF)" }}>
         <UserButton
           appearance={{
             variables: { colorPrimary: "#2563EB" },
@@ -342,12 +364,19 @@ function NavItem({
       href={href}
       onClick={onClick}
       aria-current={active ? "page" : undefined}
-      className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
+      className={`relative flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
         active
-          ? "bg-ai-hint text-ai neu-xs"
+          ? "neu-xs"
           : "text-ink-3 hover:bg-hover hover:text-ink-1"
       }`}
+      style={active ? { background: "rgba(37,99,235,0.08)", color: "#2563EB" } : undefined}
     >
+      {active && (
+        <span
+          className="absolute left-0 top-1/4 bottom-1/4 w-0.5 rounded-r-full"
+          style={{ backgroundColor: '#2563EB' }}
+        />
+      )}
       <span className={active ? "text-ai" : "text-ink-4"}>{icon}</span>
       {label}
     </Link>
