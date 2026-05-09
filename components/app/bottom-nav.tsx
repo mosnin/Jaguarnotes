@@ -38,21 +38,10 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 flex h-16 items-stretch border-t border-line-1 bg-surface/90 backdrop-blur-md md:hidden relative"
-      style={{
-        paddingBottom: "env(safe-area-inset-bottom)",
-        boxShadow: "0 -3px 16px #C5D5E8, 0 -1px 4px rgba(197,213,232,0.6)",
-      }}
+      className="fixed inset-x-0 bottom-0 z-30 flex h-16 items-stretch border-t border-line-2 bg-surface/95 backdrop-blur-md md:hidden relative"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Main navigation"
     >
-      {/* Top edge gradient separator */}
-      <div
-        className="absolute inset-x-0 top-0 h-px"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent, #C5D5E8 30%, #C5D5E8 70%, transparent)",
-        }}
-      />
 
       <TabButton onClick={() => router.push("/dashboard")} active={isHome} label="Home">
         <HugeiconsIcon icon={Home01Icon} size={22} strokeWidth={1.5} />
@@ -71,8 +60,7 @@ export function BottomNav() {
         className="relative flex flex-1 flex-col items-center justify-center min-h-[44px]"
       >
         <span
-          className="flex h-11 w-11 items-center justify-center rounded-[18px] neu-btn"
-          style={{ background: "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)" }}
+          className="flex h-11 w-11 items-center justify-center rounded-2xl bg-ai shadow-sm"
         >
           <HugeiconsIcon icon={Add01Icon} size={20} strokeWidth={2.5} color="white" />
         </span>

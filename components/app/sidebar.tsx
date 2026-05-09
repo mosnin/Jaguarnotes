@@ -51,8 +51,7 @@ export function Sidebar() {
       initial={false}
       animate={open ? "show" : "hidden"}
       variants={slideLeft}
-      className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-surface"
-      style={{ boxShadow: "4px 0 20px #C5D5E8" }}
+      className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-line-2 bg-surface"
       aria-label="Sidebar navigation"
     >
       {/* Header */}
@@ -240,7 +239,7 @@ export function Sidebar() {
             <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-ink-4">
               {search || selectedTag ? "Results" : "Recent"}
             </span>
-            <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, #D5E4F5, transparent)' }} />
+            <div className="flex-1 h-px bg-line-1" />
           </div>
         )}
         {(() => {
@@ -326,7 +325,7 @@ export function Sidebar() {
       </div>
 
       {/* Account */}
-      <div className="border-t border-line-1 p-4" style={{ background: "linear-gradient(to bottom, #EDF4FF, #F4F8FF)" }}>
+      <div className="border-t border-line-1 p-4 bg-surface">
         <UserButton
           appearance={{
             variables: { colorPrimary: "#2563EB" },

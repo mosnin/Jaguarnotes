@@ -1,80 +1,60 @@
 @import "tailwindcss";
 
-/* ─────────────────────────────────────────────────────────────────────
-   Neumorphism design system — white & light blue. Hand-rolled.
-───────────────────────────────────────────────────────────────────── */
-
 @theme {
-  /* ─── Typefaces ───────────────────────────────────────────────────── */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* ─── Color system ────────────────────────────────────────────────── */
-  --color-app:       #EDF4FF;
-  --color-surface:   #EDF4FF;
-  --color-raised:    #F4F8FF;
-  --color-hover:     #E2EEFF;
-  --color-selected:  #D4E6FF;
+  /* ── Clean neutral palette — Craft/Linear inspired ── */
+  --color-app:       #F7F7F8;
+  --color-surface:   #FFFFFF;
+  --color-raised:    #F4F4F5;
+  --color-hover:     #F0F0F1;
+  --color-selected:  #EEF4FF;
 
-  --color-line-1:    #D5E4F5;
-  --color-line-2:    #C2D5EB;
-  --color-line-3:    #AABFD6;
+  --color-line-1:    #EBEBEC;
+  --color-line-2:    #E0E0E2;
+  --color-line-3:    #CBCBCE;
 
-  --color-ink-1:     #1B3652;
-  --color-ink-2:     #4A6D8C;
-  --color-ink-3:     #7B9AB8;
-  --color-ink-4:     #A8C2D8;
+  --color-ink-1:     #18181B;
+  --color-ink-2:     #52525B;
+  --color-ink-3:     #A1A1AA;
+  --color-ink-4:     #D4D4D8;
 
   --color-ai:        #2563EB;
-  --color-ai-dim:    rgba(37, 99, 235, 0.12);
-  --color-ai-hint:   rgba(37, 99, 235, 0.06);
+  --color-ai-dim:    rgba(37, 99, 235, 0.08);
+  --color-ai-hint:   rgba(37, 99, 235, 0.04);
 
   --color-ok:        #16A34A;
   --color-warn:      #D97706;
   --color-error:     #DC2626;
 
-  /* ─── Border radius ───────────────────────────────────────────────── */
-  --radius-xs:  6px;
-  --radius-sm:  8px;
-  --radius-md:  11px;
-  --radius-lg:  16px;
-  --radius-xl:  20px;
-  --radius-2xl: 28px;
-  --radius-3xl: 36px;
+  --radius-xs:  4px;
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
 
-  /* ─── Type scale ──────────────────────────────────────────────────── */
-  --text-display:    4.5rem;
-  --text-title-1:    2.25rem;
-  --text-title-2:    1.5rem;
-  --text-headline:   1.0625rem;
-  --text-body:       0.9375rem;
-  --text-caption:    0.8125rem;
-  --text-micro:      0.6875rem;
+  --text-display:  3.75rem;
+  --text-title-1:  2rem;
+  --text-title-2:  1.375rem;
+  --text-headline: 1rem;
+  --text-body:     0.9375rem;
+  --text-caption:  0.8125rem;
+  --text-micro:    0.6875rem;
 }
 
-/* ─── Neumorphism palette & design tokens ────────────────────────── */
 :root {
-  --neu-bg:           #EDF4FF;
-  --neu-shadow-dark:  #C5D5E8;
-  --neu-shadow-light: #FFFFFF;
-
-  /* Transition duration tokens */
-  --duration-fast:     120ms;
-  --duration-standard: 200ms;
-  --duration-slow:     320ms;
-
-  /* Overlay opacity tokens */
-  --overlay-sm:  rgba(0, 0, 0, 0.08);
-  --overlay-md:  rgba(0, 0, 0, 0.20);
-  --overlay-lg:  rgba(0, 0, 0, 0.40);
+  --duration-fast:     100ms;
+  --duration-standard: 160ms;
+  --duration-slow:     240ms;
 }
 
-/* ─── Base ──────────────────────────────────────────────────────────── */
+/* ── Base ── */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background-color: var(--neu-bg);
+  background-color: var(--color-app);
   color: var(--color-ink-1);
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   font-size: 15px;
@@ -82,217 +62,175 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  /* Prevent mobile horizontal sliding when content overflows briefly during transitions */
   overflow-x: hidden;
   overscroll-behavior-x: none;
 }
 
 #__next, main { width: 100%; }
 
-/* ─── Neumorphic shadow utilities ─────────────────────────────────── */
-.neu-xs {
-  box-shadow:
-    1px 1px 3px var(--neu-shadow-dark),
-    -1px -1px 3px var(--neu-shadow-light);
-}
-.neu-sm {
-  box-shadow:
-    2px 2px 5px var(--neu-shadow-dark),
-    -2px -2px 5px var(--neu-shadow-light);
-}
-.neu-raised {
-  box-shadow:
-    3px 3px 8px var(--neu-shadow-dark),
-    -3px -3px 8px var(--neu-shadow-light);
-  border: 1px solid rgba(197, 213, 232, 0.4);
-}
-.neu-card {
-  box-shadow:
-    4px 4px 12px var(--neu-shadow-dark),
-    -4px -4px 12px var(--neu-shadow-light);
-  border: 1px solid rgba(197, 213, 232, 0.5);
-}
-.neu-lg {
-  box-shadow:
-    6px 6px 18px var(--neu-shadow-dark),
-    -6px -6px 18px var(--neu-shadow-light);
-  border: 1px solid rgba(197, 213, 232, 0.5);
-}
-.neu-xl {
-  box-shadow:
-    8px 8px 24px var(--neu-shadow-dark),
-    -8px -8px 24px var(--neu-shadow-light);
-  border: 1px solid rgba(197, 213, 232, 0.6);
-}
-.neu-pressed {
-  box-shadow:
-    inset 3px 3px 7px var(--neu-shadow-dark),
-    inset -3px -3px 7px var(--neu-shadow-light);
-}
-.neu-inset {
-  box-shadow:
-    inset 2px 2px 6px var(--neu-shadow-dark),
-    inset -2px -2px 6px var(--neu-shadow-light);
-}
-.neu-btn {
-  box-shadow:
-    3px 3px 8px var(--neu-shadow-dark),
-    -3px -3px 8px var(--neu-shadow-light);
-  transition:
-    box-shadow var(--duration-fast) ease,
-    opacity var(--duration-fast) ease,
-    transform var(--duration-fast) ease;
-}
-.neu-btn:hover {
-  box-shadow:
-    2px 2px 5px var(--neu-shadow-dark),
-    -2px -2px 5px var(--neu-shadow-light);
-  transform: translateY(-1px);
-}
-.neu-btn:active {
-  box-shadow:
-    inset 2px 2px 5px var(--neu-shadow-dark),
-    inset -2px -2px 5px var(--neu-shadow-light);
-  transform: scale(0.97) translateY(0.5px);
-}
-.neu-glow {
-  box-shadow:
-    0 0 0 1px rgba(37, 99, 235, 0.2),
-    0 4px 16px rgba(37, 99, 235, 0.16),
-    4px 4px 12px var(--neu-shadow-dark),
-    -4px -4px 12px var(--neu-shadow-light);
-}
+/* ── Flat design utilities — replaces neumorphism ── */
+/* All neu-* classes kept for backwards compat but rendered as clean flat styles */
+.neu-xs    { /* intentionally no visual effect — clean flat design */ }
+.neu-sm    { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.06); }
+.neu-raised { box-shadow: 0 1px 3px 0 rgba(0,0,0,0.07), 0 1px 2px -1px rgba(0,0,0,0.06); border: 1px solid var(--color-line-2); }
+.neu-card  { box-shadow: 0 1px 3px 0 rgba(0,0,0,0.07), 0 1px 2px -1px rgba(0,0,0,0.06); border: 1px solid var(--color-line-2); }
+.neu-lg    { box-shadow: 0 4px 12px -2px rgba(0,0,0,0.08), 0 2px 6px -2px rgba(0,0,0,0.05); border: 1px solid var(--color-line-2); }
+.neu-xl    { box-shadow: 0 10px 30px -6px rgba(0,0,0,0.10), 0 4px 12px -4px rgba(0,0,0,0.06); border: 1px solid var(--color-line-2); }
+.neu-pressed { background-color: var(--color-raised) !important; box-shadow: none; }
+.neu-inset { background-color: var(--color-raised); }
+.neu-btn   { transition: opacity var(--duration-fast) ease, transform var(--duration-fast) ease; }
+.neu-btn:hover  { opacity: 0.92; }
+.neu-btn:active { opacity: 0.8; transform: scale(0.98); }
+.neu-glow  { box-shadow: 0 0 0 3px rgba(37,99,235,0.18); }
+.neu-shine { /* intentionally empty */ }
 
-/* ─── Scrollbar ─────────────────────────────────────────────────────── */
-::-webkit-scrollbar         { width: 5px; height: 5px; }
+/* ── Scrollbar ── */
+::-webkit-scrollbar         { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track   { background: transparent; }
-::-webkit-scrollbar-thumb   { background: #C2D5EB; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #AABFD6; }
+::-webkit-scrollbar-thumb   { background: var(--color-line-3); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-ink-3); }
 
-/* ─── Selection ─────────────────────────────────────────────────────── */
+/* ── Selection ── */
 ::selection {
-  background: rgba(37, 99, 235, 0.18);
-  color: #1B3652;
+  background: rgba(37, 99, 235, 0.14);
+  color: #111;
 }
 
-/* ─── Focus ─────────────────────────────────────────────────────────── */
+/* ── Focus ── */
 :focus-visible {
   outline: 2px solid #2563EB;
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+  border-radius: 4px;
 }
 
-/* ─── Keyboard hint style ───────────────────────────────────────────── */
+/* ── Keyboard hints ── */
 kbd {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-geist-mono), monospace;
   font-size: 11px;
   padding: 1px 5px;
-  border-radius: 5px;
-  border: 1px solid #C2D5EB;
-  background: #F4F8FF;
-  color: #7B9AB8;
+  border-radius: 4px;
+  border: 1px solid var(--color-line-2);
+  background: var(--color-surface);
+  color: var(--color-ink-2);
   line-height: 1.6;
-  box-shadow: 2px 2px 4px #C5D5E8, -2px -2px 4px #FFFFFF;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.06);
 }
 
-/* ─── Reduced-motion accessibility ─────────────────────────────────── */
+/* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
-  .animate-pulse { animation: none !important; }
-  .animate-spin  { animation: none !important; }
 }
 
-/* ─── BlockNote editor overrides ────────────────────────────────────── */
-/* theme="dark" stays on BlockNoteView; we force all visible surfaces to
-   our navy-on-light-blue palette with !important overrides. */
-
-/* Editor root and ProseMirror content area */
+/* ══════════════════════════════════════════════════════════════════
+   BlockNote editor — clean light theme overrides
+   ══════════════════════════════════════════════════════════════════ */
 .bn-editor,
 .bn-editor .ProseMirror,
 .bn-editor [contenteditable] {
   background: transparent !important;
   background-color: transparent !important;
   padding: 0 !important;
-  color: #1B3652 !important;
+  color: #18181B !important;
   caret-color: #2563EB !important;
 }
-/* Blanket text color — targets all inline/block content */
+
 .bn-editor * {
-  color: #1B3652 !important;
+  color: #18181B !important;
 }
+
 .bn-block-outer {
   padding-inline: 0 !important;
 }
+
 .bn-editor [class*="bn-"] {
   font-family: var(--font-geist-sans), system-ui, sans-serif !important;
 }
+
 .bn-editor p, .bn-editor li {
   font-size: 15px !important;
-  line-height: 1.7 !important;
-  color: #2D4A63 !important;
+  line-height: 1.75 !important;
+  color: #3F3F46 !important;
 }
-.bn-editor h1 { font-size: 1.75rem !important; font-weight: 700 !important; color: #1B3652 !important; letter-spacing: -0.02em !important; }
-.bn-editor h2 { font-size: 1.25rem !important; font-weight: 600 !important; color: #2D4A63 !important; }
-.bn-editor h3 { font-size: 1.0625rem !important; font-weight: 600 !important; color: #3D5A74 !important; }
 
-/* ── Block side menu (+ add button and drag handle) ── */
-.bn-side-menu {
-  background: transparent !important;
+.bn-editor h1 {
+  font-size: 1.875rem !important;
+  font-weight: 700 !important;
+  color: #18181B !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.25 !important;
 }
+
+.bn-editor h2 {
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  color: #27272A !important;
+  letter-spacing: -0.015em !important;
+}
+
+.bn-editor h3 {
+  font-size: 1.0625rem !important;
+  font-weight: 600 !important;
+  color: #3F3F46 !important;
+}
+
+/* Side menu (+ button, drag handle) */
+.bn-side-menu { background: transparent !important; }
 .bn-side-menu button,
 .bn-drag-handle-menu button,
 [class*="dragHandle"],
 [class*="sideMenu"] button {
   background: transparent !important;
-  color: #A8C2D8 !important;
+  color: #D4D4D8 !important;
 }
 .bn-side-menu button:hover,
 .bn-drag-handle-menu button:hover,
 [class*="dragHandle"]:hover,
 [class*="sideMenu"] button:hover {
-  background: #E2EEFF !important;
-  color: #1B3652 !important;
+  background: #F4F4F5 !important;
+  color: #52525B !important;
 }
 
-/* ── Formatting toolbar ── */
+/* Formatting toolbar */
 .bn-formatting-toolbar,
 [class*="formattingToolbar"] {
-  background: #F4F8FF !important;
-  border: 1px solid #D5E4F5 !important;
-  box-shadow: 2px 2px 8px #C5D5E8, -2px -2px 8px #FFFFFF !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E0E0E2 !important;
+  box-shadow: 0 4px 12px -2px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.06) !important;
+  border-radius: 8px !important;
 }
 .bn-formatting-toolbar button,
 [class*="formattingToolbar"] button {
   background: transparent !important;
-  color: #4A6D8C !important;
+  color: #52525B !important;
 }
 .bn-formatting-toolbar button:hover,
 [class*="formattingToolbar"] button:hover,
 .bn-formatting-toolbar button[data-active="true"],
 [class*="formattingToolbar"] button[data-active="true"] {
-  background: #E2EEFF !important;
-  color: #1B3652 !important;
+  background: #F4F4F5 !important;
+  color: #18181B !important;
 }
 
-/* ── Slash command menu and all Mantine popovers ── */
+/* Slash menu / Mantine popovers */
 .mantine-Popover-dropdown,
 .mantine-Menu-dropdown,
 .bn-slash-menu,
 [class*="slashMenu"] {
-  background: #F4F8FF !important;
-  border: 1px solid #D5E4F5 !important;
-  box-shadow: 4px 4px 10px #C5D5E8, -4px -4px 10px #FFFFFF !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E0E0E2 !important;
+  box-shadow: 0 4px 12px -2px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.06) !important;
+  border-radius: 8px !important;
 }
 .mantine-Popover-dropdown *,
 .mantine-Menu-dropdown *,
 .bn-slash-menu *,
 [class*="slashMenu"] * {
-  color: #1B3652 !important;
+  color: #18181B !important;
   background: transparent !important;
 }
 .mantine-Menu-item:hover,
@@ -301,28 +239,128 @@ kbd {
 .bn-slash-menu [aria-selected="true"],
 [class*="slashMenu"] [data-selected],
 [class*="slashMenu"] [aria-selected="true"] {
-  background: #E2EEFF !important;
-  color: #1B3652 !important;
+  background: #F4F4F5 !important;
+  color: #18181B !important;
 }
 
-/* ── Mantine ActionIcon (used for toolbar icon buttons) ── */
+/* Mantine ActionIcon */
 .mantine-ActionIcon-root {
   background: transparent !important;
-  color: #4A6D8C !important;
+  color: #52525B !important;
 }
 .mantine-ActionIcon-root:hover {
-  background: #E2EEFF !important;
-  color: #1B3652 !important;
+  background: #F4F4F5 !important;
+  color: #18181B !important;
 }
 
-/* ─── AI block marker ───────────────────────────────────────────────── */
+/* ── AI block left accent ── */
 [data-ai-block="true"] {
-  border-left: 2px solid rgba(37, 99, 235, 0.5) !important;
+  border-left: 2px solid rgba(37, 99, 235, 0.4) !important;
   padding-left: 14px !important;
   margin-left: -16px !important;
 }
 
-/* ─── Smooth details/accordion ──────────────────────────────────────── */
+/* ── Chip / tag badge ── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 99px;
+  border: 1px solid var(--color-line-2);
+  background: var(--color-surface);
+  color: var(--color-ink-2);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  line-height: 1.5;
+  transition: all var(--duration-fast) ease;
+}
+.chip:hover {
+  border-color: var(--color-line-3);
+  background: var(--color-raised);
+}
+.chip-active {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.25);
+  color: #2563EB;
+}
+
+/* ── Gradient text ── */
+.text-gradient-blue {
+  background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 60%, #3B82F6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Scrollbar hide ── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* ── Text balance ── */
+.text-balance { text-wrap: balance; }
+
+/* ── Animations ── */
+@keyframes shimmer-sweep {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+.animate-shimmer {
+  background: linear-gradient(120deg, transparent 25%, rgba(255,255,255,0.7) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer-sweep 1.6s linear infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.animate-blink { animation: blink 1s step-end infinite; }
+
+@keyframes fade-in-up {
+  0%   { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up { animation: fade-in-up 0.3s ease-out forwards; }
+
+@keyframes border-beam {
+  100% { offset-distance: 100%; }
+}
+.animate-border-beam {
+  animation: border-beam calc(var(--duration) * 1s) infinite linear;
+}
+
+/* ── Dot grid background ── */
+.bg-dot-grid {
+  background-image: radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ── Glass surface ── */
+.glass {
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.9);
+}
+
+/* ── Section dividers ── */
+.divider-fade {
+  height: 1px;
+  background: var(--color-line-1);
+  border: none;
+}
+
+/* ── Focus ring utility ── */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(37,99,235,0.5);
+}
+
+/* ── Details/accordion ── */
 details summary { list-style: none; }
 details summary::-webkit-details-marker { display: none; }
 details .accordion-body {
@@ -331,208 +369,5 @@ details .accordion-body {
   grid-template-rows: 0fr;
   transition: grid-template-rows var(--duration-standard) ease;
 }
-details[open] .accordion-body {
-  grid-template-rows: 1fr;
-}
+details[open] .accordion-body { grid-template-rows: 1fr; }
 .accordion-body > * { min-height: 0; }
-
-/* ─── Gradient text utility ─────────────────────────────────────────── */
-.text-gradient-blue {
-  background: linear-gradient(135deg, #2563EB 0%, #60A5FA 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ─── Shimmer loading effect ────────────────────────────────────────── */
-@keyframes shimmer {
-  0%   { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
-}
-@keyframes shimmer-sweep {
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
-}
-.animate-shimmer {
-  background: linear-gradient(120deg, transparent 25%, rgba(255,255,255,0.6) 50%, transparent 75%);
-  background-size: 200% 100%;
-  animation: shimmer-sweep 1.8s linear infinite;
-}
-
-/* ─── Border Beam animation (Magic UI) ─────────────────────────────── */
-@keyframes border-beam {
-  100% {
-    offset-distance: 100%;
-  }
-}
-.animate-border-beam {
-  animation: border-beam calc(var(--duration) * 1s) infinite linear;
-}
-
-/* ─── Typing cursor blink ────────────────────────────────────────────── */
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
-}
-.animate-blink {
-  animation: blink 1s step-end infinite;
-}
-
-/* ─── Float animation ───────────────────────────────────────────────── */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-6px); }
-}
-.animate-float { animation: float 3.5s ease-in-out infinite; }
-
-/* ─── Pulse ring animation (live dots) ─────────────────────────────── */
-@keyframes pulse-ring {
-  0%   { transform: scale(1); opacity: 0.6; }
-  100% { transform: scale(2); opacity: 0; }
-}
-.animate-pulse-ring {
-  animation: pulse-ring 1.6s ease-out infinite;
-}
-
-/* ─── Gradient hue-rotate for glow effects ──────────────────────────── */
-@keyframes gradient-shift {
-  0%, 100% { filter: hue-rotate(0deg); }
-  50%       { filter: hue-rotate(20deg); }
-}
-
-/* ─── Gradient text — blue ──────────────────────────────────────────── */
-.gradient-text-blue {
-  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ─── Glass surface ─────────────────────────────────────────────────── */
-.glass {
-  backdrop-filter: blur(12px) saturate(1.4);
-  -webkit-backdrop-filter: blur(12px) saturate(1.4);
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-}
-
-/* ─── Chip / badge ──────────────────────────────────────────────────── */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  border-radius: 99px;
-  border: 1px solid #C2D5EB;
-  background: #F4F8FF;
-  color: #4A6D8C;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 2px 8px;
-  line-height: 1.5;
-  transition: all var(--duration-fast) ease;
-}
-.chip:hover {
-  border-color: #AABFD6;
-  color: #1B3652;
-}
-.chip-active {
-  background: rgba(37, 99, 235, 0.08);
-  border-color: rgba(37, 99, 235, 0.3);
-  color: #2563EB;
-}
-
-/* ─── Hover lift ────────────────────────────────────────────────────── */
-.hover-lift {
-  transition: transform var(--duration-standard) ease, box-shadow var(--duration-standard) ease;
-}
-.hover-lift:hover {
-  transform: translateY(-3px);
-  box-shadow: 6px 8px 20px var(--neu-shadow-dark), -6px -4px 16px var(--neu-shadow-light);
-}
-
-/* ─── Scrollbar hide ────────────────────────────────────────────────── */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* ─── Divider with fade ─────────────────────────────────────────────── */
-.divider-fade {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #C5D5E8 30%, #C5D5E8 70%, transparent);
-  border: none;
-}
-
-/* ─── Text balance ──────────────────────────────────────────────────── */
-.text-balance {
-  text-wrap: balance;
-}
-
-/* ─── Neumorphic focus ring ─────────────────────────────────────────── */
-.neu-focus {
-  outline: 2px solid #2563EB;
-  outline-offset: 2px;
-  box-shadow:
-    0 0 0 4px rgba(37, 99, 235, 0.12),
-    2px 2px 5px #C5D5E8,
-    -2px -2px 5px #FFFFFF;
-}
-
-/* ─── Additional keyframes ──────────────────────────────────────────── */
-@keyframes pulse-scale {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.15); opacity: 0.7; }
-}
-@keyframes shine {
-  0% { transform: translateX(-100%) skewX(-12deg); }
-  100% { transform: translateX(200%) skewX(-12deg); }
-}
-@keyframes fade-in-up {
-  0% { opacity: 0; transform: translateY(12px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* ─── Additional animated utilities ────────────────────────────────── */
-.animate-pulse-scale { animation: pulse-scale 2s ease-in-out infinite; }
-.animate-shine { animation: shine 1.5s ease-in-out; }
-.animate-fade-in-up { animation: fade-in-up 0.4s ease-out forwards; }
-.animate-spin-slow { animation: spin-slow 8s linear infinite; }
-
-/* ─── Subtle dot grid background pattern ───────────────────────────── */
-.bg-dot-grid {
-  background-image: radial-gradient(circle, rgba(37, 99, 235, 0.12) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* ─── Inset shine on neumorphic buttons — improves perceived depth ─── */
-.neu-shine {
-  position: relative;
-  overflow: hidden;
-}
-.neu-shine::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, transparent 50%);
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-/* ─── Blue focus ring — tighter and more elegant ────────────────────── */
-.focus-ring:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px #EDF4FF, 0 0 0 4px rgba(37, 99, 235, 0.5);
-}
-
-/* ─── Section divider gradient ──────────────────────────────────────── */
-.divider-gradient {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #C5D5E8 30%, #C5D5E8 70%, transparent);
-}
