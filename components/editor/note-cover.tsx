@@ -6,9 +6,9 @@ import { springSnap, springStd } from "@/lib/motion";
 
 const COVER_OPTIONS: { label: string; value: string; preview: string }[] = [
   {
-    label: "Ocean",
-    value: "linear-gradient(135deg, #EDF4FF 0%, #DCF0FF 100%)",
-    preview: "from-[#EDF4FF] to-[#DCF0FF]",
+    label: "Sky",
+    value: "linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%)",
+    preview: "from-[#DBEAFE] to-[#BFDBFE]",
   },
   {
     label: "Lavender",
@@ -32,8 +32,8 @@ const COVER_OPTIONS: { label: string; value: string; preview: string }[] = [
   },
   {
     label: "Slate",
-    value: "linear-gradient(135deg, #F4F8FF 0%, #E2EEFF 100%)",
-    preview: "from-[#F4F8FF] to-[#E2EEFF]",
+    value: "linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%)",
+    preview: "from-[#F1F5F9] to-[#E2E8F0]",
   },
   {
     label: "Peach",
@@ -229,7 +229,7 @@ export function NoteCover({ coverColor, onCoverChange }: NoteCoverProps) {
                       background: opt.value,
                       boxShadow:
                         coverColor === opt.value
-                          ? "0 0 0 2px #EDF4FF, 0 0 0 4px #2563EB"
+                          ? "0 0 0 2px #fff, 0 0 0 4px #2563EB"
                           : undefined,
                     }}
                   >

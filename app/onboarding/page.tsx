@@ -30,8 +30,6 @@ const USE_CASES = [
   "Learning new concepts",
 ];
 
-const totalSteps = 3;
-
 export default function OnboardingPage() {
   const router = useRouter();
   const completeOnboarding = useMutation(api.users.completeOnboarding);
@@ -40,7 +38,6 @@ export default function OnboardingPage() {
   const [role, setRole] = useState<string>("");
   const [useCases, setUseCases] = useState<string[]>([]);
 
-  // Demo animation state (step 3)
   const [demoPhase, setDemoPhase] = useState<DemoPhase>("typing");
   const [typed, setTyped] = useState("");
   const [streamed, setStreamed] = useState("");
@@ -51,7 +48,6 @@ export default function OnboardingPage() {
   }
   useEffect(() => () => clearTimeout(frameRef.current), []);
 
-  // Start demo when entering step 3
   useEffect(() => {
     if (step !== 3) return;
     setDemoPhase("typing");
@@ -61,7 +57,6 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (step !== 3) return;
-
     if (demoPhase === "typing") {
       if (typed.length < DEMO_PHRASE.length) {
         schedule(() => setTyped(DEMO_PHRASE.slice(0, typed.length + 1)), 65);
@@ -103,30 +98,20 @@ export default function OnboardingPage() {
 
   return (
     <div className="relative min-h-screen w-full bg-app flex items-center justify-center px-4">
-      {/* Ambient glow */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ai/[0.06] blur-[120px]" />
-
       <div className="relative z-10 w-full max-w-lg mx-auto">
         {/* Logo */}
         <div className="mb-8 flex justify-center">
           <Logo size="lg" />
         </div>
 
-        {/* Step progress indicator */}
+        {/* Step progress */}
         <div className="flex items-center gap-2 mb-8">
           {[1, 2, 3].map((s, i) => (
             <React.Fragment key={s}>
               <div
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
-                  step > s ? "text-white" : step === s ? "text-white" : "text-ink-4"
+                  step >= s ? "bg-ai text-white" : "bg-line-1 text-ink-4"
                 }`}
-                style={{
-                  background: step >= s ? "#2563EB" : "#EDF4FF",
-                  boxShadow:
-                    step >= s
-                      ? "2px 2px 5px #C5D5E8, -2px -2px 5px #FFFFFF, 0 0 0 1px rgba(37,99,235,0.2)"
-                      : "2px 2px 5px #C5D5E8, -2px -2px 5px #FFFFFF",
-                }}
               >
                 {step > s ? (
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -139,9 +124,7 @@ export default function OnboardingPage() {
               {i < 2 && (
                 <div
                   className="h-0.5 flex-1 rounded-full transition-all"
-                  style={{
-                    background: step > s ? "#2563EB" : "#D5E4F5",
-                  }}
+                  style={{ background: step > s ? "#2563EB" : "var(--color-line-2)" }}
                 />
               )}
             </React.Fragment>
@@ -149,7 +132,7 @@ export default function OnboardingPage() {
         </div>
 
         <AnimatePresence mode="wait">
-          {/* ── Step 1: Role ─────────────────────────────────────────── */}
+          {/* ── Step 1: Role ── */}
           {step === 1 && (
             <motion.div
               key="step1"
@@ -157,14 +140,12 @@ export default function OnboardingPage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
-              className="rounded-2xl p-6 neu-sm"
-              style={{
-                background: "linear-gradient(135deg, rgba(37,99,235,0.06), rgba(124,58,237,0.04))",
-              }}
+              className="rounded-2xl bg-surface border border-line-2 p-6 shadow-sm"
             >
-              <h1 className="mb-8 text-center text-2xl font-bold text-ink-1">
+              <h1 className="mb-2 text-center text-2xl font-bold tracking-tight text-ink-1">
                 What best describes you?
               </h1>
+              <p className="mb-6 text-center text-sm text-ink-3">This personalizes your AI experience.</p>
               <div className="grid grid-cols-2 gap-3">
                 {ROLES.map(({ id, label, caption }) => {
                   const selected = role === id;
@@ -173,27 +154,21 @@ export default function OnboardingPage() {
                       key={id}
                       {...buttonTap}
                       onClick={() => selectRole(id)}
-                      className="relative neu-card rounded-xl border p-5 text-left transition-all duration-150"
-                      style={{
-                        boxShadow: selected
-                          ? "0 0 0 2px #2563EB, 2px 2px 8px #C5D5E8, -2px -2px 8px #FFFFFF"
-                          : "2px 2px 5px #C5D5E8, -2px -2px 5px #FFFFFF",
-                        borderColor: selected ? "rgba(37,99,235,0.4)" : "transparent",
-                        background: selected ? "rgba(37,99,235,0.04)" : undefined,
-                      }}
+                      className={`relative rounded-xl border p-5 text-left transition-all duration-150 ${
+                        selected
+                          ? "border-ai/40 bg-ai/[0.04]"
+                          : "border-line-2 bg-surface hover:border-line-3 hover:bg-raised"
+                      }`}
                     >
                       {selected && (
-                        <span
-                          className="absolute right-3 top-3 flex h-4 w-4 items-center justify-center rounded-full"
-                          style={{ backgroundColor: "#2563EB" }}
-                        >
+                        <span className="absolute right-3 top-3 flex h-4 w-4 items-center justify-center rounded-full bg-ai">
                           <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
                             <path d="M20 6L9 17l-5-5" />
                           </svg>
                         </span>
                       )}
-                      <p className="text-sm font-semibold text-ink-1">{label}</p>
-                      <p className="mt-1 text-xs text-ink-4">{caption}</p>
+                      <p className={`text-sm font-semibold ${selected ? "text-ai" : "text-ink-1"}`}>{label}</p>
+                      <p className="mt-1 text-xs text-ink-3">{caption}</p>
                     </motion.button>
                   );
                 })}
@@ -201,7 +176,7 @@ export default function OnboardingPage() {
             </motion.div>
           )}
 
-          {/* ── Step 2: Use cases ─────────────────────────────────────── */}
+          {/* ── Step 2: Use cases ── */}
           {step === 2 && (
             <motion.div
               key="step2"
@@ -210,9 +185,10 @@ export default function OnboardingPage() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <h1 className="mb-8 text-center text-2xl font-bold text-ink-1">
+              <h1 className="mb-2 text-center text-2xl font-bold tracking-tight text-ink-1">
                 What will you use it for?
               </h1>
+              <p className="mb-6 text-center text-sm text-ink-3">Select all that apply.</p>
               <div className="grid grid-cols-2 gap-3 mb-8">
                 {USE_CASES.map((uc) => {
                   const checked = useCases.includes(uc);
@@ -221,24 +197,18 @@ export default function OnboardingPage() {
                       key={uc}
                       {...buttonTap}
                       onClick={() => toggleUseCase(uc)}
-                      className="flex items-center gap-2.5 rounded-xl border px-4 py-3.5 text-left transition-all duration-150 neu-sm"
-                      style={
+                      className={`flex items-center gap-2.5 rounded-xl border px-4 py-3.5 text-left transition-all duration-150 ${
                         checked
-                          ? {
-                              backgroundColor: "rgba(37,99,235,0.08)",
-                              borderColor: "rgba(37,99,235,0.35)",
-                              color: "#2563EB",
-                              boxShadow: "2px 2px 5px #C5D5E8, -2px -2px 5px #FFFFFF",
-                            }
-                          : {}
-                      }
+                          ? "border-ai/40 bg-ai/[0.04]"
+                          : "border-line-2 bg-surface hover:border-line-3 hover:bg-raised"
+                      }`}
                     >
                       <span
                         className="flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all"
                         style={
                           checked
                             ? { backgroundColor: "#2563EB", borderColor: "#2563EB" }
-                            : { borderColor: "#C5D5E8", backgroundColor: "transparent" }
+                            : { borderColor: "var(--color-line-3)", backgroundColor: "transparent" }
                         }
                       >
                         {checked && (
@@ -247,7 +217,7 @@ export default function OnboardingPage() {
                           </svg>
                         )}
                       </span>
-                      <span className="text-sm font-medium" style={checked ? { color: "#2563EB" } : { color: undefined }}>
+                      <span className={`text-sm font-medium ${checked ? "text-ai" : "text-ink-2"}`}>
                         {uc}
                       </span>
                     </motion.button>
@@ -267,8 +237,7 @@ export default function OnboardingPage() {
                   {...buttonTap}
                   disabled={useCases.length === 0}
                   onClick={() => setStep(3)}
-                  className="flex-1 rounded-xl neu-btn px-6 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed"
-                  style={{ backgroundColor: "#2563EB", color: "white" }}
+                  className="flex-1 rounded-xl bg-ai px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   Continue →
                 </motion.button>
@@ -276,7 +245,7 @@ export default function OnboardingPage() {
             </motion.div>
           )}
 
-          {/* ── Step 3: Demo animation ────────────────────────────────── */}
+          {/* ── Step 3: Demo ── */}
           {step === 3 && (
             <motion.div
               key="step3"
@@ -285,9 +254,7 @@ export default function OnboardingPage() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <motion.div
-                className="overflow-hidden rounded-2xl border border-line-2 bg-surface neu-card"
-              >
+              <motion.div className="overflow-hidden rounded-2xl border border-line-2 bg-surface shadow-sm">
                 <div className="flex items-center gap-1.5 border-b border-line-1 px-4 py-3">
                   <div className="h-2.5 w-2.5 rounded-full bg-line-2" />
                   <div className="h-2.5 w-2.5 rounded-full bg-line-2" />
@@ -295,7 +262,7 @@ export default function OnboardingPage() {
                 </div>
                 <div className="px-8 py-8">
                   <p className="mb-1 text-[10px] uppercase tracking-widest text-ink-4">New note</p>
-                  <p className="mb-6 text-xl font-bold text-ink-1">Mental Models</p>
+                  <p className="mb-6 text-xl font-bold tracking-tight text-ink-1">Mental Models</p>
                   <div className="space-y-4 text-[15px]">
                     <p className="text-ink-3">Key concepts for this week:</p>
                     <div className="flex items-center gap-2 min-h-[24px]">
@@ -307,10 +274,10 @@ export default function OnboardingPage() {
                         <motion.span
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          className="inline-flex items-center gap-1.5 rounded border border-ai/20 bg-ai-hint px-2 py-0.5 text-[11px] text-ai"
+                          className="inline-flex items-center gap-1.5 rounded border border-ai/20 bg-ai/[0.04] px-2 py-0.5 text-[11px] text-ai"
                         >
                           <kbd className="font-mono">Tab</kbd>
-                          <span className="text-ai/50">expand with AI</span>
+                          <span className="opacity-60">expand with AI</span>
                         </motion.span>
                       )}
                     </div>
@@ -320,15 +287,15 @@ export default function OnboardingPage() {
                           initial={{ opacity: 0, y: 6 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={springStd}
-                          className="rounded-xl border border-ai/20 p-4"
+                          className="rounded-xl border border-ai/15 p-4"
                           style={{
-                            borderLeft: "2px solid rgba(37,99,235,0.5)",
-                            background: "linear-gradient(90deg, rgba(37,99,235,0.04) 0%, transparent 60%)",
+                            borderLeft: "2px solid rgba(37,99,235,0.4)",
+                            background: "rgba(37,99,235,0.03)",
                           }}
                         >
                           <div className="mb-2 flex items-center gap-1.5">
                             <span className="h-1 w-1 rounded-full bg-ai/50" />
-                            <span className="text-[10px] uppercase tracking-widest text-ai/40">AI</span>
+                            <span className="text-[10px] uppercase tracking-widest text-ai/50">AI</span>
                           </div>
                           <p className="text-sm leading-relaxed text-ink-2">
                             {streamed}
@@ -373,8 +340,7 @@ export default function OnboardingPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ ...springStd, delay: 0.65 }}
                       onClick={finish}
-                      className="w-full rounded-xl neu-btn px-6 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
-                      style={{ backgroundColor: "#2563EB", color: "white" }}
+                      className="w-full rounded-xl bg-ai px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
                     >
                       Open my workspace →
                     </motion.button>

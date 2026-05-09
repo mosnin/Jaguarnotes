@@ -16,7 +16,7 @@ const CARD_COLORS = [
   { bg: "#FFE8DF", border: "#F5C9B8", dot: "#F07048" },
   { bg: "#E3F5E1", border: "#B8E8B4", dot: "#4CAF50" },
   { bg: "#FFF5DC", border: "#F5DFA0", dot: "#D4A017" },
-  { bg: "#DCF0FF", border: "#A8D8F5", dot: "#2563EB" },
+  { bg: "#DBEAFE", border: "#BFDBFE", dot: "#2563EB" },
   { bg: "#FFE4F0", border: "#F5B8D0", dot: "#D64F8B" },
 ];
 
@@ -54,8 +54,7 @@ const NoteCard = memo(function NoteCard({
       onClick={onClick}
       whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 30 } }}
       whileTap={{ scale: 0.98 }}
-      className="relative flex h-52 w-full flex-col overflow-hidden rounded-2xl text-left transition-shadow neu-card"
-      style={{ background: "#EDF4FF" }}
+      className="relative flex h-52 w-full flex-col overflow-hidden rounded-2xl bg-surface text-left transition-shadow neu-card"
     >
       {/* Colored header band */}
       <div
@@ -288,8 +287,7 @@ export default function FolderPage() {
                 return (
                   <div
                     key={i}
-                    className="h-52 overflow-hidden rounded-2xl neu-card"
-                    style={{ background: "#EDF4FF" }}
+                    className="h-52 overflow-hidden rounded-2xl bg-surface neu-card"
                   >
                     <div className="h-14 w-full animate-pulse" style={{ background: color.bg }} />
                     <div className="space-y-2 p-3.5">

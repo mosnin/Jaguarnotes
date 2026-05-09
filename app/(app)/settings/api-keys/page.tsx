@@ -122,17 +122,17 @@ function KeyRevealModal({
         </div>
 
         {/* Warning banner */}
-        <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/8 px-4 py-3">
-          <svg className="mt-px h-4 w-4 shrink-0 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-warn/30 bg-warn/[0.06] px-4 py-3">
+          <svg className="mt-px h-4 w-4 shrink-0 text-warn" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
           </svg>
-          <p className="text-xs font-medium text-amber-300">
+          <p className="text-xs font-medium text-warn">
             Save this key now — it will not be shown again. If you lose it, you will need to create a new key.
           </p>
         </div>
 
         {/* Key display */}
-        <div className="mb-4 rounded-xl border border-line-1 bg-base p-4 neu-inset">
+        <div className="mb-4 rounded-xl border border-line-1 bg-raised p-4 neu-inset">
           <div className="flex items-start justify-between gap-3">
             <code className="break-all font-mono text-sm font-medium text-ai leading-relaxed select-all">
               {rawKey}
@@ -320,7 +320,7 @@ function SetupCard() {
       {/* Server URL */}
       <div className="mb-5">
         <p className="mb-2 text-xs font-semibold text-ink-2">Server URL</p>
-        <div className="flex items-center gap-2 rounded-xl border border-line-1 bg-base px-4 py-2.5 neu-inset">
+        <div className="flex items-center gap-2 rounded-xl border border-line-1 bg-raised px-4 py-2.5 neu-inset">
           <code className="flex-1 truncate font-mono text-sm text-ai">{mcpUrl}</code>
           <CopyButton value={mcpUrl} />
         </div>
@@ -337,7 +337,7 @@ function SetupCard() {
           <p className="mb-2 text-xs text-ink-4">
             Add to your <code className="rounded bg-raised px-1 py-0.5 font-mono text-ink-3">claude_desktop_config.json</code>:
           </p>
-          <div className="relative rounded-xl border border-line-1 bg-base neu-inset">
+          <div className="relative rounded-xl border border-line-1 bg-raised neu-inset">
             <pre className="overflow-x-auto p-4 text-[11px] leading-relaxed text-ink-3">
               <code>{claudeConfig}</code>
             </pre>
@@ -356,7 +356,7 @@ function SetupCard() {
           <p className="mb-2 text-xs text-ink-4">
             Add to your <code className="rounded bg-raised px-1 py-0.5 font-mono text-ink-3">.cursor/mcp.json</code>:
           </p>
-          <div className="relative rounded-xl border border-line-1 bg-base neu-inset">
+          <div className="relative rounded-xl border border-line-1 bg-raised neu-inset">
             <pre className="overflow-x-auto p-4 text-[11px] leading-relaxed text-ink-3">
               <code>{cursorConfig}</code>
             </pre>

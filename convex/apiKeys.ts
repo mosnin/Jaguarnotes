@@ -1,16 +1,22 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { createHash, randomBytes } from "crypto";
 
-// Helper — throws if not authenticated
 async function requireUser(ctx: { auth: { getUserIdentity: () => Promise<{ subject: string } | null> } }) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Unauthenticated");
   return identity.subject;
 }
 
-function hashKey(key: string): string {
-  return createHash("sha256").update(key).digest("hex");
+async function hashKey(key: string): Promise<string> {
+  const data = new TextEncoder().encode(key);
+  const buf = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function randomHex(bytes: number): string {
+  const arr = new Uint8Array(bytes);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
 // List all active keys for user (never returns the actual key)
@@ -39,8 +45,8 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const userId = await requireUser(ctx);
     // Generate: jn_sk_ + 32 random hex chars
-    const rawKey = "jn_sk_" + randomBytes(16).toString("hex");
-    const keyHash = hashKey(rawKey);
+    const rawKey = "jn_sk_" + randomHex(16);
+    const keyHash = await hashKey(rawKey);
     // "jn_sk_" is 6 chars, take 6 more for a 12-char prefix like "jn_sk_XXXXXX"
     const keyPrefix = rawKey.slice(0, 12);
     await ctx.db.insert("apiKeys", {

@@ -55,8 +55,7 @@ export default function AccountPage() {
         {/* User info */}
         <div className="mb-5 flex items-center gap-3">
           <div
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold text-white bg-ai"
           >
             {user?.primaryEmailAddress?.emailAddress?.charAt(0).toUpperCase() ?? "U"}
           </div>
@@ -144,11 +143,7 @@ export default function AccountPage() {
                 onClick={handleDeleteData}
                 disabled={!confirmMatch || deleting}
                 className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                style={
-                  confirmMatch
-                    ? { background: "#DC2626", boxShadow: "2px 2px 6px rgba(220,38,38,0.3), -1px -1px 4px rgba(255,255,255,0.8)" }
-                    : { background: "#DC2626" }
-                }
+                style={{ background: "#DC2626" }}
               >
                 {deleting ? (
                   <>

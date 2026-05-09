@@ -45,7 +45,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#EDF4FF",
+  themeColor: "#F7F7F8",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -67,7 +67,7 @@ export default function RootLayout({
           <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
           <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         </head>
-        <body className="min-h-screen w-full antialiased" style={{ backgroundColor: "#EDF4FF", color: "#1B3652" }}>
+        <body className="min-h-screen w-full bg-app text-ink-1 antialiased">
           <ConvexClientProvider>{children}</ConvexClientProvider>
         </body>
       </html>

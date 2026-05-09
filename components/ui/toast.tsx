@@ -16,7 +16,7 @@ const BORDER_COLOR: Record<Toast["type"], string> = {
   success: "#16A34A",
   error:   "#DC2626",
   copy:    "#2563EB",
-  info:    "#7B9AB8",
+  info:    "var(--color-line-3)",
 };
 
 const LABEL: Record<Toast["type"], string> = {

@@ -64,8 +64,7 @@ export function SearchModal({ onDismiss, triggerRef }: SearchModalProps) {
         role="dialog"
         aria-modal="true"
         aria-label="Search notes"
-        className="mx-4 w-full max-w-lg overflow-hidden rounded-2xl border border-line-2 neu-lg"
-        style={{ background: "#EDF4FF" }}
+        className="mx-4 w-full max-w-lg overflow-hidden rounded-2xl border border-line-2 bg-surface neu-lg"
       >
         {/* Input row */}
         <div className="flex items-center gap-3 border-b border-line-1 px-4 py-3.5">
@@ -88,8 +87,7 @@ export function SearchModal({ onDismiss, triggerRef }: SearchModalProps) {
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="flex h-5 w-5 items-center justify-center rounded-full text-ink-4 hover:text-ink-2 transition-colors"
-              style={{ background: "#E2EEFF" }}
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-hover text-ink-4 hover:text-ink-2 transition-colors"
             >
               <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

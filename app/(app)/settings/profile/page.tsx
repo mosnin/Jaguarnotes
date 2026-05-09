@@ -65,8 +65,8 @@ export default function ProfileSettingsPage() {
             />
           ) : (
             <div
-              className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-bold text-white neu-sm"
-              style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
+              className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-bold text-white"
+              style={{ background: "#2563EB" }}
             >
               {(userName || userEmail || "U").charAt(0).toUpperCase()}
             </div>

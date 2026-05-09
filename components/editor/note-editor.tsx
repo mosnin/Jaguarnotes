@@ -732,7 +732,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
               <input
                 value={title}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                placeholder="Untitled"
+                placeholder="Note title…"
                 className="w-full bg-transparent text-2xl font-extrabold text-ink-1 placeholder-ink-4 outline-none leading-tight tracking-tight"
                 style={{ letterSpacing: "-0.02em" }}
               />
@@ -774,7 +774,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
                 When the AIWelcome is active we hide it visually but keep it in the DOM
                 so editor.insertBlocks() works for AI insertions. */}
             <div className={isEmpty ? "opacity-0 h-0 overflow-hidden" : ""}>
-              <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" slashMenu={false} />
+              <BlockNoteView editor={editor} onChange={handleEditorChange} theme="light" slashMenu={false} />
             </div>
 
             {/* Sub-notes — hidden on desktop when properties panel is open */}

@@ -11,7 +11,7 @@ const COLOR_OPTIONS = [
   { hex: "#FFE8DF", label: "Peach" },
   { hex: "#E3F5E1", label: "Mint" },
   { hex: "#FFF5DC", label: "Honey" },
-  { hex: "#DCF0FF", label: "Sky" },
+  { hex: "#DBEAFE", label: "Sky" },
   { hex: "#FFE4F0", label: "Rose" },
   { hex: "#E8F8FF", label: "Aqua" },
   { hex: "#F5F0FF", label: "Violet" },
