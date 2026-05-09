@@ -115,7 +115,7 @@ export function AIWelcome({ onInsert, onDismiss }: AIWelcomeProps) {
                   key={q.command}
                   {...buttonTap}
                   onClick={() => { setActive(q.command); setPhase("input"); }}
-                  className="group flex items-center justify-between rounded-lg border border-line-1 px-4 py-3 text-left transition-colors hover:border-line-2 hover:bg-raised"
+                  className="group flex items-center justify-between rounded-lg border border-line-1 px-4 py-3 text-left transition-all hover:border-line-2 hover:bg-hover neu-sm"
                 >
                   <span className="text-sm font-medium text-ink-1">{q.label}</span>
                   <span className="text-xs text-ink-4 transition-colors group-hover:text-ink-3">{q.sub}</span>
@@ -204,7 +204,7 @@ export function AIWelcome({ onInsert, onDismiss }: AIWelcomeProps) {
                     ? "bg-ok shadow-[0_0_6px_#30d158]"
                     : phase === "done" && error
                     ? "bg-error"
-                    : "animate-pulse bg-ai shadow-[0_0_6px_#7474ff]"
+                    : "animate-pulse bg-ai shadow-[0_0_6px_#2563EB]"
                 }`}
               />
               <span className="text-[10px] uppercase tracking-widest text-ink-3">

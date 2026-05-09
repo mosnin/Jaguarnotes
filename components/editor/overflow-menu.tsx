@@ -53,7 +53,7 @@ export function OverflowMenu({ note, anchorRef, onDismiss, onLinkNote, onShare, 
       animate="show"
       role="menu"
       style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 60 }}
-      className="w-52 overflow-hidden rounded-xl border border-line-3 bg-surface shadow-2xl shadow-black/70 py-1"
+      className="w-52 overflow-hidden rounded-xl border border-line-2 bg-surface neu-card py-1"
     >
       {showDeleteConfirm ? (
         <div className="px-4 py-3">

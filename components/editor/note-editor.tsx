@@ -9,6 +9,7 @@ import { BlockNoteView } from "@blocknote/mantine";
 import { PartialBlock } from "@blocknote/core";
 import "@blocknote/mantine/style.css";
 import { motion, AnimatePresence } from "framer-motion";
+import { buttonTap } from "@/lib/motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -20,12 +21,17 @@ import { NoteLinkPicker } from "./note-link-picker";
 import { OverflowMenu } from "./overflow-menu";
 import { SharePanel } from "./share-panel";
 import { PresenceAvatars } from "./presence-avatars";
+import { NoteCover } from "./note-cover";
+import { NotePropertiesPanel } from "./note-properties-panel";
+import { WordCountPill } from "./word-count-pill";
 import { useSidebar } from "@/components/app/sidebar-context";
 import { blocksToMarkdown } from "@/lib/blocks";
 import { toast } from "@/lib/toast";
 import { trackError } from "@/lib/telemetry";
 
 const EMOJIS = ["📝","💡","🎯","🔍","📊","✅","🚀","💬","📌","⚡","🌟","🎨","📅","🧠","💭","🔑","📈","🗒️","🔗","📋","🏗️","🧪","🎤","📣","🌱"];
+
+type NoteStatus = "draft" | "active" | "archived";
 
 interface NoteEditorProps {
   noteId: string;
@@ -93,6 +99,13 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     position: { top: number; left: number };
   } | null>(null);
 
+  // New state for upgraded editor features
+  const [showProperties, setShowProperties] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
+  const [coverColor, setCoverColor] = useState<string | undefined>(undefined);
+  const [wordCount, setWordCount] = useState(0);
+  const [noteStatus, setNoteStatus] = useState<NoteStatus | undefined>(undefined);
+
   const linkButtonRef = useRef<HTMLButtonElement>(null);
   const overflowButtonRef = useRef<HTMLButtonElement>(null);
   const saveAttemptRef = useRef(0);
@@ -121,12 +134,27 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
       if (note.aiBlockIds?.length) setAiBlockIds(new Set(note.aiBlockIds));
       setTags(note.tags ?? []);
       setEmoji(note.emoji ?? "");
+      setCoverColor(note.coverColor ?? undefined);
+      setNoteStatus((note.status as NoteStatus | undefined) ?? undefined);
 
       if (hasContent && editor) {
         try {
           const blocks = JSON.parse(note.content!) as PartialBlock[];
           if (Array.isArray(blocks) && blocks.length > 0) {
             editor.replaceBlocks(editor.document, blocks);
+            // Compute initial word count from loaded content
+            const text = blocks
+              .flatMap((b) => {
+                const c = b.content;
+                if (!Array.isArray(c)) return [];
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return (c as any[])
+                  .filter((i: any) => i.type === "text")
+                  .map((i: any) => i.text ?? "");
+              })
+              .join(" ")
+              .trim();
+            setWordCount(text ? text.split(/\s+/).length : 0);
           }
         } catch (err) {
           trackError("loadNoteContent", err);
@@ -200,6 +228,22 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
         return Array.isArray(c) && c.some((i) => i.type === "text" && (i as { text: string }).text.length > 0);
       });
     setIsEmpty(!hasContent);
+
+    // Live word count
+    const text = editor.document
+      .flatMap((b) => {
+        const c = b.content;
+        if (!Array.isArray(c)) return [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (c as any[])
+          .filter((i: any) => i.type === "text")
+          .map((i: any) => (i.text as string) ?? "");
+      })
+      .join(" ")
+      .trim();
+    const count = text ? text.split(/\s+/).length : 0;
+    setWordCount(count);
+
     scheduleSave(content);
   }
 
@@ -287,6 +331,16 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     router.push("/dashboard");
   }
 
+  async function handleCoverChange(color: string | undefined) {
+    setCoverColor(color);
+    await updateNote({ id: noteId as Id<"notes">, coverColor: color ?? null });
+  }
+
+  async function handleStatusChange(status: NoteStatus) {
+    setNoteStatus(status);
+    await updateNote({ id: noteId as Id<"notes">, status });
+  }
+
   // Unsaved-changes guard — warn if tab is closed while a save is in flight
   useEffect(() => {
     function handleBeforeUnload(e: BeforeUnloadEvent) {
@@ -309,6 +363,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
+        if (focusMode) { setFocusMode(false); return; }
         setAutocomplete(null);
         setSlashMenu(null);
         setSelectionToolbar(null);
@@ -347,7 +402,7 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [autocomplete, slashMenu]);
+  }, [autocomplete, slashMenu, focusMode]);
 
   // Selection toolbar — works on mouse AND touch.
   useEffect(() => {
@@ -435,8 +490,13 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
   }
 
   const aiBlockStyles = [...aiBlockIds]
-    .map((id) => `[data-id="${id}"] { border-left: 2px solid rgba(116,116,255,0.45) !important; padding-left: 14px !important; margin-left: -16px !important; }`)
+    .map((id) => `[data-id="${id}"] { border-left: 2px solid rgba(37,99,235,0.5) !important; padding-left: 14px !important; margin-left: -16px !important; }`)
     .join("");
+
+  // Resolved linked notes for properties panel
+  const linkedNotesResolved = (note?.linkedNoteIds ?? [])
+    .map((lid) => allNotes.find((n) => n._id === lid))
+    .filter(Boolean) as Array<{ _id: string; title?: string; emoji?: string }>;
 
   if (note === undefined) {
     // Still loading
@@ -465,285 +525,416 @@ export function NoteEditor({ noteId, initialCmd, initialTopic }: NoteEditorProps
     <div className="relative flex h-full w-full flex-col overflow-hidden">
       {aiBlockStyles && <style>{aiBlockStyles}</style>}
 
-      {/* Top bar */}
-      <div className="flex h-10 shrink-0 items-center gap-1 px-4 pt-[env(safe-area-inset-top)]">
-        <button
-          onClick={toggleSidebar}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
-          aria-label="Toggle sidebar"
-        >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-
-        {/* Breadcrumb — visible when this is a child note */}
-        {parentNote && (
-          <Link
-            href={`/notes/${parentNote._id}`}
-            className="ml-2 flex items-center gap-1 text-[11px] text-ink-4 transition-colors hover:text-ink-2"
+      {/* Top bar — hidden in focus mode */}
+      {!focusMode && (
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-line-1 bg-surface px-4 pt-[env(safe-area-inset-top)]">
+          <motion.button
+            {...buttonTap}
+            onClick={toggleSidebar}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-hover hover:text-ink-1"
+            aria-label="Toggle sidebar"
           >
-            <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            <span className="max-w-[120px] truncate">{parentNote.title || "Untitled"}</span>
-          </Link>
-        )}
+          </motion.button>
 
-        {/* Save status */}
-        <AnimatePresence mode="wait">
-          {saveStatus === "saving" && (
-            <motion.span key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-              className="ml-2 h-1.5 w-1.5 rounded-full bg-ink-1/20 animate-pulse" />
-          )}
-          {saveStatus === "saved" && (
-            <motion.span key="saved" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-              className="ml-2 text-[10px] text-ink-4">Saved</motion.span>
-          )}
-        </AnimatePresence>
-
-        <div className="ml-auto flex items-center gap-1.5">
-          {user && (
-            <PresenceAvatars
-              noteId={noteId}
-              currentUserId={user.id}
-              currentUserName={user.fullName ?? user.firstName ?? "User"}
-              currentUserImageUrl={user.imageUrl}
-            />
-          )}
-
-          {/* Undo / Redo */}
-          <div className="flex items-center gap-0.5">
-            <button
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              onClick={() => (editor as any)._tiptapEditor?.commands?.undo?.()}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
-              aria-label="Undo"
-              title="Undo (⌘Z)"
+          {/* Breadcrumb — visible when this is a child note */}
+          {parentNote && (
+            <Link
+              href={`/notes/${parentNote._id}`}
+              className="ml-2 flex items-center gap-1 text-[11px] text-ink-4 transition-colors hover:text-ink-2"
             >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 14L4 9l5-5M4 9h10.5a6.5 6.5 0 0 1 0 13H11" />
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
               </svg>
-            </button>
-            <button
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              onClick={() => (editor as any)._tiptapEditor?.commands?.redo?.()}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
-              aria-label="Redo"
-              title="Redo (⌘Y)"
-            >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 14l5-5-5-5m5 5H9.5a6.5 6.5 0 0 0 0 13H13" />
-              </svg>
-            </button>
-          </div>
+              <span className="max-w-[120px] truncate">{parentNote.title || "Untitled"}</span>
+            </Link>
+          )}
 
-          {/* AI trigger */}
-          <button
-            onClick={() => setSlashMenu({ query: "" })}
-            className="flex items-center gap-1 rounded border border-line-1 px-2 py-1 text-[11px] text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-2 min-h-[44px] md:min-h-[28px]"
-            aria-label="AI commands"
-          >
-            <span className="font-mono">/</span>
-            <span>AI</span>
-          </button>
-
-          {/* Overflow menu */}
-          <button
-            ref={overflowButtonRef}
-            onClick={() => setShowOverflowMenu((v) => !v)}
-            className={`flex items-center justify-center rounded-md text-lg transition-colors hover:bg-raised min-h-[44px] min-w-[44px] md:min-h-[28px] md:min-w-[28px] md:h-7 md:w-7 ${showOverflowMenu ? "text-ink-1 bg-raised" : "text-ink-4 hover:text-ink-2"}`}
-            aria-label="More options"
-          >
-            ···
-          </button>
-        </div>
-      </div>
-
-      {/* Editor */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
-        <div className="mx-auto w-full max-w-3xl px-4 pb-24 pt-6 md:px-12 md:pb-32 md:pt-14">
-
-          {/* Emoji + Title row */}
-          <div className="mb-3 flex min-w-0 items-start gap-3">
-            {/* Emoji picker */}
-            <div className="relative mt-2 shrink-0">
-              <button
-                onClick={() => setShowEmojiPicker((v) => !v)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-lg transition-colors hover:bg-raised"
-                title="Set emoji"
-              >
-                {emoji || <span className="text-sm text-ink-4">○</span>}
-              </button>
-              {showEmojiPicker && (
-                <div className="absolute left-0 top-10 z-50 grid w-56 grid-cols-5 gap-1 rounded-xl border border-line-2 bg-surface p-2 shadow-2xl shadow-black/60">
-                  {emoji && (
-                    <button onClick={() => pickEmoji("")} className="col-span-5 mb-1 rounded-md px-2 py-1 text-left text-[10px] text-ink-4 hover:bg-raised hover:text-ink-2">
-                      Remove emoji
-                    </button>
-                  )}
-                  {EMOJIS.map((e) => (
-                    <button key={e} onClick={() => pickEmoji(e)}
-                      className={`flex items-center justify-center rounded-md p-1.5 text-base transition-colors hover:bg-raised ${emoji === e ? "bg-raised" : ""}`}>
-                      {e}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Title */}
-            <input
-              value={title}
-              onChange={(e) => handleTitleChange(e.target.value)}
-              placeholder="Untitled"
-              className="min-w-0 flex-1 cursor-text border-b border-transparent bg-transparent text-3xl font-bold leading-tight tracking-tight text-ink-1 placeholder-ink-4 outline-none transition-colors hover:border-line-1 focus:border-transparent md:text-5xl"
-            />
-          </div>
-
-          {/* Tags */}
-          <div className="mb-8 flex flex-wrap items-center gap-1.5">
-            {tags.map((tag) => (
-              <span key={tag} className="flex items-center gap-1 rounded-full border border-line-1 px-2.5 py-0.5 text-xs text-ink-3">
-                {tag}
-                <button onClick={() => removeTag(tag)} className="ml-0.5 text-ink-4 transition-colors hover:text-ink-2">×</button>
-              </span>
-            ))}
-            <input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value.replace(",", ""))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(); }
-                if (e.key === "Backspace" && !tagInput && tags.length > 0) removeTag(tags[tags.length - 1]);
+          {/* Save status + status dot */}
+          <div className="ml-2 flex items-center gap-1.5">
+            {/* Status color dot */}
+            <span
+              className={`h-2 w-2 shrink-0 rounded-full ${noteStatus === "active" ? "animate-pulse" : ""}`}
+              style={{
+                backgroundColor:
+                  noteStatus === "active"
+                    ? "#16A34A"
+                    : noteStatus === "archived"
+                    ? "#D97706"
+                    : "#A8C2D8",
               }}
-              onBlur={addTag}
-              placeholder={tags.length === 0 ? "Add tags…" : ""}
-              className="min-w-[70px] bg-transparent text-xs text-ink-3 placeholder-ink-4 outline-none"
+              title={noteStatus ?? "active"}
             />
-          </div>
-
-          {/* First-note hint */}
-          {isEmpty && showHint && (
-            <p className="mb-6 animate-in fade-in text-sm text-ink-4 duration-700 select-none">
-              Press / for AI commands · Tab to expand any concept
-            </p>
-          )}
-
-          {isEmpty && (
-            <AIWelcome onInsert={handleAIInsert} onDismiss={() => setIsEmpty(false)} />
-          )}
-
-          <BlockNoteView
-            editor={editor}
-            onChange={handleEditorChange}
-            theme="dark"
-            slashMenu={false}
-          />
-
-          {/* Sub-notes — always rendered, Norman's affordance fix */}
-          <div className="mt-12 border-t border-line-1 pt-6">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-widest text-ink-4">Sub-notes</span>
-              {/* Only root notes can have sub-notes (2-level max) */}
-              {!note.parentId && (
-                <button
-                  onClick={handleNewSubNote}
-                  className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+            <AnimatePresence mode="wait">
+              {saveStatus === "saving" && (
+                <motion.span
+                  key="saving"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-[10px] text-ink-4 animate-pulse"
                 >
-                  <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-                  </svg>
-                  New sub-note
-                </button>
+                  Saving…
+                </motion.span>
               )}
-            </div>
-            {children.length > 0 && (
-              <div className="flex flex-col gap-1.5">
-                {children.map((child) => (
-                  <Link
-                    key={child._id}
-                    href={`/notes/${child._id}`}
-                    className="flex items-center gap-2 rounded-lg border border-line-1 px-3 py-2 text-sm text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-1"
-                  >
-                    {child.emoji && <span className="shrink-0">{child.emoji}</span>}
-                    <span className="truncate">{child.title || "Untitled"}</span>
-                  </Link>
-                ))}
-              </div>
-            )}
+              {saveStatus === "saved" && (
+                <motion.span
+                  key="saved"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-[10px] text-ok opacity-60"
+                >
+                  Saved
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Connections panel — symmetric: shows both outgoing and incoming */}
-          <div className="mt-8 border-t border-line-1 pb-16 pt-6">
-            <div className="mb-3 flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-widest text-ink-4">Connections</span>
-              {(backlinks.length + (note.linkedNoteIds?.length ?? 0)) > 0 && (
-                <span className="rounded-full bg-raised px-1.5 py-0.5 text-[9px] text-ink-3">
-                  {backlinks.length + (note.linkedNoteIds?.length ?? 0)}
-                </span>
-              )}
-            </div>
-
-            {/* Links to — outgoing */}
-            {(note.linkedNoteIds?.length ?? 0) > 0 && (
-              <div className="mb-4">
-                <p className="mb-2 text-[10px] text-ink-4">Links to</p>
-                <div className="flex flex-col gap-1.5">
-                  {(note.linkedNoteIds ?? []).map((lid) => {
-                    const linked = allNotes.find((n) => n._id === lid);
-                    if (!linked) return null;
-                    return (
-                      <Link
-                        key={lid}
-                        href={`/notes/${lid}`}
-                        className="flex items-center gap-2 rounded-lg border border-line-1 px-3 py-2 text-sm text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-1"
-                      >
-                        {linked.emoji && <span className="shrink-0">{linked.emoji}</span>}
-                        <span className="truncate">{linked.title || "Untitled"}</span>
-                        <span className="ml-auto shrink-0 text-[10px] text-ink-4">→</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
+          <div className="ml-auto flex items-center gap-1.5">
+            {user && (
+              <PresenceAvatars
+                noteId={noteId}
+                currentUserId={user.id}
+                currentUserName={user.fullName ?? user.firstName ?? "User"}
+                currentUserImageUrl={user.imageUrl}
+              />
             )}
 
-            {/* Linked from — incoming backlinks */}
-            {backlinks.length > 0 && (
-              <div className="mb-4">
-                <p className="mb-2 text-[10px] text-ink-4">Linked from</p>
+            {/* Undo / Redo */}
+            <div className="flex items-center gap-0.5">
+              <motion.button
+                {...buttonTap}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                onClick={() => (editor as any)._tiptapEditor?.commands?.undo?.()}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-hover hover:text-ink-1"
+                aria-label="Undo"
+                title="Undo (⌘Z)"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 14L4 9l5-5M4 9h10.5a6.5 6.5 0 0 1 0 13H11" />
+                </svg>
+              </motion.button>
+              <motion.button
+                {...buttonTap}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                onClick={() => (editor as any)._tiptapEditor?.commands?.redo?.()}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-hover hover:text-ink-1"
+                aria-label="Redo"
+                title="Redo (⌘Y)"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 14l5-5-5-5m5 5H9.5a6.5 6.5 0 0 0 0 13H13" />
+                </svg>
+              </motion.button>
+            </div>
+
+            {/* Focus mode button */}
+            <motion.button
+              {...buttonTap}
+              onClick={() => setFocusMode(true)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-hover hover:text-ink-1"
+              aria-label="Enter focus mode"
+              title="Focus mode"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+              </svg>
+            </motion.button>
+
+            {/* AI trigger — prominent blue pill */}
+            <motion.button
+              {...buttonTap}
+              onClick={() => setSlashMenu({ query: "" })}
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ai transition-all"
+              style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.18)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(37,99,235,0.13)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(37,99,235,0.08)"; }}
+              aria-label="AI commands"
+            >
+              <span>⚡</span>
+              <span>AI</span>
+            </motion.button>
+
+            {/* Properties button */}
+            <motion.button
+              {...buttonTap}
+              onClick={() => setShowProperties((v) => !v)}
+              className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${showProperties ? "text-ai bg-ai-hint neu-xs" : "text-ink-3 hover:bg-hover"}`}
+              aria-label="Toggle properties panel"
+              title="Properties"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.25 6.75h7.5M8.25 12h7.5m-7.5 5.25h7.5M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+              </svg>
+            </motion.button>
+
+            {/* Overflow menu */}
+            <button
+              ref={overflowButtonRef}
+              onClick={() => setShowOverflowMenu((v) => !v)}
+              className={`flex items-center justify-center rounded-md text-lg transition-colors hover:bg-raised min-h-[44px] min-w-[44px] md:min-h-[28px] md:min-w-[28px] md:h-7 md:w-7 ${showOverflowMenu ? "text-ink-1 bg-raised" : "text-ink-4 hover:text-ink-2"}`}
+              aria-label="More options"
+            >
+              ···
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Main content area — flex row to accommodate properties panel */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Editor scroll area */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div
+            className={`mx-auto w-full pb-24 md:pb-32 ${
+              focusMode
+                ? "max-w-2xl px-6 pt-16 md:px-8"
+                : "max-w-3xl px-4 pt-0 md:px-12"
+            }`}
+          >
+            {/* Cover */}
+            <NoteCover coverColor={coverColor} onCoverChange={handleCoverChange} />
+
+            {/* Emoji + Title row */}
+            <div className={`mb-3 flex min-w-0 items-start gap-3 ${focusMode ? "mt-8" : "mt-6"}`}>
+              {/* Emoji picker */}
+              <div className="relative mt-2 shrink-0">
+                <button
+                  onClick={() => setShowEmojiPicker((v) => !v)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-lg transition-colors hover:bg-raised"
+                  title="Set emoji"
+                >
+                  {emoji || <span className="text-sm text-ink-4">○</span>}
+                </button>
+                {showEmojiPicker && (
+                  <div className="absolute left-0 top-10 z-50 grid w-56 grid-cols-5 gap-1 rounded-xl border border-line-2 bg-surface p-2 neu-card">
+                    {emoji && (
+                      <button onClick={() => pickEmoji("")} className="col-span-5 mb-1 rounded-md px-2 py-1 text-left text-[10px] text-ink-4 hover:bg-raised hover:text-ink-2">
+                        Remove emoji
+                      </button>
+                    )}
+                    {EMOJIS.map((e) => (
+                      <button key={e} onClick={() => pickEmoji(e)}
+                        className={`flex items-center justify-center rounded-md p-1.5 text-base transition-colors hover:bg-raised ${emoji === e ? "bg-raised" : ""}`}>
+                        {e}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Title */}
+              <input
+                value={title}
+                onChange={(e) => handleTitleChange(e.target.value)}
+                placeholder="Untitled"
+                className="w-full bg-transparent text-2xl font-extrabold text-ink-1 placeholder-ink-4 outline-none leading-tight tracking-tight"
+                style={{ letterSpacing: "-0.02em" }}
+              />
+            </div>
+
+            {/* Tags — hidden on desktop when properties panel is open */}
+            <div className={`mb-8 flex flex-wrap items-center gap-1.5 ${showProperties ? "md:hidden" : ""}`}>
+              {tags.map((tag) => (
+                <span key={tag} className="flex items-center gap-1 rounded-full border border-line-1 px-2.5 py-0.5 text-xs text-ink-3">
+                  {tag}
+                  <button onClick={() => removeTag(tag)} className="ml-0.5 text-ink-4 transition-colors hover:text-ink-2">×</button>
+                </span>
+              ))}
+              <input
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value.replace(",", ""))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(); }
+                  if (e.key === "Backspace" && !tagInput && tags.length > 0) removeTag(tags[tags.length - 1]);
+                }}
+                onBlur={addTag}
+                placeholder={tags.length === 0 ? "Add tags…" : ""}
+                className="min-w-[70px] bg-transparent text-xs text-ink-3 placeholder-ink-4 outline-none"
+              />
+            </div>
+
+            {/* First-note hint */}
+            {isEmpty && showHint && (
+              <p className="mb-6 animate-in fade-in text-sm text-ink-4 duration-700 select-none">
+                Press / for AI commands · Tab to expand any concept
+              </p>
+            )}
+
+            {isEmpty && (
+              <AIWelcome onInsert={handleAIInsert} onDismiss={() => setIsEmpty(false)} />
+            )}
+
+            {/* Single BlockNoteView — always mounted so ProseMirror has one DOM binding.
+                When the AIWelcome is active we hide it visually but keep it in the DOM
+                so editor.insertBlocks() works for AI insertions. */}
+            <div className={isEmpty ? "opacity-0 h-0 overflow-hidden" : ""}>
+              <BlockNoteView editor={editor} onChange={handleEditorChange} theme="dark" slashMenu={false} />
+            </div>
+
+            {/* Sub-notes — hidden on desktop when properties panel is open */}
+            <div className={`mt-12 border-t border-line-1 pt-6 ${showProperties ? "md:hidden" : ""}`}>
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-widest text-ink-4">Sub-notes</span>
+                {/* Only root notes can have sub-notes (2-level max) */}
+                {!note.parentId && (
+                  <button
+                    onClick={handleNewSubNote}
+                    className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+                  >
+                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+                    </svg>
+                    New sub-note
+                  </button>
+                )}
+              </div>
+              {children.length > 0 && (
                 <div className="flex flex-col gap-1.5">
-                  {backlinks.map((bl) => (
+                  {children.map((child) => (
                     <Link
-                      key={bl._id}
-                      href={`/notes/${bl._id}`}
+                      key={child._id}
+                      href={`/notes/${child._id}`}
                       className="flex items-center gap-2 rounded-lg border border-line-1 px-3 py-2 text-sm text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-1"
                     >
-                      {bl.emoji && <span className="shrink-0">{bl.emoji}</span>}
-                      <span className="truncate">{bl.title || "Untitled"}</span>
-                      <span className="ml-auto shrink-0 text-[10px] text-ink-4">←</span>
+                      {child.emoji && <span className="shrink-0">{child.emoji}</span>}
+                      <span className="truncate">{child.title || "Untitled"}</span>
                     </Link>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            {/* Empty state — only when both sections are empty */}
-            {backlinks.length === 0 && (note.linkedNoteIds?.length ?? 0) === 0 && (
-              <p className="text-xs text-ink-4">
-                No connections yet.{" "}
-                <button
-                  onClick={() => setShowLinkPicker(true)}
-                  className="text-ink-3 underline decoration-ink-4 underline-offset-2 transition-colors hover:text-ink-1"
-                >
-                  Link another note
-                </button>{" "}
-                to build a knowledge graph.
-              </p>
-            )}
+            {/* Connections panel — hidden on desktop when properties panel is open */}
+            <div className={`mt-8 border-t border-line-1 pb-16 pt-6 ${showProperties ? "md:hidden" : ""}`}>
+              <div className="mb-3 flex items-center gap-2">
+                <span className="text-[10px] uppercase tracking-widest text-ink-4">Connections</span>
+                {(backlinks.length + (note.linkedNoteIds?.length ?? 0)) > 0 && (
+                  <span className="rounded-full bg-raised px-1.5 py-0.5 text-[9px] text-ink-3">
+                    {backlinks.length + (note.linkedNoteIds?.length ?? 0)}
+                  </span>
+                )}
+              </div>
+
+              {/* Links to — outgoing */}
+              {(note.linkedNoteIds?.length ?? 0) > 0 && (
+                <div className="mb-4">
+                  <p className="mb-2 text-[10px] text-ink-4">Links to</p>
+                  <div className="flex flex-col gap-1.5">
+                    {(note.linkedNoteIds ?? []).map((lid) => {
+                      const linked = allNotes.find((n) => n._id === lid);
+                      if (!linked) return null;
+                      return (
+                        <Link
+                          key={lid}
+                          href={`/notes/${lid}`}
+                          className="flex items-center gap-2 rounded-lg border border-line-1 px-3 py-2 text-sm text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-1"
+                        >
+                          {linked.emoji && <span className="shrink-0">{linked.emoji}</span>}
+                          <span className="truncate">{linked.title || "Untitled"}</span>
+                          <span className="ml-auto shrink-0 text-[10px] text-ink-4">→</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Linked from — incoming backlinks */}
+              {backlinks.length > 0 && (
+                <div className="mb-4">
+                  <p className="mb-2 text-[10px] text-ink-4">Linked from</p>
+                  <div className="flex flex-col gap-1.5">
+                    {backlinks.map((bl) => (
+                      <Link
+                        key={bl._id}
+                        href={`/notes/${bl._id}`}
+                        className="flex items-center gap-2 rounded-lg border border-line-1 px-3 py-2 text-sm text-ink-3 transition-colors hover:border-line-2 hover:bg-raised hover:text-ink-1"
+                      >
+                        {bl.emoji && <span className="shrink-0">{bl.emoji}</span>}
+                        <span className="truncate">{bl.title || "Untitled"}</span>
+                        <span className="ml-auto shrink-0 text-[10px] text-ink-4">←</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Empty state — only when both sections are empty */}
+              {backlinks.length === 0 && (note.linkedNoteIds?.length ?? 0) === 0 && (
+                <p className="text-xs text-ink-4">
+                  No connections yet.{" "}
+                  <button
+                    onClick={() => setShowLinkPicker(true)}
+                    className="text-ink-3 underline decoration-ink-4 underline-offset-2 transition-colors hover:text-ink-1"
+                  >
+                    Link another note
+                  </button>{" "}
+                  to build a knowledge graph.
+                </p>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Properties panel — desktop only, spring animation */}
+        <AnimatePresence>
+          {showProperties && !focusMode && (
+            <NotePropertiesPanel
+              createdAt={note._creationTime}
+              updatedAt={note.updatedAt}
+              wordCount={wordCount}
+              tags={tags}
+              onAddTag={async (tag) => {
+                const next = [...tags, tag];
+                setTags(next);
+                await updateNote({ id: noteId as Id<"notes">, tags: next });
+              }}
+              onRemoveTag={removeTag}
+              linkedNotes={linkedNotesResolved}
+              backlinks={backlinks.map((bl) => ({
+                _id: bl._id,
+                title: bl.title,
+                emoji: bl.emoji,
+              }))}
+              onLinkNote={() => setShowLinkPicker(true)}
+              childNotes={children.map((c) => ({
+                _id: c._id,
+                title: c.title,
+                emoji: c.emoji,
+              }))}
+              canAddSubNote={!note.parentId}
+              onNewSubNote={handleNewSubNote}
+              status={noteStatus}
+              onStatusChange={handleStatusChange}
+            />
+          )}
+        </AnimatePresence>
       </div>
+
+      {/* Focus mode exit button */}
+      <AnimatePresence>
+        {focusMode && (
+          <motion.button
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setFocusMode(false)}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-full border border-line-2 bg-surface px-4 py-2 text-xs text-ink-3 neu-sm"
+          >
+            Exit focus
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Word count pill */}
+      <WordCountPill wordCount={wordCount} />
 
       {autocomplete && (
         <AIAutocompleteOverlay

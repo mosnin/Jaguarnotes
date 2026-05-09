@@ -47,7 +47,7 @@ export function SelectionToolbar({ text, position, onCommand, onDismiss }: Selec
       initial="hidden"
       animate="show"
       style={style}
-      className="overflow-hidden rounded-xl border border-line-3 bg-surface shadow-2xl shadow-black/50"
+      className="overflow-hidden rounded-xl border border-line-2 bg-surface neu-card"
     >
       <div className="flex items-center justify-between border-b border-line-1 px-3 py-2">
         <span className="truncate text-[10px] uppercase tracking-widest text-ink-3">

@@ -1,37 +1,44 @@
 import { SignIn } from "@clerk/nextjs";
+import Link from "next/link";
 
 export default function SignInPage() {
   return (
-    <SignIn
-      appearance={{
-        variables: {
-          colorPrimary: "#ffffff",
-          colorBackground: "#111111",
-          colorInputBackground: "#0a0a0a",
-          colorInputText: "#ededed",
-          colorText: "#ededed",
-          colorTextSecondary: "#888888",
-          colorNeutral: "#888888",
-          borderRadius: "0.75rem",
-          fontFamily: "var(--font-geist-sans)",
-        },
-        elements: {
-          card: "bg-[#111] border border-[#1e1e1e] shadow-2xl",
-          headerTitle: "text-white",
-          headerSubtitle: "text-[#888]",
-          socialButtonsBlockButton: "bg-[#1a1a1a] border-[#1e1e1e] text-white hover:bg-[#222] transition-colors",
-          dividerLine: "bg-[#1e1e1e]",
-          dividerText: "text-[#444]",
-          formFieldLabel: "text-[#888] text-xs",
-          formFieldInput: "bg-[#0a0a0a] border-[#1e1e1e] text-white placeholder-[#333] focus:border-indigo-500",
-          formButtonPrimary: "bg-gradient-to-r from-indigo-500 to-violet-600 hover:opacity-90 transition-opacity",
-          footerActionLink: "text-white/70 hover:text-white",
-          identityPreviewText: "text-[#888]",
-          identityPreviewEditButton: "text-white/70",
-        },
-      }}
-      redirectUrl="/dashboard"
-      afterSignInUrl="/dashboard"
-    />
+    <div className="flex flex-col items-center">
+      <Link
+        href="/"
+        className="mb-4 flex items-center gap-1 text-sm text-ink-3 hover:text-ink-1 transition-colors"
+      >
+        ← Back to home
+      </Link>
+      <div className="neu-card rounded-2xl p-6">
+        <SignIn
+          appearance={{
+            variables: {
+              colorPrimary: '#2563EB',
+              colorBackground: '#EDF4FF',
+              colorText: '#1B3652',
+              colorTextSecondary: '#4A6D8C',
+              colorInputBackground: '#F4F8FF',
+              colorInputText: '#1B3652',
+              borderRadius: '12px',
+              fontFamily: 'var(--font-geist-sans), system-ui, sans-serif',
+            },
+            elements: {
+              card: 'shadow-none bg-transparent',
+              headerTitle: 'text-[#1B3652] font-bold',
+              headerSubtitle: 'text-[#7B9AB8]',
+              formButtonPrimary: 'bg-[#2563EB] hover:opacity-90 transition-opacity',
+              formFieldInput: 'border-[#C2D5EB] bg-[#F4F8FF] focus:border-[#2563EB] focus:ring-2 focus:ring-[rgba(37,99,235,0.12)]',
+              footerActionLink: 'text-[#2563EB] hover:text-[#1D4ED8]',
+              dividerText: 'text-[#7B9AB8]',
+              dividerLine: 'bg-[#D5E4F5]',
+              socialButtonsBlockButton: 'border-[#C2D5EB] bg-[#F4F8FF] hover:bg-[#E2EEFF] text-[#1B3652]',
+            },
+          }}
+          redirectUrl="/dashboard"
+          afterSignInUrl="/dashboard"
+        />
+      </div>
+    </div>
   );
 }

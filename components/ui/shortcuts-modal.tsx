@@ -79,7 +79,8 @@ export function ShortcutsModal({ onDismiss }: ShortcutsModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-app/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+      style={{ backgroundColor: "rgba(237, 244, 255, 0.65)" }}
       onPointerDown={(e) => { if (e.target === e.currentTarget) onDismiss(); }}
     >
       <motion.div
@@ -90,7 +91,7 @@ export function ShortcutsModal({ onDismiss }: ShortcutsModalProps) {
         aria-labelledby="shortcuts-title"
         tabIndex={-1}
         onKeyDown={onPanelKeyDown}
-        className="w-full max-w-sm overflow-hidden rounded-2xl border border-line-3 bg-surface shadow-2xl shadow-black/70"
+        className="w-full max-w-sm overflow-hidden rounded-2xl border border-line-2 bg-surface neu-card"
       >
         <div className="border-b border-line-1 px-5 py-4">
           <p id="shortcuts-title" className="text-sm font-semibold text-ink-1">Keyboard shortcuts</p>

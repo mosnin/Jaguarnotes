@@ -4,6 +4,16 @@ import { useRouter, usePathname } from "next/navigation";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useSidebar } from "./sidebar-context";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Home01Icon,
+  Note01Icon,
+  Add01Icon,
+  AiBrain01Icon,
+  Settings01Icon,
+} from "@hugeicons/core-free-icons";
+import { motion, AnimatePresence } from "framer-motion";
+import { springSnap } from "@/lib/motion";
 
 export function BottomNav() {
   const router = useRouter();
@@ -21,56 +31,102 @@ export function BottomNav() {
   }
 
   const isHome = pathname === "/dashboard";
+  const isSettings = pathname.startsWith("/settings");
   const isNotePage = pathname?.startsWith("/notes/");
 
   if (isNotePage) return null;
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 flex h-16 items-stretch border-t border-line-1 bg-surface md:hidden"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+    <nav
+      className="fixed inset-x-0 bottom-0 z-30 flex h-16 items-stretch border-t border-line-1 bg-surface/90 backdrop-blur-md md:hidden relative"
+      style={{
+        paddingBottom: "env(safe-area-inset-bottom)",
+        boxShadow: "0 -3px 16px #C5D5E8, 0 -1px 4px rgba(197,213,232,0.6)",
+      }}
+      aria-label="Main navigation"
+    >
+      {/* Top edge gradient separator */}
+      <div
+        className="absolute inset-x-0 top-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, #C5D5E8 30%, #C5D5E8 70%, transparent)",
+        }}
+      />
+
       <TabButton onClick={() => router.push("/dashboard")} active={isHome} label="Home">
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
+        <HugeiconsIcon icon={Home01Icon} size={22} strokeWidth={1.5} />
       </TabButton>
 
       <TabButton onClick={toggleSidebar} active={false} label="Notes">
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h7" />
-        </svg>
+        <HugeiconsIcon icon={Note01Icon} size={22} strokeWidth={1.5} />
       </TabButton>
 
-      <TabButton onClick={handleNew} active={false} label="New">
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-        </svg>
-      </TabButton>
+      {/* Centre new-note action */}
+      <motion.button
+        onClick={handleNew}
+        whileTap={{ scale: 0.90 }}
+        transition={springSnap}
+        aria-label="New note"
+        className="relative flex flex-1 flex-col items-center justify-center min-h-[44px]"
+      >
+        <span
+          className="flex h-11 w-11 items-center justify-center rounded-[18px] neu-btn"
+          style={{ background: "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)" }}
+        >
+          <HugeiconsIcon icon={Add01Icon} size={20} strokeWidth={2.5} color="white" />
+        </span>
+      </motion.button>
 
       <TabButton onClick={handleAI} active={false} label="AI">
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 001.357 2.059l.214.107a2.25 2.25 0 001.357.126l.214-.107A2.25 2.25 0 0019.5 8.818V3.104m-9.75 0A24.255 24.255 0 0112 3" />
-        </svg>
+        <HugeiconsIcon icon={AiBrain01Icon} size={22} strokeWidth={1.5} />
+      </TabButton>
+
+      <TabButton onClick={() => router.push("/settings")} active={isSettings} label="Settings">
+        <HugeiconsIcon icon={Settings01Icon} size={22} strokeWidth={1.5} />
       </TabButton>
     </nav>
   );
 }
 
-function TabButton({ onClick, active, label, children }: {
+function TabButton({
+  onClick,
+  active,
+  label,
+  children,
+}: {
   onClick: () => void;
   active: boolean;
   label: string;
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <motion.button
       onClick={onClick}
+      whileTap={{ scale: 0.88 }}
+      transition={springSnap}
       aria-label={label}
-      className={`flex flex-1 flex-col items-center justify-center gap-1 min-h-[44px] transition-colors ${
+      aria-current={active ? "page" : undefined}
+      className={`relative flex flex-1 flex-col items-center justify-center gap-0.5 min-h-[44px] transition-colors ${
         active ? "text-ai" : "text-ink-4 hover:text-ink-2"
       }`}
     >
-      {children}
-      <span className="text-[10px]">{label}</span>
-    </button>
+      {/* Active indicator dot above icon */}
+      <AnimatePresence>
+        {active && (
+          <motion.span
+            key="dot"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={springSnap}
+            className="absolute top-1 h-1 w-1 rounded-full"
+            style={{ backgroundColor: "#2563EB" }}
+          />
+        )}
+      </AnimatePresence>
+      <span className={active ? "text-ai" : ""}>{children}</span>
+      <span className={`text-[9px] font-semibold ${active ? "text-ai" : "text-ink-4"}`}>{label}</span>
+    </motion.button>
   );
 }
