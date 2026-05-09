@@ -107,7 +107,7 @@ export function PresenceAvatars({
             transition={springSnap}
             className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-[9px] font-bold text-ink-3"
             style={{
-              backgroundColor: "#E2EEFF",
+              backgroundColor: "var(--color-raised)",
               marginLeft: "-8px",
               zIndex: 0,
               direction: "ltr",

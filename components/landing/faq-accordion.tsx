@@ -25,8 +25,7 @@ export function FaqAccordion() {
             <button
               type="button"
               onClick={() => setOpenIdx(isOpen ? null : idx)}
-              className="flex w-full cursor-pointer items-center justify-between px-5 py-4 text-sm font-semibold select-none text-left"
-              style={{ color: "#1B3652" }}
+              className="flex w-full cursor-pointer items-center justify-between px-5 py-4 text-sm font-semibold select-none text-left text-ink-1"
               aria-expanded={isOpen}
             >
               <span>{faq.q}</span>
@@ -36,7 +35,6 @@ export function FaqAccordion() {
                 stroke="currentColor"
                 viewBox="0 0 24 24"
                 style={{
-                  color: "#7B9AB8",
                   transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
                   transition: "transform 0.2s cubic-bezier(0.4,0,0.2,1)",
                 }}
@@ -52,7 +50,7 @@ export function FaqAccordion() {
               }}
             >
               <div style={{ overflow: "hidden" }}>
-                <p className="px-5 pb-5 text-sm leading-relaxed" style={{ color: "#4A6D8C" }}>
+                <p className="px-5 pb-5 text-sm leading-relaxed text-ink-2">
                   {faq.a}
                 </p>
               </div>

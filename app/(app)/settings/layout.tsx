@@ -69,32 +69,27 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
       <div className="flex flex-1 gap-0 overflow-hidden">
         {/* Desktop left nav */}
-        <nav
-          className="hidden w-56 shrink-0 flex-col gap-1 border-r border-line-1 px-3 py-5 md:flex"
-          style={{ borderRight: "1px solid", borderImage: "linear-gradient(to bottom, #D5E4F5, #EDF4FF) 1" }}
-        >
+        <nav className="hidden w-56 shrink-0 flex-col gap-1 border-r border-line-1 px-3 py-5 md:flex">
           {NAV.map((item) => {
             const active = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all"
-                style={active ? {
-                  background: "rgba(37,99,235,0.07)",
-                  color: "#2563EB",
-                  boxShadow: "1px 1px 3px #C5D5E8, -1px -1px 3px #FFFFFF"
-                } : { color: "#4A6D8C" }}
+                className={`relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+                  active
+                    ? "bg-ai/[0.06] text-ai"
+                    : "text-ink-3 hover:bg-raised hover:text-ink-1"
+                }`}
               >
                 {active && (
                   <motion.span
                     layoutId="settings-nav-indicator"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full"
-                    style={{ backgroundColor: "#2563EB" }}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-r-full bg-ai"
                     transition={springSnap}
                   />
                 )}
-                <span style={active ? { color: "#2563EB" } : { color: "#7B9AB8" }}>{item.icon}</span>
+                <span className={active ? "text-ai" : "text-ink-4"}>{item.icon}</span>
                 {item.label}
               </Link>
             );

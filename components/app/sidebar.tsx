@@ -148,7 +148,7 @@ export function Sidebar() {
                         }`}
                         style={
                           isActive
-                            ? { background: "rgba(37,99,235,0.07)", color: "#2563EB", borderLeft: `3px solid ${folder.color ?? '#C2D5EB'}`, paddingLeft: '10px', paddingRight: '12px' }
+                            ? { background: "rgba(37,99,235,0.07)", color: "#2563EB", borderLeft: `3px solid ${folder.color ?? "var(--color-line-3)"}`, paddingLeft: '10px', paddingRight: '12px' }
                             : { borderLeft: '3px solid transparent', paddingLeft: '10px', paddingRight: '12px' }
                         }
                       >

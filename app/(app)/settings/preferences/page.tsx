@@ -36,19 +36,11 @@ function Toggle({
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className="relative flex h-6 w-11 shrink-0 items-center rounded-full transition-all duration-200"
-        style={{
-          background: checked ? "#2563EB" : "#C2D5EB",
-          boxShadow: checked
-            ? "inset 1px 1px 3px rgba(37,99,235,0.4)"
-            : "inset 1px 1px 4px #B0C8E0, inset -1px -1px 3px #FFFFFF",
-        }}
+        style={{ background: checked ? "#2563EB" : "var(--color-line-3)" }}
       >
         <span
-          className="absolute h-5 w-5 rounded-full bg-white transition-transform duration-200"
-          style={{
-            transform: checked ? "translateX(21px)" : "translateX(2px)",
-            boxShadow: "1px 1px 3px rgba(0,0,0,0.15)",
-          }}
+          className="absolute h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200"
+          style={{ transform: checked ? "translateX(21px)" : "translateX(2px)" }}
         />
       </button>
     </label>
